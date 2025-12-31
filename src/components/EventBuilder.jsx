@@ -302,7 +302,7 @@ export default function EventBuilder({ event, onBack }) {
         }
     };
 
-    const agendaUrl = `${window.location.origin}/#/agenda/${event.event_id}`;
+    const agendaUrl = `${window.location.href.split('#')[0].replace(/\/$/, '')}/#/agenda/${event.event_id}`;
 
     const [copied, setCopied] = useState(false);
     const handleCopy = () => {

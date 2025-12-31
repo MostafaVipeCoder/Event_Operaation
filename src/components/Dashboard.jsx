@@ -146,7 +146,7 @@ export default function Dashboard() {
                                         <span>تعديل</span>
                                     </button>
                                     <a
-                                        href={`/#/agenda/${event.event_id}`}
+                                        href={`#/agenda/${event.event_id}`}
                                         target="_blank"
                                         className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                                     >
