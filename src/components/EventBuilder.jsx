@@ -327,25 +327,25 @@ export default function EventBuilder({ event, onBack }) {
             {/* Header */}
             <div className="bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 w-full md:w-auto">
                             <button
                                 onClick={onBack}
                                 className="p-2 hover:bg-gray-100 rounded-lg transition"
                             >
                                 <ArrowLeft size={24} />
                             </button>
-                            <div>
-                                <h1 className="text-2xl font-light text-gray-900 truncate max-w-[300px]">
+                            <div className="flex-1 md:flex-none min-w-0">
+                                <h1 className="text-xl md:text-2xl font-light text-gray-900 truncate">
                                     {eventDetails.event_name || '...'}
                                 </h1>
                                 <p className="text-gray-500 text-sm">تعديل الأجندة</p>
                             </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                             <button
                                 onClick={handleCopy}
-                                className={`flex items-center gap-2 px-6 py-3 border rounded-lg transition ${copied
+                                className={`flex items-center justify-center gap-2 px-6 py-3 border rounded-lg transition ${copied
                                     ? 'bg-green-50 border-green-200 text-green-600'
                                     : 'border-gray-300 hover:bg-gray-50'
                                     }`}
@@ -357,7 +357,7 @@ export default function EventBuilder({ event, onBack }) {
                                 href={agendaUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+                                className="flex items-center justify-center gap-2 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition"
                             >
                                 <ExternalLink size={20} />
                                 <span>عرض الأجندة</span>
@@ -366,10 +366,10 @@ export default function EventBuilder({ event, onBack }) {
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex gap-4 mt-6 border-b">
+                    <div className="flex gap-4 mt-6 border-b overflow-x-auto">
                         <button
                             onClick={() => setActiveTab('days')}
-                            className={`pb-3 px-4 border-b-2 transition ${activeTab === 'days'
+                            className={`pb-3 px-4 border-b-2 transition whitespace-nowrap ${activeTab === 'days'
                                 ? 'border-black text-black'
                                 : 'border-transparent text-gray-500 hover:text-gray-700'
                                 }`}
@@ -378,7 +378,7 @@ export default function EventBuilder({ event, onBack }) {
                         </button>
                         <button
                             onClick={() => setActiveTab('images')}
-                            className={`pb-3 px-4 border-b-2 transition ${activeTab === 'images'
+                            className={`pb-3 px-4 border-b-2 transition whitespace-nowrap ${activeTab === 'images'
                                 ? 'border-black text-black'
                                 : 'border-transparent text-gray-500 hover:text-gray-700'
                                 }`}
@@ -397,7 +397,7 @@ export default function EventBuilder({ event, onBack }) {
                         <div className="bg-white rounded-lg border p-6">
                             <h3 className="text-lg font-medium mb-4">إضافة يوم جديد</h3>
                             <div className="flex flex-col gap-2">
-                                <div className="flex gap-4">
+                                <div className="flex flex-col md:flex-row gap-4">
                                     <div className="flex-1 relative">
                                         <input
                                             type="text"
@@ -441,34 +441,36 @@ export default function EventBuilder({ event, onBack }) {
                         {/* Days List */}
                         {days.map((day) => (
                             <div key={day.day_id} className="bg-white rounded-lg border p-6">
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b md:border-none pb-4 md:pb-0">
                                     {editingDayId === day.day_id ? (
-                                        <div className="flex flex-1 gap-2 items-center">
+                                        <div className="flex flex-col md:flex-row flex-1 gap-2 md:items-center">
                                             <input
                                                 type="text"
                                                 value={editDayName}
                                                 onChange={(e) => setEditDayName(e.target.value)}
-                                                className="border rounded px-2 py-1"
+                                                className="border rounded px-2 py-1 w-full md:w-auto"
                                                 autoFocus
                                             />
                                             <input
                                                 type="date"
                                                 value={editDayDate.split('T')[0]}
                                                 onChange={(e) => setEditDayDate(e.target.value)}
-                                                className="border rounded px-2 py-1"
+                                                className="border rounded px-2 py-1 w-full md:w-auto"
                                             />
-                                            <button
-                                                onClick={handleUpdateDay}
-                                                className="p-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
-                                            >
-                                                <Save size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => setEditingDayId(null)}
-                                                className="p-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                                            >
-                                                ✕
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={handleUpdateDay}
+                                                    className="p-1 bg-green-100 text-green-700 rounded hover:bg-green-200 flex-1 md:flex-none justify-center flex"
+                                                >
+                                                    <Save size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => setEditingDayId(null)}
+                                                    className="p-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex-1 md:flex-none justify-center flex"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="flex-1">
@@ -485,13 +487,13 @@ export default function EventBuilder({ event, onBack }) {
                                             <p className="text-gray-500 text-sm">{formatDate(day.day_date)}</p>
                                         </div>
                                     )}
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 w-full md:w-auto">
                                         <button
                                             onClick={() => handleOpenSlotModal(day.day_id)}
-                                            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition flex items-center gap-2"
+                                            className="flex-1 md:flex-none px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"
                                         >
                                             <Plus size={16} />
-                                            إضافة Slot
+                                            <span>إضافة Slot</span>
                                         </button>
                                         <button
                                             onClick={() => handleDeleteDay(day.day_id)}
@@ -508,9 +510,9 @@ export default function EventBuilder({ event, onBack }) {
                                         slots[day.day_id].map((slot) => (
                                             <div
                                                 key={slot.slot_id}
-                                                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                                                className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 rounded-lg gap-4"
                                             >
-                                                <div className="flex-1 flex flex-col md:flex-row md:items-center gap-4">
+                                                <div className="flex-1 flex flex-col md:flex-row md:items-center gap-4 w-full">
                                                     {/* Time */}
                                                     <div className="flex items-center gap-2 text-sm text-gray-600 min-w-[140px]">
                                                         <Clock size={14} />
@@ -521,7 +523,7 @@ export default function EventBuilder({ event, onBack }) {
 
                                                     {/* Title */}
                                                     <div className="flex-1 min-w-[200px]">
-                                                        <p className="font-medium text-gray-900">{slot.slot_title}</p>
+                                                        <p className="font-medium text-gray-900 break-words">{slot.slot_title}</p>
                                                     </div>
 
                                                     {/* Presenter */}
@@ -535,11 +537,11 @@ export default function EventBuilder({ event, onBack }) {
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                                                     {slot.presenter_name && (
                                                         <button
                                                             onClick={() => handleTogglePresenter(slot)}
-                                                            className={`p-2 rounded-lg transition border ${slot.show_presenter
+                                                            className={`p-2 rounded-lg transition border flex-1 md:flex-none justify-center flex ${slot.show_presenter
                                                                 ? 'text-green-600 bg-green-50 border-green-200 hover:bg-green-100'
                                                                 : 'text-gray-400 bg-gray-50 border-gray-200 hover:bg-gray-100'
                                                                 }`}
@@ -550,14 +552,14 @@ export default function EventBuilder({ event, onBack }) {
                                                     )}
                                                     <button
                                                         onClick={() => handleEditSlot(slot)}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-200"
+                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-200 flex-1 md:flex-none justify-center flex"
                                                         title="تعديل"
                                                     >
                                                         <Edit2 size={18} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteSlot(slot.slot_id)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-200"
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-200 flex-1 md:flex-none justify-center flex"
                                                         title="حذف"
                                                     >
                                                         <Trash2 size={18} />

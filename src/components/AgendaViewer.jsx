@@ -135,9 +135,9 @@ export default function AgendaViewer({ eventId }) {
                                     </div>
 
                                     {/* Content */}
-                                    <div className="flex-1">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <h3 className="text-xl font-medium text-gray-900">
+                                    <div className="flex-1 w-full">
+                                        <div className="flex flex-wrap items-center gap-2 mb-2 md:mb-0">
+                                            <h3 className="text-lg md:text-xl font-medium text-gray-900 break-words w-full md:w-auto">
                                                 {slot.slot_title}
                                             </h3>
                                             {slot.presenter_name && slot.show_presenter && (

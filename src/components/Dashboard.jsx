@@ -82,14 +82,14 @@ export default function Dashboard() {
             {/* Header */}
             <div className="bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 py-6">
-                    <div className="flex items-center justify-between">
-                        <div>
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="text-center md:text-right">
                             <h1 className="text-3xl font-light text-gray-900">Event Agenda Builder</h1>
                             <p className="text-gray-500 mt-1">إدارة الأجندات للفعاليات</p>
                         </div>
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition"
+                            className="w-full md:w-auto flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition"
                         >
                             <Plus size={20} />
                             <span>انشاء أجندة جديدة</span>
@@ -137,10 +137,10 @@ export default function Dashboard() {
                                     </span>
                                 </div>
 
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => handleEditEvent(event.event_id)}
-                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition min-w-[100px]"
                                     >
                                         <Edit2 size={16} />
                                         <span>تعديل</span>
