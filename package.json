@@ -1,6 +1,7 @@
 {
   "name": "agenda-builder",
   "private": true,
+  "homepage": "https://habebnora.github.io/agenda-builder/",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
