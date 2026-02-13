@@ -236,10 +236,10 @@ const CompanyPortal = () => {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-4xl mx-auto px-4 py-12">
+            <div className="w-full px-4 py-12">
                 <div className="flex flex-col gap-12">
-                    {/* Form Section (Top) */}
-                    <div>
+                    {/* Form Section (Top) - Constrained */}
+                    <div className="max-w-4xl mx-auto w-full">
                         <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-200 p-8 md:p-12">
                             <h2 className="text-3xl font-black text-slate-800 mb-8 tracking-tight">Company Information</h2>
 
@@ -261,10 +261,10 @@ const CompanyPortal = () => {
                         </div>
                     </div>
 
-                    {/* Preview Section (Bottom) */}
-                    <div>
-                        <div className="space-y-6">
-                            <div className="bg-blue-50/50 rounded-3xl p-6 border border-blue-100">
+                    {/* Preview Section (Bottom) - Unconstrained / Full Width */}
+                    <div className="w-full">
+                        <div className="space-y-6 max-w-[1920px] mx-auto">
+                            <div className="max-w-4xl mx-auto bg-blue-50/50 rounded-3xl p-6 border border-blue-100">
                                 <h3 className="text-lg font-black text-blue-900 mb-2 flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
                                     Live Preview
@@ -281,8 +281,8 @@ const CompanyPortal = () => {
                         </div>
                     </div>
 
-                    {/* Submit Button Section */}
-                    <div>
+                    {/* Submit Button Section - Constrained */}
+                    <div className="max-w-4xl mx-auto w-full">
                         <button
                             onClick={handleSubmit}
                             disabled={submitting}

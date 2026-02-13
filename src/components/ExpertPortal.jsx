@@ -205,10 +205,10 @@ const ExpertPortal = () => {
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 py-12">
+            <div className="w-full px-4 py-12">
                 <div className="flex flex-col gap-12">
-                    {/* Form Section (Top) */}
-                    <div>
+                    {/* Form Section (Top) - Constrained */}
+                    <div className="max-w-4xl mx-auto w-full">
                         <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-200 p-8 md:p-12">
                             <h2 className="text-3xl font-black text-slate-800 mb-8 tracking-tight">Expert Information</h2>
 
@@ -230,10 +230,10 @@ const ExpertPortal = () => {
                         </div>
                     </div>
 
-                    {/* Preview Section (Bottom) */}
-                    <div>
-                        <div className="space-y-6">
-                            <div className="bg-purple-50/50 rounded-3xl p-6 border border-purple-100">
+                    {/* Preview Section (Bottom) - Unconstrained / Full Width */}
+                    <div className="w-full">
+                        <div className="space-y-6 max-w-[1920px] mx-auto">
+                            <div className="max-w-4xl mx-auto bg-purple-50/50 rounded-3xl p-6 border border-purple-100">
                                 <h3 className="text-lg font-black text-purple-900 mb-2 flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
                                     Live Preview
@@ -250,8 +250,8 @@ const ExpertPortal = () => {
                         </div>
                     </div>
 
-                    {/* Submit Button Section */}
-                    <div>
+                    {/* Submit Button Section - Constrained */}
+                    <div className="max-w-4xl mx-auto w-full">
                         <button
                             onClick={handleSubmit}
                             disabled={submitting}
