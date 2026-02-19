@@ -24,11 +24,9 @@ export default function ExpertViewer() {
                 setEvent(eventData);
                 setExperts(expertsData || []);
 
-                // Load custom theme
-                const savedTheme = localStorage.getItem(`event_theme_${eventId}`);
-                if (savedTheme) {
-                    const parsed = JSON.parse(savedTheme);
-                    if (parsed.expertsColor) setThemeColor(parsed.expertsColor);
+                // Load custom theme from Supabase event data
+                if (eventData?.experts_color) {
+                    setThemeColor(eventData.experts_color);
                 }
             } catch (e) {
                 console.error('Failed to sync visionary grid:', e);

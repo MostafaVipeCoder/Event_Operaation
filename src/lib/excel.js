@@ -8,30 +8,25 @@ export const generateAgendaTemplate = () => {
     // 1. Days Sheet Data
     const daysData = [
         ['Day Name', 'Date (YYYY-MM-DD)'],
-        ['Day 1', '2026-02-11'],
-        ['Day 2', '2026-02-12']
+        ['Day 1', '2026-01-01']
     ];
 
     // 2. Agenda Slots Sheet Data
     const slotsData = [
         ['Day Name', 'Slot Title', 'Start Time (HH:mm)', 'End Time (HH:mm)', 'Presenter Name', 'Show Presenter (TRUE/FALSE)'],
-        ['Day 1', 'Opening Ceremony', '09:00', '10:00', 'John Doe', 'TRUE'],
-        ['Day 1', 'Keynote Speech', '10:00', '11:00', 'Jane Smith', 'TRUE'],
-        ['Day 2', 'Workshop A', '14:00', '16:00', 'Alice Brown', 'FALSE']
+        ['Day 1', 'Sample Slot', '09:00', '10:00', 'Presenter Name', 'TRUE']
     ];
 
     // 3. Experts Sheet Data
     const expertsData = [
         ['Name', 'Title', 'Bio', 'LinkedIn URL'],
-        ['Jane Doe', 'CEO @ Startup', 'Entrepreneur and tech enthusiast', 'https://linkedin.com/in/janedoe'],
-        ['Robert Smith', 'Product Manager', 'PM with 10 years of experience', 'https://linkedin.com/in/robertsmith']
+        ['Example Expert', 'CEO @ Example', 'A short bio about the expert', 'https://linkedin.com/in/example']
     ];
 
     // 4. Companies Sheet Data
     const companiesData = [
         ['Company Name', 'Founder', 'Governorate', 'Industry'],
-        ['Tech Innovators', 'Alice Brown', 'Cairo', 'Software'],
-        ['Green Energy', 'Bob Wilson', 'Alexandria', 'Renewable Energy']
+        ['Example Company', 'Founder Name', 'City', 'Tech']
     ];
 
     const wb = XLSX.utils.book_new();

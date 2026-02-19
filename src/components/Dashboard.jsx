@@ -110,7 +110,7 @@ export default function Dashboard() {
                 {/* Stats / Welcome Section */}
                 <div className="mb-10">
                     <h2 className="text-3xl font-extrabold text-[#0d0e0e] mb-2">Welcome Back</h2>
-                    <p className="text-slate-500">You have {events.length} active event agendas under your management.</p>
+                    <p className="text-slate-500">You have {events.length} active event under your management.</p>
                 </div>
 
                 {/* Grid */}

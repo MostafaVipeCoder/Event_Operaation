@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox } from 'lucide-react';
-import { getEvent } from '../lib/api';
+import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet } from 'lucide-react';
+import { getEvent, updateEvent } from '../lib/api';
+import SyncButton from './SyncButton';
 
 export default function EventDashboard() {
     const { eventId } = useParams();
@@ -14,22 +15,40 @@ export default function EventDashboard() {
     const [startupsColor, setStartupsColor] = useState('#059669'); // Default Emerald
     const [themeSaved, setThemeSaved] = useState(false);
 
+    // Sync Metadata State
+    const [gsheetsUrl, setGsheetsUrl] = useState('');
+    const [isSavingUrl, setIsSavingUrl] = useState(false);
+
     useEffect(() => {
         loadEventDetails();
-        // Load saved theme settings
-        const savedTheme = localStorage.getItem(`event_theme_${eventId}`);
-        if (savedTheme) {
-            const parsed = JSON.parse(savedTheme);
-            if (parsed.expertsColor) setExpertsColor(parsed.expertsColor);
-            if (parsed.startupsColor) setStartupsColor(parsed.startupsColor);
-        }
     }, [eventId]);
 
-    const saveTheme = () => {
-        const themeData = { expertsColor, startupsColor };
-        localStorage.setItem(`event_theme_${eventId}`, JSON.stringify(themeData));
-        setThemeSaved(true);
-        setTimeout(() => setThemeSaved(false), 2000);
+    const saveTheme = async () => {
+        try {
+            const updates = {
+                experts_color: expertsColor,
+                startups_color: startupsColor
+            };
+            await updateEvent(eventId, updates);
+            setThemeSaved(true);
+            setTimeout(() => setThemeSaved(false), 2000);
+        } catch (error) {
+            console.error('Error saving theme:', error);
+            alert('Failed to save theme settings.');
+        }
+    };
+
+    const handleSaveGsheetsUrl = async () => {
+        try {
+            setIsSavingUrl(true);
+            await updateEvent(eventId, { gsheets_url: gsheetsUrl });
+            setEvent(prev => ({ ...prev, gsheets_url: gsheetsUrl }));
+        } catch (error) {
+            console.error('Error saving Google Sheets URL:', error);
+            alert('Failed to save sync configuration.');
+        } finally {
+            setIsSavingUrl(false);
+        }
     };
 
     const loadEventDetails = async () => {
@@ -37,6 +56,10 @@ export default function EventDashboard() {
             setLoading(true);
             const data = await getEvent(eventId);
             setEvent(data);
+            // Load theme from DB
+            if (data.experts_color) setExpertsColor(data.experts_color);
+            if (data.startups_color) setStartupsColor(data.startups_color);
+            if (data.gsheets_url) setGsheetsUrl(data.gsheets_url);
         } catch (error) {
             console.error('Error loading event:', error);
         } finally {
@@ -69,7 +92,7 @@ export default function EventDashboard() {
 
     const modules = [
         {
-            title: "Agenda Pulse",
+            title: "Agenda Builder",
             description: "Control the rhythm of your event schedule.",
             icon: <Calendar size={32} className="text-[#1a27c9]" />,
             manageLink: `/event/${eventId}/agenda`,
@@ -79,7 +102,7 @@ export default function EventDashboard() {
             btnColor: "bg-[#1a27c9] text-white shadow-indigo-100"
         },
         {
-            title: "Expert Network",
+            title: "Experts List",
             description: "Curate the thinkers and visionaries of the stage.",
             icon: <Users size={32} style={{ color: expertsColor }} />,
             manageLink: `/event/${eventId}/experts`,
@@ -89,7 +112,7 @@ export default function EventDashboard() {
             btnColor: "text-white"
         },
         {
-            title: "Startup Roster",
+            title: "Companies List",
             description: "Showcase the builders and innovators of tomorrow.",
             icon: <Rocket size={32} style={{ color: startupsColor }} />,
             manageLink: `/event/${eventId}/startups`,
@@ -99,7 +122,7 @@ export default function EventDashboard() {
             btnColor: "text-white"
         },
         {
-            title: "Registration Portals",
+            title: "Registration Form Builder",
             description: "Review and approve incoming registration requests.",
             icon: <Inbox size={32} className="text-orange-600" />,
             manageLink: `/event/${eventId}/submissions`,
@@ -127,6 +150,7 @@ export default function EventDashboard() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
+                            <SyncButton eventId={eventId} onSyncComplete={() => window.location.reload()} />
                             <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${event.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-500 border border-slate-200'
                                 }`}>
                                 • {event.status || 'Active'}
@@ -146,7 +170,48 @@ export default function EventDashboard() {
                             </div>
                             <h2 className="text-3xl font-black text-[#0d0e0e] tracking-tight">Event Modules</h2>
                         </div>
-                        <p className="text-slate-500 font-medium">Coordinate the core elements of your premium event experience.</p>
+                        <p className="text-slate-500 font-medium">Coordinate the core elements of your event experience.</p>
+                    </div>
+                </div>
+
+                {/* Cloud Sync Configuration */}
+                <div className="mb-12 bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="bg-indigo-50 p-2 rounded-xl text-[#1a27c9]">
+                                    <RefreshCw size={18} />
+                                </div>
+                                <h3 className="text-xl font-black text-[#0d0e0e] tracking-tight">Cloud Sync Source</h3>
+                            </div>
+                            <p className="text-slate-500 text-sm font-medium mb-4">Provide a Google Sheets URL to synchronize all modules at once.</p>
+
+                            <div className="flex gap-3">
+                                <input
+                                    type="text"
+                                    placeholder="Paste Google Sheets URL here..."
+                                    value={gsheetsUrl}
+                                    onChange={(e) => setGsheetsUrl(e.target.value)}
+                                    className="flex-1 px-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
+                                />
+                                <button
+                                    onClick={handleSaveGsheetsUrl}
+                                    disabled={isSavingUrl || gsheetsUrl === event?.gsheets_url}
+                                    className="px-6 py-3.5 bg-[#0d0e0e] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#1a27c9] transition-premium disabled:opacity-50 disabled:grayscale"
+                                >
+                                    {isSavingUrl ? 'Saving...' : 'Save Source'}
+                                </button>
+                                <a
+                                    href="https://docs.google.com/spreadsheets/d/15uqLAXYvVwIFGbIp8FjG5IA1oCwjdU72Hs4ONO06WCc/copy"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-6 py-3.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-premium flex items-center gap-2"
+                                >
+                                    <FileSpreadsheet size={16} />
+                                    Get Template
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

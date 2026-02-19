@@ -13,7 +13,8 @@ import {
     updateEvent,
     getEvent,
     uploadImage,
-    importAgendaData
+    importAgendaData,
+    syncEventFromCloud
 } from '../lib/api';
 import { formatDate, formatTime, getGoogleDriveDirectLink } from '../lib/utils';
 import { generateAgendaTemplate, parseAgendaExcel, fetchAndParseGoogleSheet } from '../lib/excel';
@@ -74,16 +75,15 @@ export default function EventBuilder({ event, onBack }) {
         overlayOpacity: '0'
     });
 
-    // Load header settings from localStorage
+    // Load header settings from event data
     useEffect(() => {
-        const savedSettings = localStorage.getItem(`event_header_settings_${event.event_id}`);
-        if (savedSettings) {
-            setHeaderSettings(JSON.parse(savedSettings));
-        } else if (!event.header_image_url) {
+        if (eventDetails?.header_settings) {
+            setHeaderSettings(eventDetails.header_settings);
+        } else if (!eventDetails?.header_image_url) {
             // Default if no image exists
             setHeaderSettings(prev => ({ ...prev, type: 'color', visible: true }));
         }
-    }, [event.event_id, event.header_image_url]);
+    }, [eventDetails?.event_id, eventDetails?.header_settings]);
 
     // Handle updates to eventDetails
     useEffect(() => {
@@ -157,8 +157,8 @@ export default function EventBuilder({ event, onBack }) {
     };
 
     const handleGoogleSheetSync = async () => {
-        if (!gsheetsUrl) {
-            setSyncError({ message: 'يرجى إدخال رابط Google Sheet أولاً (يجب أن يكون الرابط متاحاً للمشاهدة العامة).' });
+        if (!eventDetails?.gsheets_url) {
+            setSyncError({ message: 'يرجى ضبط رابط Google Sheet من لوحة التحكم (Event Dashboard) أولاً.' });
             return;
         }
 
@@ -167,16 +167,11 @@ export default function EventBuilder({ event, onBack }) {
             setSyncReport(null);
             setSyncError(null);
 
-            // Save URL for future use (Persistence)
-            localStorage.setItem(`gsheets_url_${event.event_id}`, gsheetsUrl);
-
-            const data = await fetchAndParseGoogleSheet(gsheetsUrl);
+            const data = await fetchAndParseGoogleSheet(eventDetails.gsheets_url);
             const result = await importAgendaData(event.event_id, data);
 
             setSyncReport(result.stats);
             setLastSyncTime(new Date().toLocaleTimeString());
-
-            // Success feedback is handled by lastSyncTime / syncReport display
             loadEventData();
         } catch (error) {
             console.error('GSheets Sync failed:', error);
@@ -189,10 +184,11 @@ export default function EventBuilder({ event, onBack }) {
     useEffect(() => {
         loadEventData();
 
-        // Load persisted URL if exists
-        const savedUrl = localStorage.getItem(`gsheets_url_${event.event_id}`);
-        if (savedUrl) setGsheetsUrl(savedUrl);
-    }, [event.event_id]);
+        // Load persisted URL from event details
+        if (eventDetails?.gsheets_url) {
+            setGsheetsUrl(eventDetails.gsheets_url);
+        }
+    }, [event.event_id, eventDetails?.gsheets_url]);
 
     const loadEventData = async (silent = false) => {
         try {
@@ -425,16 +421,14 @@ export default function EventBuilder({ event, onBack }) {
 
     const handleSaveImages = async () => {
         try {
-            // Save visual settings to localStorage
-            localStorage.setItem(`event_header_settings_${event.event_id}`, JSON.stringify(headerSettings));
-
-            // Save standard fields to API
+            // Save standard fields and header settings to API
             await updateEvent(event.event_id, {
                 event_name: eventDetails.event_name,
                 header_image_url: imageUrls.header,
                 header_height: imageUrls.height,
                 background_image_url: imageUrls.background,
-                footer_image_url: imageUrls.footer
+                footer_image_url: imageUrls.footer,
+                header_settings: headerSettings
             });
             showToast('تم حفظ الإعدادات بنجاح! ✅');
         } catch (error) {
@@ -588,35 +582,6 @@ export default function EventBuilder({ event, onBack }) {
                         <div className="space-y-6">
 
 
-                            {/* Google Sheets Sync Bar */}
-                            <div className="flex flex-col lg:flex-row items-center gap-4 bg-emerald-50/50 border border-emerald-100 rounded-[2rem] p-4 shadow-sm mb-4">
-                                <div className="flex items-center gap-3 ml-2 shrink-0">
-                                    <div className="bg-emerald-500/10 p-2.5 rounded-2xl">
-                                        <ExternalLink className="text-emerald-600" size={24} />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-black text-[#0d0e0e] tracking-tight">Cloud Sync</h4>
-                                        <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Google Sheets Vision</p>
-                                    </div>
-                                </div>
-                                <div className="flex-1 w-full flex flex-col sm:flex-row gap-3">
-                                    <input
-                                        type="url"
-                                        placeholder="Paste Google Sheet URL (Public)..."
-                                        value={gsheetsUrl}
-                                        onChange={(e) => setGsheetsUrl(e.target.value)}
-                                        className="flex-1 px-6 py-3 bg-white border border-emerald-100 rounded-2xl font-bold text-xs focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-premium placeholder:text-emerald-200"
-                                    />
-                                    <button
-                                        disabled={isSyncing}
-                                        onClick={handleGoogleSheetSync}
-                                        className="shrink-0 flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0d0e0e] transition-premium shadow-lg shadow-emerald-900/10 active:scale-95 disabled:opacity-50"
-                                    >
-                                        {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                                        <span>{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
-                                    </button>
-                                </div>
-                            </div>
 
                             {/* Sync Error Display */}
                             {syncError && (

@@ -1,7 +1,7 @@
-import { MapPin, Briefcase, Linkedin, Twitter, ExternalLink, Pencil } from 'lucide-react';
+import { MapPin, Briefcase, Linkedin, Twitter, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 
-const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit }) => {
+const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete }) => {
     const getLightColor = (hex, opacity = '1a') => `${hex}${opacity}`;
 
     const name = expert.name || 'Unknown Expert';
@@ -98,18 +98,33 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                     style={{ backgroundColor: customColor }}
                 />
 
-                {/* Edit Button */}
-                {onEdit && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(expert);
-                        }}
-                        className="absolute top-8 right-8 w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all z-20 group/edit"
-                    >
-                        <Pencil size={18} className="group-hover/edit:rotate-12 transition-transform" />
-                    </button>
-                )}
+                {/* Action Buttons */}
+                <div className="absolute top-8 right-8 flex gap-2 z-20">
+                    {onEdit && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit(expert);
+                            }}
+                            className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all group/edit"
+                        >
+                            <Pencil size={18} className="group-hover/edit:rotate-12 transition-transform" />
+                        </button>
+                    )}
+                    {onDelete && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm('Are you sure you want to remove this expert?')) {
+                                    onDelete(expert.expert_id || expert.id);
+                                }
+                            }}
+                            className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-xl transition-all group/delete"
+                        >
+                            <Trash2 size={18} className="group-hover/delete:scale-110 transition-transform" />
+                        </button>
+                    )}
+                </div>
             </div>
         );
     }
@@ -140,6 +155,19 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                             className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-lg transition-all group/edit"
                         >
                             <Pencil size={16} className="group-hover/edit:rotate-12 transition-transform" />
+                        </button>
+                    )}
+                    {onDelete && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm('Are you sure you want to remove this expert?')) {
+                                    onDelete(expert.expert_id || expert.id);
+                                }
+                            }}
+                            className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-lg transition-all group/delete"
+                        >
+                            <Trash2 size={16} className="group-hover/delete:scale-110 transition-transform" />
                         </button>
                     )}
                     {linkedin && (

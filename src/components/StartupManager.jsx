@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Search, Loader2, AlertCircle, X, Pencil, Upload, Check } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import CompanyCard from './CompanyCard';
-import { getCompanies, createCompany, updateCompany, uploadImage } from '../lib/api';
+import SyncButton from './SyncButton';
+import { getCompanies, createCompany, updateCompany, deleteCompany, uploadImage } from '../lib/api';
 
 const StartupManager = () => {
     const { eventId } = useParams();
@@ -71,6 +72,16 @@ const StartupManager = () => {
         }
     };
 
+    const handleDeleteCompany = async (companyId) => {
+        try {
+            await deleteCompany(companyId);
+            loadCompanies();
+        } catch (err) {
+            console.error('Error deleting company:', err);
+            alert('Failed to delete venture from the grid.');
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -117,7 +128,7 @@ const StartupManager = () => {
                                 <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                             </button>
                             <div>
-                                <h1 className="text-3xl font-black text-[#0d0e0e] tracking-tight">Builder Ecosystem</h1>
+                                <h1 className="text-3xl font-black text-[#0d0e0e] tracking-tight">Companies List</h1>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Nurturing the next wave of disruption</p>
                             </div>
                         </div>
@@ -133,12 +144,17 @@ const StartupManager = () => {
                                     className="pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium w-full md:w-64"
                                 />
                             </div>
+                            <SyncButton
+                                eventId={eventId}
+                                onSyncComplete={loadCompanies}
+                                className="md:w-auto h-[54px]"
+                            />
                             <button
                                 onClick={() => setShowAddModal(true)}
                                 className="flex items-center gap-3 bg-[#1a27c9] text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-indigo-200 transition-premium group active:scale-95"
                             >
                                 <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
-                                <span>Deploy Startup </span>
+                                <span>Add Company  </span>
                             </button>
                         </div>
                     </div>
@@ -168,6 +184,7 @@ const StartupManager = () => {
                                 key={company.company_id || company.id}
                                 company={company}
                                 onEdit={handleEdit}
+                                onDelete={handleDeleteCompany}
                             />
                         ))}
                     </div>

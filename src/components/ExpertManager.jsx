@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Search, Loader2, AlertCircle, X, Pencil, Upload, Check } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ExpertCard from './ExpertCard';
-import { getExperts, createExpert, updateExpert, uploadImage } from '../lib/api';
+import SyncButton from './SyncButton';
+import { getExperts, createExpert, updateExpert, deleteExpert, uploadImage } from '../lib/api';
 
 const ExpertManager = () => {
     const { eventId } = useParams();
@@ -74,6 +75,16 @@ const ExpertManager = () => {
         }
     };
 
+    const handleDeleteExpert = async (expertId) => {
+        try {
+            await deleteExpert(expertId);
+            loadExperts();
+        } catch (err) {
+            console.error('Error deleting expert:', err);
+            alert('Failed to delete expert from the grid.');
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -120,7 +131,7 @@ const ExpertManager = () => {
                                 <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                             </button>
                             <div>
-                                <h1 className="text-3xl font-black text-[#0d0e0e] tracking-tight">Expert Pulse</h1>
+                                <h1 className="text-3xl font-black text-[#0d0e0e] tracking-tight">Experts List</h1>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Curate your events visionaries & speakers</p>
                             </div>
                         </div>
@@ -136,12 +147,17 @@ const ExpertManager = () => {
                                     className="pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium w-full md:w-64"
                                 />
                             </div>
+                            <SyncButton
+                                eventId={eventId}
+                                onSyncComplete={loadExperts}
+                                className="md:w-auto h-[54px]"
+                            />
                             <button
                                 onClick={() => setShowAddModal(true)}
                                 className="flex items-center gap-3 bg-[#1a27c9] text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-indigo-200 transition-premium group active:scale-95"
                             >
                                 <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
-                                <span>Deploy Expert</span>
+                                <span>Add Expert</span>
                             </button>
                         </div>
                     </div>
@@ -171,6 +187,7 @@ const ExpertManager = () => {
                                 key={expert.expert_id || expert.id}
                                 expert={expert}
                                 onEdit={handleEdit}
+                                onDelete={handleDeleteExpert}
                             />
                         ))}
                     </div>

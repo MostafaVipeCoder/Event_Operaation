@@ -24,14 +24,12 @@ export default function StartupViewer() {
                 setEvent(eventData);
                 setCompanies(companiesData || []);
 
-                // Load custom theme
-                const savedTheme = localStorage.getItem(`event_theme_${eventId}`);
-                if (savedTheme) {
-                    const parsed = JSON.parse(savedTheme);
-                    if (parsed.startupsColor) setThemeColor(parsed.startupsColor);
+                // Load custom theme from Supabase event data
+                if (eventData?.startups_color) {
+                    setThemeColor(eventData.startups_color);
                 }
             } catch (e) {
-                console.error('Failed to sync builder ecosystem:', e);
+                console.error('Failed to sync Companies List:', e);
             } finally {
                 setLoading(false);
             }
@@ -80,7 +78,7 @@ export default function StartupViewer() {
                     <div className="flex flex-col items-center">
                         <div className="flex items-center gap-3 mb-6">
                             <span className="w-12 h-1 bg-[#1a27c9] rounded-full" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Builder Ecosystem</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Companies List</span>
                         </div>
                         <h1 className="text-6xl md:text-8xl font-black text-[#0d0e0e] tracking-tighter mb-6 leading-none uppercase">
                             Startup <span className="text-[#1a27c9]">Directory</span>

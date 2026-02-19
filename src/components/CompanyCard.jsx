@@ -1,7 +1,7 @@
-import { MapPin, Users, Plus, Banknote, Briefcase, Pencil } from 'lucide-react';
+import { MapPin, Users, Plus, Banknote, Briefcase, Pencil, Trash2 } from 'lucide-react';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 
-const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEdit }) => {
+const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete }) => {
   const getLightColor = (hex, opacity = '1a') => `${hex}${opacity}`;
 
   // Support both database schema and legacy mock data
@@ -40,7 +40,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
             <div>
               <div className="flex items-center gap-3 mb-6 justify-center md:justify-start">
                 <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: customColor }} />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Builder Ecosystem</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Companies List</span>
               </div>
               <h3 className="text-6xl md:text-8xl font-black text-[#0d0e0e] tracking-tighter mb-4 leading-[0.85] group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
                 {name}
@@ -106,18 +106,33 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
           style={{ backgroundColor: customColor }}
         />
 
-        {/* Edit Button */}
-        {onEdit && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(company);
-            }}
-            className="absolute top-8 right-8 w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all z-20 group/edit"
-          >
-            <Pencil size={18} className="group-hover/edit:rotate-12 transition-transform" />
-          </button>
-        )}
+        {/* Action Buttons */}
+        <div className="absolute top-8 right-8 flex gap-2 z-20">
+          {onEdit && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(company);
+              }}
+              className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all group/edit"
+            >
+              <Pencil size={18} className="group-hover/edit:rotate-12 transition-transform" />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm('Are you sure you want to remove this company?')) {
+                  onDelete(company.company_id || company.id);
+                }
+              }}
+              className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-xl transition-all group/delete"
+            >
+              <Trash2 size={18} className="group-hover/delete:scale-110 transition-transform" />
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -147,6 +162,19 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
               className="w-8 h-8 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-lg transition-all group/edit"
             >
               <Pencil size={14} className="group-hover/edit:rotate-12 transition-transform" />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm('Are you sure you want to remove this company?')) {
+                  onDelete(company.company_id || company.id);
+                }
+              }}
+              className="w-8 h-8 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-lg transition-all group/delete"
+            >
+              <Trash2 size={14} className="group-hover/delete:scale-110 transition-transform" />
             </button>
           )}
           {company.status && (

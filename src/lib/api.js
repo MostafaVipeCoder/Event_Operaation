@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { fetchAndParseGoogleSheet } from './excel';
 
 // ==========================================
 // EVENT APIs
@@ -113,6 +114,7 @@ export const getStartups = async () => {
 };
 
 export const createEvent = async (eventData) => {
+    console.log('[Supabase] Creating event:', eventData.event_name);
     const { data, error } = await supabase
         .from('events')
         .insert({
@@ -120,11 +122,23 @@ export const createEvent = async (eventData) => {
             header_image_url: eventData.header_image_url || '',
             background_image_url: eventData.background_image_url || '',
             footer_image_url: eventData.footer_image_url || '',
-            header_height: eventData.header_height || '16rem'
+            header_height: eventData.header_height || '16rem',
+            experts_color: eventData.experts_color || '#9333ea',
+            startups_color: eventData.startups_color || '#059669',
+            header_settings: eventData.header_settings || {}
         })
         .select()
         .single();
-    if (error) throw error;
+
+    if (error) {
+        console.error('[Supabase Error] createEvent details:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+        });
+        throw error;
+    }
     return data;
 };
 
@@ -242,13 +256,23 @@ export const createDay = async (dayData) => {
 };
 
 export const updateDay = async (dayId, updates) => {
+    console.log(`[Supabase] Updating day ${dayId}:`, updates);
     const { data, error } = await supabase
         .from('event_days')
         .update(updates)
         .eq('day_id', dayId)
         .select()
         .single();
-    if (error) throw error;
+
+    if (error) {
+        console.error(`[Supabase Error] updateDay (${dayId}) details:`, {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+        });
+        throw error;
+    }
     return data;
 };
 
@@ -491,6 +515,24 @@ export const importAgendaData = async (eventId, data) => {
         return { success: true, stats };
     } catch (error) {
         console.error('[Supabase Error] Differential Sync:', error);
+        throw error;
+    }
+};
+
+/**
+ * Syncs an event's data from its configured Google Sheet.
+ */
+export const syncEventFromCloud = async (eventId) => {
+    try {
+        const event = await getEvent(eventId);
+        if (!event.gsheets_url) {
+            throw new Error('Google Sheets URL not configured for this event.');
+        }
+
+        const data = await fetchAndParseGoogleSheet(event.gsheets_url);
+        return await importAgendaData(eventId, data);
+    } catch (error) {
+        console.error('[Supabase] syncEventFromCloud failed:', error);
         throw error;
     }
 };

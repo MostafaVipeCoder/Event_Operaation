@@ -13,6 +13,16 @@ export const formatDate = (dateString, options = {}) => {
 export const formatTime = (input) => {
     if (!input) return '';
 
+    // Handle potential numeric input (Excel time as fraction of day)
+    if (typeof input === 'number') {
+        const totalMinutes = Math.round(input * 24 * 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        const h12 = hours % 12 || 12;
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        return `${h12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    }
+
     // Case 1: Simple "HH:mm" or "HH:mm:ss" string (e.g. from manual input or simple API)
     if (typeof input === 'string' && input.match(/^\d{1,2}:\d{2}(:\d{2})?$/)) {
         const [hours, minutes] = input.split(':');
