@@ -12,7 +12,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
 
   if (viewMode === 'list') {
     return (
-      <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-12 md:p-16 shadow-sm hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-12 md:gap-20 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-left">
+      <div className="group relative w-full bg-slate-50 rounded-[4rem] border border-slate-100 p-12 md:p-16 shadow-sm hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-12 md:gap-20 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-left">
         {/* Immersive Background Accent */}
         <div
           className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.04] blur-[100px] -mr-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -139,7 +139,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
 
   // Optimized Compact View
   return (
-    <div className="group relative w-full bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col font-manrope overflow-hidden ring-1 ring-slate-100/50 min-h-[480px]">
+    <div className="group relative w-full bg-slate-50 rounded-[2.5rem] border border-slate-100 p-8 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col font-manrope overflow-hidden ring-1 ring-slate-100/50 min-h-[480px]">
       {/* Design Accent */}
       <div
         className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-[0.02]"

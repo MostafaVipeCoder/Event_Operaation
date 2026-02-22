@@ -69,7 +69,7 @@ export default function EventDashboard() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 font-manrope">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-white font-manrope">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a27c9]"></div>
                 <p className="mt-4 text-slate-500 font-bold tracking-tight">Loading Pulse Dashboard...</p>
             </div>
@@ -78,7 +78,7 @@ export default function EventDashboard() {
 
     if (!event || event.error) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-slate-50 font-manrope">
+            <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-white font-manrope">
                 <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-100 text-center max-w-sm">
                     <h2 className="text-3xl font-black text-[#0d0e0e] mb-2 tracking-tight">Event Offline</h2>
                     <p className="text-slate-500 font-medium mb-8">We couldn't find the event pulse you're looking for.</p>
@@ -135,7 +135,7 @@ export default function EventDashboard() {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 font-manrope pb-24">
+        <div className="min-h-screen bg-gray-200 font-manrope pb-24">
             {/* Header */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -175,18 +175,18 @@ export default function EventDashboard() {
                 </div>
 
                 {/* Cloud Sync Configuration */}
-                <div className="mb-12 bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
+                <div className="mb-12 bg-slate-50 rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="bg-indigo-50 p-2 rounded-xl text-[#1a27c9]">
                                     <RefreshCw size={18} />
                                 </div>
-                                <h3 className="text-xl font-black text-[#0d0e0e] tracking-tight">Cloud Sync Source</h3>
+                                <h3 className="text-xl font-black text-[#0d0e0e] tracking-tight">Sync With Sheet</h3>
                             </div>
                             <p className="text-slate-500 text-sm font-medium mb-4">Provide a Google Sheets URL to synchronize all modules at once.</p>
 
-                            <div className="flex gap-3">
+                            <div className="flex gap-3">    
                                 <input
                                     type="text"
                                     placeholder="Paste Google Sheets URL here..."
@@ -208,7 +208,7 @@ export default function EventDashboard() {
                                     className="px-6 py-3.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-premium flex items-center gap-2"
                                 >
                                     <FileSpreadsheet size={16} />
-                                    Get Template
+                                    Sheet Template
                                 </a>
                             </div>
                         </div>
@@ -217,7 +217,7 @@ export default function EventDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
                     {modules.map((module, index) => (
-                        <div key={index} className={`rounded-[2.5rem] border p-8 transition-premium hover:shadow-2xl flex flex-col group ${module.color}`}>
+                        <div key={index} className={`rounded-[2.5rem] border p-8 transition-premium hover:shadow-2xl flex flex-col group bg-slate-50 border-slate-100 ${module.color && !module.color.includes('bg-white') ? module.color : ''}`}>
                             <div className="flex items-start justify-between mb-6">
                                 <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                                     {module.icon}

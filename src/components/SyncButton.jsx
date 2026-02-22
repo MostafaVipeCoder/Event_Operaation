@@ -48,7 +48,7 @@ export default function SyncButton({ eventId, onSyncComplete, className = "" }) 
             )}
 
             <span>
-                {isSyncing ? 'Syncing...' : syncStatus === 'success' ? 'Synced!' : syncStatus === 'error' ? 'Sync Failed' : 'Sync Cloud'}
+                {isSyncing ? 'Syncing...' : syncStatus === 'success' ? 'Synced!' : syncStatus === 'error' ? 'Sync Failed' : 'Sync With Sheet'}
             </span>
         </button>
     );

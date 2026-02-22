@@ -1,12 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Hepta+Slab:wght@100;200;300;400;500;600;700;800;900&family=Jomhuria&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Hepta+Slab:wght@100;200;300;400;500;600;700;800;900&family=Jomhuria&display=swap');
 
 @layer base {
     body {
-        @apply font-manrope bg-slate-50 text-[#0d0e0e] antialiased selection:bg-[#1a27c9]/10 selection:text-[#1a27c9];
+        @apply font-manrope bg-white text-[#0d0e0e] antialiased selection:bg-[#1a27c9]/10 selection:text-[#1a27c9];
         transition: background-color 0.3s ease;
     }
 }

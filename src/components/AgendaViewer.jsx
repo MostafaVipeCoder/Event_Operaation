@@ -50,6 +50,11 @@ export default function AgendaViewer({ eventId }) {
             setAgenda(agendaData);
             setExperts(expertsData || []);
             setLoading(false);
+
+            // Update Page Title
+            if (agendaData?.event?.event_name) {
+                document.title = `Athar Events | ${agendaData.event.event_name}`;
+            }
         } catch (err) {
             console.error('Error loading agenda/experts:', err);
             setError('تعذر تحميل الأجندة. يرجى التأكد من اتصال الإنترنت أو من أن رابط الحدث صحيح.');

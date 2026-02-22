@@ -35,9 +35,9 @@ const CompaniesPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 font-['Manrope']">
+        <div className="min-h-screen bg-gray-200 font-['Manrope']">
             {/* Header */}
-            <div className="bg-white border-b border-slate-200">
+            <div className="bg-gray-200 border-b border-slate-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">

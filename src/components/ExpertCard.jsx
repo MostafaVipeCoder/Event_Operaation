@@ -11,7 +11,7 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
     if (viewMode === 'list') {
         return (
-            <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-12 md:p-16  hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-12 md:gap-20 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-left">
+            <div className="group relative w-full bg-slate-50 rounded-[4rem] border border-slate-100 p-12 md:p-16  hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-12 md:gap-20 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-left">
                 {/* Immersive Background Accent */}
                 <div
                     className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.04] blur-[100px] -mr-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -61,7 +61,7 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                                 href={linkedin}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-20 h-20 bg-white border border-slate-100 rounded-[2rem] flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:border-[#0077b5] hover:shadow-2xl transition-all group/link"
+                                className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-[2rem] flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:border-[#0077b5] hover:shadow-2xl transition-all group/link"
                             >
                                 <Linkedin size={32} className="group-hover/link:scale-110 transition-transform" />
                             </a>
@@ -131,7 +131,7 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
     // Default Grid/Compact View (Enhanced)
     return (
-        <div className="group relative w-full bg-white rounded-[3rem] border border-slate-100 p-10 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col overflow-hidden ring-1 ring-slate-100/50 min-h-[500px]">
+        <div className="group relative w-full bg-slate-50 rounded-[3rem] border border-slate-100 p-10 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col overflow-hidden ring-1 ring-slate-100/50 min-h-[500px]">
             {/* Professional Background Accent */}
             <div
                 className="absolute top-0 right-0 w-64 h-64 -mr-32 -mt-32 rounded-full opacity-[0.03] transition-transform duration-1000 group-hover:scale-110"

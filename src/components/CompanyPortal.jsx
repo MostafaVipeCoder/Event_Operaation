@@ -44,6 +44,11 @@ const CompanyPortal = () => {
             const eventData = await getEvent(eventId);
             setEvent(eventData);
 
+            // Update Page Title
+            if (eventData?.event_name) {
+                document.title = `Athar Events | Registration for ${eventData.event_name}`;
+            }
+
             // Check if portal is enabled
             if (!eventData.company_portal_enabled) {
                 setError('Company registrations are currently closed for this event.');
@@ -217,7 +222,7 @@ const CompanyPortal = () => {
 
     // Main form view
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+        <div className="min-h-screen bg-gray-200 from-slate-50 via-blue-50 to-slate-100">
             {/* Header */}
             <div className="bg-white border-b border-slate-200 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 py-8">

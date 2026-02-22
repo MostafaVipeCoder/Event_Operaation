@@ -700,7 +700,7 @@ export const approveSubmission = async (submissionId, entityType) => {
     if (entityType === 'company') {
         targetData = {
             event_id: submission.event_id,
-            startup_name: submission.startup_name,
+            name: submission.startup_name,
             logo_url: submission.logo_url,
             industry: submission.industry,
             location: submission.location,
@@ -709,7 +709,7 @@ export const approveSubmission = async (submissionId, entityType) => {
     } else {
         targetData = {
             event_id: submission.event_id,
-            expert_name: submission.expert_name,
+            name: submission.expert_name,
             photo_url: submission.photo_url,
             title: submission.title,
             company: submission.company,

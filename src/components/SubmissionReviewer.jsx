@@ -19,6 +19,9 @@ const SubmissionReviewer = ({ eventId, entityType = 'company' }) => {
     const [showPreview, setShowPreview] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
     const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState('');
+    const [submissionToReject, setSubmissionToReject] = useState(null);
 
     useEffect(() => {
         loadSubmissions();
@@ -60,20 +63,27 @@ const SubmissionReviewer = ({ eventId, entityType = 'company' }) => {
         }
     };
 
-    const handleReject = async (submission) => {
-        const reason = prompt('Enter rejection reason (optional):');
-        if (reason === null) return; // User cancelled
+    const handleReject = (submission) => {
+        setSubmissionToReject(submission);
+        setRejectionReason('');
+        setShowRejectModal(true);
+    };
+
+    const handleConfirmReject = async () => {
+        if (!submissionToReject) return;
 
         try {
-            setActionLoading(submission.submission_id);
-            await rejectSubmission(submission.submission_id, entityType, reason || 'Not specified');
+            setActionLoading(submissionToReject.submission_id);
+            await rejectSubmission(submissionToReject.submission_id, entityType, rejectionReason || 'Not specified');
 
             if (filter === 'pending') {
-                setSubmissions(prev => prev.filter(s => s.submission_id !== submission.submission_id));
+                setSubmissions(prev => prev.filter(s => s.submission_id !== submissionToReject.submission_id));
             } else {
                 await loadSubmissions();
             }
 
+            setShowRejectModal(false);
+            setSubmissionToReject(null);
             alert(`${entityType === 'company' ? 'Company' : 'Expert'} rejected.`);
         } catch (error) {
             console.error('Error rejecting submission:', error);
@@ -514,6 +524,53 @@ const SubmissionReviewer = ({ eventId, entityType = 'company' }) => {
                                 </div>
                                 <p className="text-center text-slate-400 text-xs font-bold uppercase tracking-widest mt-8">Live Component Render</p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Rejection Modal */}
+            {showRejectModal && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] max-w-lg w-full p-10 shadow-2xl relative animate-in zoom-in-95 duration-300">
+                        <div className="text-center mb-8">
+                            <div className="w-20 h-20 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-100">
+                                <XCircle size={40} />
+                            </div>
+                            <h3 className="text-3xl font-black text-slate-800 tracking-tight mb-2">Reject Submission</h3>
+                            <p className="text-slate-500 font-medium">
+                                Are you sure you want to reject this {entityType}? You can optionally provide a reason.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <label className="text-sm font-bold text-slate-700 ml-1 block">
+                                Rejection Reason (Optional)
+                            </label>
+                            <textarea
+                                value={rejectionReason}
+                                onChange={(e) => setRejectionReason(e.target.value)}
+                                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-red-100 focus:border-red-400 transition-all outline-none font-medium min-h-[120px] resize-none"
+                                placeholder="Why is this submission being rejected?"
+                            />
+                        </div>
+
+                        <div className="flex gap-4 mt-10">
+                            <button
+                                onClick={() => {
+                                    setShowRejectModal(false);
+                                    setSubmissionToReject(null);
+                                }}
+                                className="flex-1 px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black hover:bg-slate-200 transition-all active:scale-95"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmReject}
+                                disabled={actionLoading}
+                                className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black shadow-xl shadow-red-200 hover:bg-red-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:translate-y-0 active:scale-95"
+                            >
+                                {actionLoading ? <Loader className="animate-spin" /> : 'Confirm Reject'}
+                            </button>
                         </div>
                     </div>
                 </div>

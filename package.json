@@ -1,7 +1,7 @@
 {
-  "name": "agenda-builder",
+  "name": "event-operation",
   "private": true,
-  "homepage": "https://habebnora.github.io/agenda-builder/",
+  "homepage": "https://mostafavipecoder.github.io/Event_Operaation/",
   "version": "0.0.0",
   "type": "module",
   "scripts": {

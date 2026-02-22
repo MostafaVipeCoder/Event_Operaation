@@ -115,7 +115,7 @@ const StartupManager = () => {
     );
 
     return (
-        <div className="min-h-screen bg-[#fafafa] font-manrope selection:bg-[#1a27c9]/10 selection:text-[#1a27c9]">
+        <div className="min-h-screen bg-gray-200 font-manrope selection:bg-[#1a27c9]/10 selection:text-[#1a27c9]">
             {/* Header Area */}
             <div className="bg-white border-b border-slate-100 sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto px-6 py-6">

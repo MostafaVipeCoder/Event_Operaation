@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, ChevronRight, Layout, Trash2, X, AlertCircle, Edit2, ExternalLink, Check, Copy } from 'lucide-react';
+import { Plus, Calendar, ChevronRight, Layout, Trash2, X, AlertCircle, Edit2, ExternalLink, Check, Copy, LogOut } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getEvents, createEvent, deleteEvent } from '../lib/api';
 import { formatDate } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -12,6 +13,16 @@ export default function Dashboard() {
     const [newEventName, setNewEventName] = useState('');
     const [createStatus, setCreateStatus] = useState('idle'); // idle, loading, success
     const [error, setError] = useState(null);
+    const { signOut } = useAuth();
+
+    const handleSignOut = async () => {
+        try {
+            await signOut();
+            navigate('/login');
+        } catch (error) {
+            console.error('Error signing out:', error);
+        }
+    };
 
     useEffect(() => {
         loadEvents();
@@ -81,7 +92,7 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 font-manrope">
+        <div className="min-h-screen bg-gray-200 font-manrope">
             {/* Premium Header */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -95,13 +106,23 @@ export default function Dashboard() {
                                 <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Professional Event Ecosystem</p>
                             </div>
                         </div>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="flex items-center gap-2 bg-[#1a27c9] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#1a27c9]/90 transition-premium shadow-md active:scale-95"
-                        >
-                            <Plus size={18} />
-                            <span>Create Event</span>
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="flex items-center gap-2 bg-[#1a27c9] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#1a27c9]/90 transition-premium shadow-md active:scale-95"
+                            >
+                                <Plus size={18} />
+                                <span>Create Event</span>
+                            </button>
+
+                            <button
+                                onClick={handleSignOut}
+                                className="flex items-center justify-center w-11 h-11 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                title="Sign Out"
+                            >
+                                <LogOut size={20} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -158,7 +179,7 @@ export default function Dashboard() {
                             <div
                                 key={event.event_id}
                                 onClick={() => navigate(`/event/${event.event_id}`)}
-                                className="group bg-white rounded-3xl border border-slate-200 p-6 hover:border-[#1a27c9] hover:shadow-2xl hover:shadow-indigo-100 transition-premium cursor-pointer relative overflow-hidden flex flex-col h-full"
+                                className="group bg-slate-50 rounded-3xl border border-slate-100 p-6 hover:border-[#1a27c9] hover:shadow-2xl hover:shadow-indigo-100 transition-premium cursor-pointer relative overflow-hidden flex flex-col h-full"
                             >
                                 <div className="absolute top-0 left-0 w-2 h-full bg-[#1a27c9] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 

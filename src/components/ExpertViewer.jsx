@@ -28,6 +28,11 @@ export default function ExpertViewer() {
                 if (eventData?.experts_color) {
                     setThemeColor(eventData.experts_color);
                 }
+
+                // Update Page Title
+                if (eventData?.event_name) {
+                    document.title = `Athar Events | ${eventData.event_name}`;
+                }
             } catch (e) {
                 console.error('Failed to sync visionary grid:', e);
             } finally {

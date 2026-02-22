@@ -28,6 +28,11 @@ export default function StartupViewer() {
                 if (eventData?.startups_color) {
                     setThemeColor(eventData.startups_color);
                 }
+
+                // Update Page Title
+                if (eventData?.event_name) {
+                    document.title = `Athar Events | ${eventData.event_name}`;
+                }
             } catch (e) {
                 console.error('Failed to sync Companies List:', e);
             } finally {
