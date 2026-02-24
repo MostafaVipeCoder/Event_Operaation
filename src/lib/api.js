@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { fetchAndParseGoogleSheet } from './excel';
+import { fetchAndParseGoogleSheet, fetchAndParseGenericGoogleSheet } from './excel';
 
 // ==========================================
 // EVENT APIs
@@ -610,7 +610,7 @@ export const submitCompanyRegistration = async (eventId, formData) => {
         industry: industry || null,
         location: location || null,
         additional_data: additionalData,
-        status: 'pending'
+        status: 'screening'
     };
 
     const { data, error } = await supabase
@@ -858,4 +858,127 @@ const getDefaultFormConfig = (entityType) => {
             }
         ];
     }
+};
+
+/**
+ * Syncs company submissions from a generic Google Sheet.
+ */
+export const syncSubmissionsFromSheet = async (eventId, url) => {
+    try {
+        const data = await fetchAndParseGenericGoogleSheet(url);
+        const sheetNames = Object.keys(data);
+        const targetSheet = sheetNames.find(name =>
+            name.toLowerCase().trim() === 'selection prosses' ||
+            name.toLowerCase().trim() === 'selection process'
+        );
+
+        if (!targetSheet) {
+            throw new Error('Could not find a sheet named "selection prosses". Please ensure your Google Sheet has a tab with this exact name.');
+        }
+
+        const sheetData = data[targetSheet];
+        const rows = sheetData.rows;
+        const headers = sheetData.headers;
+
+        if (!rows || rows.length === 0) return { success: true, count: 0 };
+
+        // Helper for smart mapping
+        const findField = (row, keywords) => {
+            const entry = Object.entries(row).find(([key]) =>
+                keywords.some(k => key.toLowerCase().includes(k.toLowerCase()))
+            );
+            return entry ? entry[1] : null;
+        };
+
+        // 1. Fetch existing submissions for this event to compare
+        const { data: existingSubmissions, error: fetchError } = await supabase
+            .from('company_submissions')
+            .select('*')
+            .eq('event_id', eventId);
+
+        if (fetchError) throw fetchError;
+
+        // 2. Identify incoming submissions
+        const incomingSubmissions = rows.map(row => {
+            const startup_name = findField(row, ['name', 'startup', 'company']) || 'Unknown Startup';
+            const industry = findField(row, ['industry', 'sector']) || null;
+            const location = findField(row, ['location', 'city', 'governorate', 'address']) || null;
+            const logo_url = findField(row, ['logo']) || null;
+
+            const additionalData = {
+                ...row,
+                _column_order: headers
+            };
+
+            return {
+                event_id: eventId,
+                startup_name,
+                logo_url,
+                industry,
+                location,
+                additional_data: additionalData,
+                status: 'screening'
+            };
+        });
+
+        // 3. Diffing logic: Insert vs Delete
+        const existingNames = new Set(existingSubmissions.map(s => s.startup_name.toLowerCase().trim()));
+        const incomingNames = new Set(incomingSubmissions.map(s => s.startup_name.toLowerCase().trim()));
+
+        const toInsert = incomingSubmissions.filter(s =>
+            !existingNames.has(s.startup_name.toLowerCase().trim())
+        );
+
+        const toDeleteIds = existingSubmissions
+            .filter(s => !incomingNames.has(s.startup_name.toLowerCase().trim()))
+            .map(s => s.submission_id);
+
+        let results = { success: true, count: incomingSubmissions.length, inserted: 0, deleted: 0 };
+
+        // 4. Execute Insertion
+        if (toInsert.length > 0) {
+            const { error: insertError } = await supabase
+                .from('company_submissions')
+                .insert(toInsert);
+            if (insertError) throw insertError;
+            results.inserted = toInsert.length;
+        }
+
+        // 5. Execute Deletion
+        if (toDeleteIds.length > 0) {
+            const { error: deleteError } = await supabase
+                .from('company_submissions')
+                .delete()
+                .in('submission_id', toDeleteIds);
+            if (deleteError) throw deleteError;
+            results.deleted = toDeleteIds.length;
+        }
+
+        // 6. Execute Updates for existing (optional, but keeps data fresh)
+        // For simplicity, we mostly care about add/remove per user request
+
+        return results;
+    } catch (error) {
+        console.error('[API] syncSubmissionsFromSheet failed:', error);
+        throw error;
+    }
+};
+
+/**
+ * Updates the status of a company submission.
+ */
+export const updateSubmissionStatus = async (submissionId, newStatus, additionalUpdates = {}) => {
+    const { data, error } = await supabase
+        .from('company_submissions')
+        .update({
+            status: newStatus,
+            reviewed_at: (newStatus === 'approved' || newStatus === 'rejected') ? new Date().toISOString() : null,
+            ...additionalUpdates
+        })
+        .eq('submission_id', submissionId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
 };

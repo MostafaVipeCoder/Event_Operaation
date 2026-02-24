@@ -127,6 +127,88 @@ export const parseWorkbook = (workbook) => {
 };
 
 /**
+ * Parses a workbook generically, returning all sheets and their rows.
+ */
+export const parseGenericWorkbook = (workbook) => {
+    const result = {};
+    workbook.SheetNames.forEach(sheetName => {
+        const sheet = workbook.Sheets[sheetName];
+
+        // Get headers in order
+        const range = XLSX.utils.decode_range(sheet['!ref']);
+        const headers = [];
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const address = XLSX.utils.encode_col(C) + "1";
+            if (sheet[address]) headers.push(sheet[address].v);
+        }
+
+        const rawRows = XLSX.utils.sheet_to_json(sheet);
+
+        // Process rows to clean bilingual headers (English / Arabic -> English)
+        const cleanedRows = rawRows.map(row => {
+            const cleanedRow = {};
+            Object.keys(row).forEach(key => {
+                // Extract English part before /
+                const englishKey = key.split('/')[0].trim();
+                cleanedRow[englishKey] = row[key];
+            });
+            return cleanedRow;
+        });
+
+        const cleanedHeaders = headers.map(h => h.split('/')[0].trim());
+
+        result[sheetName] = {
+            rows: cleanedRows,
+            headers: cleanedHeaders
+        };
+    });
+    return result;
+};
+
+/**
+ * Parses an uploaded Excel file generically.
+ */
+export const parseGenericExcel = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                resolve(parseGenericWorkbook(workbook));
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsArrayBuffer(file);
+    });
+};
+
+/**
+ * Fetches and parses a public Google Sheet generically.
+ */
+export const fetchAndParseGenericGoogleSheet = async (url) => {
+    try {
+        const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+        if (!match) throw new Error('Invalid Google Sheets URL.');
+        const spreadsheetId = match[1];
+
+        const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=xlsx`;
+        const response = await fetch(exportUrl);
+
+        if (!response.ok) throw new Error('Failed to fetch Google Sheet.');
+
+        const buffer = await response.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+
+        return parseGenericWorkbook(workbook);
+    } catch (error) {
+        throw error;
+    }
+};
+
+/**
  * Parses an uploaded Excel file.
  */
 export const parseAgendaExcel = (file) => {

@@ -17,6 +17,8 @@ const CompanyPortal = lazy(() => import('./components/CompanyPortal'));
 const ExpertPortal = lazy(() => import('./components/ExpertPortal'));
 const FormEditor = lazy(() => import('./components/FormEditor'));
 const LoginPage = lazy(() => import('./components/LoginPage'));
+const EventVisualManager = lazy(() => import('./components/EventVisualManager'));
+const SelectionProcessManager = lazy(() => import('./components/SelectionProcessManager'));
 
 import PublicLayout from './components/PublicLayout';
 import { AuthProvider } from './contexts/AuthContext';
@@ -69,6 +71,12 @@ function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/event/:eventId/visuals" element={
+              <ProtectedRoute>
+                <EventVisualManager />
+              </ProtectedRoute>
+            } />
+
             {/* Modules */}
             <Route path="/event/:eventId/agenda" element={
               <ProtectedRoute>
@@ -91,6 +99,12 @@ function App() {
             <Route path="/event/:eventId/submissions" element={
               <ProtectedRoute>
                 <SubmissionManager />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/event/:eventId/selection" element={
+              <ProtectedRoute>
+                <SelectionProcessManager />
               </ProtectedRoute>
             } />
 

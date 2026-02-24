@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Save, Trash2, GripVertical,
-    Type, FileText, List, Upload, AlertCircle, CheckCircle, Loader
+    Type, FileText, List, Upload, AlertCircle, CheckCircle, Loader, ExternalLink
 } from 'lucide-react';
 import { getFormConfig, saveFormConfig } from '../lib/api';
 
@@ -97,6 +97,7 @@ export default function FormEditor() {
         }
     };
 
+
     // Helper to check if a field is core/locked
     const isCoreField = (fieldName) => {
         const coreFields = [
@@ -120,7 +121,7 @@ export default function FormEditor() {
         <div className="min-h-screen bg-gray-200 pb-20 font-manrope">
             {/* Header */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         <div className="flex items-center gap-6">
                             <Link to={`/event/${eventId}`} className="p-3 rounded-2xl bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all group">
@@ -132,14 +133,38 @@ export default function FormEditor() {
                             </div>
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex items-center gap-4">
+                            {/* Preview Links */}
+                            <div className="hidden md:flex items-center gap-2 border-r border-slate-200 pr-6 mr-2">
+                                <a
+                                    href={`#/events/${eventId}/register/company`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all group text-blue-600"
+                                    title="Preview Company Registration Form"
+                                >
+                                    <ExternalLink size={16} />
+                                    <span className="text-[10px] font-black uppercase tracking-wider">Company Form</span>
+                                </a>
+                                <a
+                                    href={`#/events/${eventId}/register/expert`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-100 rounded-xl hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all group text-purple-600"
+                                    title="Preview Expert Registration Form"
+                                >
+                                    <ExternalLink size={16} />
+                                    <span className="text-[10px] font-black uppercase tracking-wider">Expert Form</span>
+                                </a>
+                            </div>
+
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
+                                className="flex items-center gap-2 px-6 py-3 bg-[#0d0e0e] text-white rounded-xl font-bold hover:bg-[#1a27c9] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
                             >
                                 {saving ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                {saving ? 'Saving...' : 'Save Configuration'}
                             </button>
                         </div>
                     </div>
@@ -147,7 +172,7 @@ export default function FormEditor() {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
                 {/* Entity Tabs */}
                 <div className="flex p-1 bg-slate-200 rounded-2xl mb-8 w-fit mx-auto">

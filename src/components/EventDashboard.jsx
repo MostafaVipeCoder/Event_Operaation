@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet } from 'lucide-react';
+import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList } from 'lucide-react';
 import { getEvent, updateEvent } from '../lib/api';
 import SyncButton from './SyncButton';
 
@@ -122,15 +122,32 @@ export default function EventDashboard() {
             btnColor: "text-white"
         },
         {
-            title: "Registration Form Builder",
-            description: "Review and approve incoming registration requests.",
+            title: "Registration Portal",
+            description: "Customize company and expert registration forms.",
             icon: <Inbox size={32} className="text-orange-600" />,
-            manageLink: `/event/${eventId}/submissions`,
-            editFormsLink: `/event/${eventId}/forms`,
+            manageLink: `/event/${eventId}/forms`,
             previewLink: `/events/${eventId}/register/company`,
             color: "bg-orange-50/50 border-orange-100",
             accent: "#ea580c",
             btnColor: "bg-orange-600 text-white shadow-orange-100"
+        },
+        {
+            title: "Event Visuals",
+            description: "Customize cover branding, colors, and typography.",
+            icon: <Palette size={32} className="text-[#1a27c9]" />,
+            manageLink: `/event/${eventId}/visuals`,
+            color: "bg-emerald-50/50 border-emerald-100",
+            accent: "#059669",
+            btnColor: "bg-emerald-600 text-white shadow-emerald-100"
+        },
+        {
+            title: "Selection Process",
+            description: "Manage applicant screening, interviews, and approvals.",
+            icon: <ClipboardList size={32} className="text-blue-600" />,
+            manageLink: `/event/${eventId}/selection`,
+            color: "bg-blue-50/50 border-blue-100",
+            accent: "#2563eb",
+            btnColor: "bg-blue-600 text-white shadow-blue-100"
         }
     ];
 
@@ -186,7 +203,7 @@ export default function EventDashboard() {
                             </div>
                             <p className="text-slate-500 text-sm font-medium mb-4">Provide a Google Sheets URL to synchronize all modules at once.</p>
 
-                            <div className="flex gap-3">    
+                            <div className="flex gap-3">
                                 <input
                                     type="text"
                                     placeholder="Paste Google Sheets URL here..."

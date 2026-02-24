@@ -4,6 +4,7 @@ import { CheckCircle, Send, Loader, AlertTriangle } from 'lucide-react';
 import DynamicFormBuilder from './DynamicFormBuilder';
 import CompanyCardPreview from './CompanyCardPreview';
 import { getEvent, getFormConfig, submitCompanyRegistration, uploadImage } from '../lib/api';
+import { getGoogleDriveDirectLink } from '../lib/utils';
 
 /**
  * CompanyPortal Component
@@ -221,24 +222,100 @@ const CompanyPortal = () => {
     }
 
     // Main form view
+    const isHeaderVisible = event?.header_settings?.visible ?? !!event?.header_image_url;
+    const headerHeight = event?.header_height || '16rem';
+    const headerSettings = event?.header_settings || { fontFamily: 'font-manrope' };
+
     return (
-        <div className="min-h-screen bg-gray-200 from-slate-50 via-blue-50 to-slate-100">
-            {/* Header */}
-            <div className="bg-white border-b border-slate-200 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 py-8">
-                    <div className="text-center">
-                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2">
-                            Company Registration
-                        </h1>
-                        <p className="text-lg text-slate-600 mb-1">{event?.event_name}</p>
-                        {event?.company_portal_message && (
-                            <p className="text-sm text-slate-500 max-w-2xl mx-auto mt-3">
-                                {event.company_portal_message}
-                            </p>
-                        )}
+        <div
+            className={`min-h-screen selection:bg-indigo-100 antialiased ${headerSettings.fontFamily}`}
+            style={{
+                backgroundImage: event?.background_image_url
+                    ? `url(${getGoogleDriveDirectLink(event.background_image_url)})`
+                    : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundAttachment: 'fixed',
+                backgroundColor: '#f1f5f9'
+            }}
+        >
+            {/* Premium Header */}
+            {isHeaderVisible && (
+                <div
+                    className="relative w-full z-10 shadow-sm flex items-center justify-center transition-all duration-700 overflow-hidden"
+                    style={{
+                        height: headerHeight,
+                        backgroundColor: headerSettings.type === 'color' ? (headerSettings.color || '#ffffff') : '#f8fafc'
+                    }}
+                >
+                    {/* Show image if type is image OR if type is not set but image exists */}
+                    {(headerSettings.type === 'image' || (!headerSettings.type && event.header_image_url)) && event.header_image_url && (
+                        <div className="absolute inset-0">
+                            <img
+                                src={getGoogleDriveDirectLink(event.header_image_url)}
+                                alt="Event Cover"
+                                className="w-full h-full object-cover scale-105"
+                                referrerPolicy="no-referrer"
+                            />
+                            <div
+                                className="absolute inset-0 transition-opacity duration-700"
+                                style={{
+                                    backgroundColor: headerSettings.overlayColor || '#000000',
+                                    opacity: headerSettings.overlayOpacity || 0
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {headerSettings.showTitle ? (
+                        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto flex flex-col items-center">
+                            <h1
+                                className="font-black leading-[1.1] tracking-tight mb-4 drop-shadow-sm"
+                                style={{
+                                    color: headerSettings.titleColor || '#0d0e0e',
+                                    fontSize: headerSettings.titleSize || '3.5rem',
+                                    fontWeight: headerSettings.titleWeight || '900',
+                                }}
+                            >
+                                {event.event_name}
+                            </h1>
+                            {headerSettings.titleDescription && (
+                                <p
+                                    className="text-lg md:text-2xl opacity-90 font-bold leading-relaxed tracking-wide"
+                                    style={{ color: headerSettings.titleColor || '#0d0e0e' }}
+                                >
+                                    {headerSettings.titleDescription}
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="relative z-10 text-center">
+                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2">
+                                Company Registration
+                            </h1>
+                            <p className="text-lg text-slate-600 font-bold">{event?.event_name}</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {!isHeaderVisible && (
+                <div className="bg-white border-b border-slate-200 shadow-sm">
+                    <div className="max-w-7xl mx-auto px-4 py-8">
+                        <div className="text-center">
+                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2">
+                                Company Registration
+                            </h1>
+                            <p className="text-lg text-slate-600 mb-1">{event?.event_name}</p>
+                            {event?.company_portal_message && (
+                                <p className="text-sm text-slate-500 max-w-2xl mx-auto mt-3">
+                                    {event.company_portal_message}
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Main Content */}
             <div className="w-full px-4 py-12">

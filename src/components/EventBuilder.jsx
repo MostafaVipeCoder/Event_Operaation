@@ -51,51 +51,7 @@ export default function EventBuilder({ event, onBack }) {
         saving: false
     });
     const [eventDetails, setEventDetails] = useState(event);
-    const [imageUrls, setImageUrls] = useState({
-        header: event.header_image_url || '',
-        height: event.header_height || '',
-        background: event.background_image_url || '',
-        footer: event.footer_image_url || ''
-    });
 
-    // Header Settings State
-    const [headerSettings, setHeaderSettings] = useState({
-        visible: true,
-        type: 'image', // 'image' or 'color'
-        color: '#ffffff',
-        showTitle: false,
-        titleColor: '#000000',
-        titleSize: '3rem',
-        titleWeight: '700', // Default Bold
-        titleDescription: '',
-        fontFamily: 'font-manrope',
-        contentSize: '1rem',
-        contentWeight: '400',
-        overlayColor: '#000000',
-        overlayOpacity: '0'
-    });
-
-    // Load header settings from event data
-    useEffect(() => {
-        if (eventDetails?.header_settings) {
-            setHeaderSettings(eventDetails.header_settings);
-        } else if (!eventDetails?.header_image_url) {
-            // Default if no image exists
-            setHeaderSettings(prev => ({ ...prev, type: 'color', visible: true }));
-        }
-    }, [eventDetails?.event_id, eventDetails?.header_settings]);
-
-    // Handle updates to eventDetails
-    useEffect(() => {
-        if (eventDetails) {
-            setImageUrls({
-                header: eventDetails.header_image_url || '',
-                height: eventDetails.header_height || '',
-                background: eventDetails.background_image_url || '',
-                footer: eventDetails.footer_image_url || ''
-            });
-        }
-    }, [eventDetails?.event_id, eventDetails?.header_image_url]);
 
     // Day Editing State
     const [editingDayId, setEditingDayId] = useState(null);
@@ -122,21 +78,6 @@ export default function EventBuilder({ event, onBack }) {
         setConfirmState({ show: true, message, onConfirm });
     };
 
-    const handleImageUpload = async (e, type) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        try {
-            setIsUploading(true);
-            const publicUrl = await uploadImage(file, 'covers');
-            setImageUrls(prev => ({ ...prev, [type]: publicUrl }));
-        } catch (error) {
-            console.error('Upload failed:', error);
-            showToast('فشل رفع الصورة. تأكد من وجود الـ Bucket وإعدادات الخصوصية.', 'error');
-        } finally {
-            setIsUploading(false);
-        }
-    };
 
     const handleImportExcel = async (e) => {
         const file = e.target.files[0];
@@ -419,23 +360,6 @@ export default function EventBuilder({ event, onBack }) {
         });
     };
 
-    const handleSaveImages = async () => {
-        try {
-            // Save standard fields and header settings to API
-            await updateEvent(event.event_id, {
-                event_name: eventDetails.event_name,
-                header_image_url: imageUrls.header,
-                header_height: imageUrls.height,
-                background_image_url: imageUrls.background,
-                footer_image_url: imageUrls.footer,
-                header_settings: headerSettings
-            });
-            showToast('تم حفظ الإعدادات بنجاح! ✅');
-        } catch (error) {
-            console.error('Error saving settings:', error);
-            showToast('حصل خطأ في الحفظ', 'error');
-        }
-    };
 
     const handleStartEditDay = (day) => {
         setEditingDayId(day.day_id);
@@ -550,28 +474,6 @@ export default function EventBuilder({ event, onBack }) {
                                     <span>Preview</span>
                                 </a>
                             </div>
-                        </div>
-
-                        {/* Tabs Redesign */}
-                        <div className="flex gap-8 mt-6 border-b border-slate-100">
-                            <button
-                                onClick={() => setActiveTab('days')}
-                                className={`pb-3 px-2 text-sm font-extrabold transition-premium border-b-2 tracking-wide ${activeTab === 'days'
-                                    ? 'border-[#1a27c9] text-[#1a27c9]'
-                                    : 'border-transparent text-slate-400 hover:text-slate-600'
-                                    }`}
-                            >
-                                DAYS & SLOTS
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('settings')}
-                                className={`pb-3 px-2 text-sm font-extrabold transition-premium border-b-2 tracking-wide ${activeTab === 'settings'
-                                    ? 'border-[#1a27c9] text-[#1a27c9]'
-                                    : 'border-transparent text-slate-400 hover:text-slate-600'
-                                    }`}
-                            >
-                                GLOBAL SETTINGS
-                            </button>
                         </div>
                     </div>
                 </div>

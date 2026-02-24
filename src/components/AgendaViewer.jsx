@@ -49,6 +49,12 @@ export default function AgendaViewer({ eventId }) {
             ]);
             setAgenda(agendaData);
             setExperts(expertsData || []);
+
+            // Sync header settings from database if they exist
+            if (agendaData?.event?.header_settings) {
+                setHeaderSettings(agendaData.event.header_settings);
+            }
+
             setLoading(false);
 
             // Update Page Title
@@ -134,7 +140,8 @@ export default function AgendaViewer({ eventId }) {
                         backgroundColor: headerSettings?.type === 'color' ? (headerSettings.color || '#ffffff') : '#f8fafc'
                     }}
                 >
-                    {headerSettings?.type === 'image' && event.header_image_url && (
+                    {/* Show image if type is image OR if type is not set but image exists */}
+                    {(headerSettings?.type === 'image' || (!headerSettings?.type && event.header_image_url)) && event.header_image_url && (
                         <div className="absolute inset-0">
                             <img
                                 src={getGoogleDriveDirectLink(event.header_image_url)}
