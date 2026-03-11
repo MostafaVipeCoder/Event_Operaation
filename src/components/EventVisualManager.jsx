@@ -4,16 +4,70 @@ import {
     ArrowLeft,
     Upload,
     Image as ImageIcon,
-    Palette,
     Type,
     Save,
     Loader2,
     Check,
     Eye,
-    Layout
+    Layout,
+    FileImage
 } from 'lucide-react';
 import { getEvent, updateEvent, uploadImage } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
+
+const FONTS = [
+    {
+        label: 'Manrope',
+        description: 'Modern & Clean',
+        value: 'font-manrope',
+        family: 'Manrope',
+        weights: [
+            { label: 'Extra Light (200)', value: '200' },
+            { label: 'Light (300)', value: '300' },
+            { label: 'Regular (400)', value: '400' },
+            { label: 'Medium (500)', value: '500' },
+            { label: 'Semi Bold (600)', value: '600' },
+            { label: 'Bold (700)', value: '700' },
+            { label: 'Extra Bold (800)', value: '800' },
+        ]
+    },
+    {
+        label: 'Hepta Slab',
+        description: 'Elegant Serif',
+        value: 'font-hepta',
+        family: 'Hepta Slab',
+        weights: [
+            { label: 'Thin (100)', value: '100' },
+            { label: 'Extra Light (200)', value: '200' },
+            { label: 'Light (300)', value: '300' },
+            { label: 'Regular (400)', value: '400' },
+            { label: 'Medium (500)', value: '500' },
+            { label: 'Semi Bold (600)', value: '600' },
+            { label: 'Bold (700)', value: '700' },
+            { label: 'Extra Bold (800)', value: '800' },
+            { label: 'Black (900)', value: '900' },
+        ]
+    },
+    {
+        label: 'Jomhuria',
+        description: 'Arabic Display',
+        value: 'font-jomhuria',
+        family: 'Jomhuria',
+        weights: [
+            { label: 'Regular (400)', value: '400' },
+        ]
+    },
+    {
+        label: 'Taguel',
+        description: 'Custom Brand Font',
+        value: 'font-taguel',
+        family: 'Tajawal',
+        weights: [
+            { label: 'Regular (400)', value: '400' },
+            { label: 'Bold (700)', value: '700' },
+        ]
+    },
+];
 
 export default function EventVisualManager() {
     const { eventId } = useParams();
@@ -23,16 +77,18 @@ export default function EventVisualManager() {
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isUploadingForm, setIsUploadingForm] = useState(false);
 
     // Visual Settings State
     const [settings, setSettings] = useState({
         header_image_url: '',
+        form_cover_image_url: '',
         background_image_url: '',
         footer_image_url: '',
         header_height: '16rem',
         header_settings: {
             visible: true,
-            type: 'image', // 'image' or 'color'
+            type: 'image',
             color: '#ffffff',
             showTitle: false,
             titleColor: '#000000',
@@ -40,13 +96,13 @@ export default function EventVisualManager() {
             titleWeight: '700',
             titleDescription: '',
             fontFamily: 'font-manrope',
+            fontWeight: '700',
+            fontSize: '3',
             contentSize: '1rem',
             contentWeight: '400',
             overlayColor: '#000000',
             overlayOpacity: '0'
         },
-        experts_color: '#9333ea',
-        startups_color: '#059669'
     });
 
     useEffect(() => {
@@ -61,12 +117,11 @@ export default function EventVisualManager() {
 
             setSettings({
                 header_image_url: data.header_image_url || '',
+                form_cover_image_url: data.form_cover_image_url || '',
                 background_image_url: data.background_image_url || '',
                 footer_image_url: data.footer_image_url || '',
                 header_height: data.header_height || '16rem',
                 header_settings: data.header_settings || settings.header_settings,
-                experts_color: data.experts_color || '#9333ea',
-                startups_color: data.startups_color || '#059669'
             });
         } catch (error) {
             console.error('Error loading event:', error);
@@ -79,15 +134,17 @@ export default function EventVisualManager() {
         const file = e.target.files[0];
         if (!file) return;
 
+        const setUploading = type === 'form_cover_image_url' ? setIsUploadingForm : setIsUploading;
+
         try {
-            setIsUploading(true);
+            setUploading(true);
             const publicUrl = await uploadImage(file, 'visuals');
             setSettings(prev => ({ ...prev, [type]: publicUrl }));
         } catch (error) {
             console.error('Upload failed:', error);
-            alert('Fails to upload image. Please try again.');
+            alert('Failed to upload image. Please try again.');
         } finally {
-            setIsUploading(false);
+            setUploading(false);
         }
     };
 
@@ -116,6 +173,8 @@ export default function EventVisualManager() {
         }));
     };
 
+    const selectedFont = FONTS.find(f => f.value === settings.header_settings.fontFamily) || FONTS[0];
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-white font-manrope">
@@ -125,10 +184,10 @@ export default function EventVisualManager() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 font-manrope pb-24">
+        <div className="min-h-screen bg-gray-200 font-manrope pb-24">
             {/* Header */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div className="max-w-[1600px] mx-auto px-6 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
@@ -168,15 +227,15 @@ export default function EventVisualManager() {
             <div className="max-w-4xl mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 gap-8">
 
-                    {/* Header Image Section */}
+                    {/* ── Agenda Cover ── */}
                     <section className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="bg-indigo-50 p-3 rounded-2xl text-[#1a27c9]">
                                 <ImageIcon size={24} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-[#0d0e0e]">Cover Image</h2>
-                                <p className="text-sm text-slate-500 font-medium">This image will appear at the top of your forms and agenda.</p>
+                                <h2 className="text-xl font-black text-[#0d0e0e]">Agenda Cover</h2>
+                                <p className="text-sm text-slate-500 font-medium">صورة الكوفر التي تظهر في صفحة الأجندة العامة.</p>
                             </div>
                         </div>
 
@@ -187,7 +246,7 @@ export default function EventVisualManager() {
                                         <img
                                             src={getGoogleDriveDirectLink(settings.header_image_url)}
                                             className="w-full h-full object-cover"
-                                            alt="Header preview"
+                                            alt="Agenda cover preview"
                                         />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                             <label className="cursor-pointer bg-white text-black px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-100 transition-premium">
@@ -207,7 +266,7 @@ export default function EventVisualManager() {
                                         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 text-slate-400 group-hover:scale-110 transition-transform">
                                             <Upload size={32} />
                                         </div>
-                                        <span className="text-sm font-bold text-slate-400">Click to upload cover image</span>
+                                        <span className="text-sm font-bold text-slate-400">Click to upload agenda cover</span>
                                         <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'header_image_url')} accept="image/*" />
                                     </label>
                                 )}
@@ -292,57 +351,57 @@ export default function EventVisualManager() {
                         </div>
                     </section>
 
-                    {/* Colors & Accents Section */}
+                    {/* ── Form Cover ── */}
                     <section className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
                         <div className="flex items-center gap-3 mb-8">
-                            <div className="bg-emerald-50 p-3 rounded-2xl text-emerald-600">
-                                <Palette size={24} />
+                            <div className="bg-rose-50 p-3 rounded-2xl text-rose-500">
+                                <FileImage size={24} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-[#0d0e0e]">Colors & Accents</h2>
-                                <p className="text-sm text-slate-500 font-medium">Customize the color palette for your event modules.</p>
+                                <h2 className="text-xl font-black text-[#0d0e0e]">Form Cover</h2>
+                                <p className="text-sm text-slate-500 font-medium">صورة الكوفر التي تظهر في صفحات التسجيل والفورمز.</p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <div>
-                                <label className="block text-sm font-black text-[#0d0e0e] uppercase tracking-widest mb-4">Experts Accent Color</label>
-                                <div className="flex items-center gap-4">
-                                    <input
-                                        type="color"
-                                        value={settings.experts_color}
-                                        onChange={(e) => setSettings(prev => ({ ...prev, experts_color: e.target.value }))}
-                                        className="h-14 w-14 rounded-2xl border-none cursor-pointer p-0 overflow-hidden"
+                        <div className="relative group rounded-3xl overflow-hidden border-2 border-dashed border-slate-200 aspect-[3/1] bg-slate-50 flex items-center justify-center">
+                            {settings.form_cover_image_url ? (
+                                <>
+                                    <img
+                                        src={getGoogleDriveDirectLink(settings.form_cover_image_url)}
+                                        className="w-full h-full object-cover"
+                                        alt="Form cover preview"
                                     />
-                                    <input
-                                        type="text"
-                                        value={settings.experts_color}
-                                        onChange={(e) => setSettings(prev => ({ ...prev, experts_color: e.target.value }))}
-                                        className="flex-1 px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-bold uppercase"
-                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                        <label className="cursor-pointer bg-white text-black px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-100 transition-premium">
+                                            Change Image
+                                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'form_cover_image_url')} accept="image/*" />
+                                        </label>
+                                        <button
+                                            onClick={() => setSettings(prev => ({ ...prev, form_cover_image_url: '' }))}
+                                            className="bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-600 transition-premium"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <label className="cursor-pointer flex flex-col items-center gap-3">
+                                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 text-slate-400 group-hover:scale-110 transition-transform">
+                                        <Upload size={32} />
+                                    </div>
+                                    <span className="text-sm font-bold text-slate-400">Click to upload form cover</span>
+                                    <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'form_cover_image_url')} accept="image/*" />
+                                </label>
+                            )}
+                            {isUploadingForm && (
+                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                                    <Loader2 className="animate-spin text-rose-500" size={40} />
                                 </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-black text-[#0d0e0e] uppercase tracking-widest mb-4">Startups Accent Color</label>
-                                <div className="flex items-center gap-4">
-                                    <input
-                                        type="color"
-                                        value={settings.startups_color}
-                                        onChange={(e) => setSettings(prev => ({ ...prev, startups_color: e.target.value }))}
-                                        className="h-14 w-14 rounded-2xl border-none cursor-pointer p-0 overflow-hidden"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={settings.startups_color}
-                                        onChange={(e) => setSettings(prev => ({ ...prev, startups_color: e.target.value }))}
-                                        className="flex-1 px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-bold uppercase"
-                                    />
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </section>
 
-                    {/* Typography & Content */}
+                    {/* ── Typography ── */}
                     <section className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="bg-amber-50 p-3 rounded-2xl text-amber-600">
@@ -350,34 +409,102 @@ export default function EventVisualManager() {
                             </div>
                             <div>
                                 <h2 className="text-xl font-black text-[#0d0e0e]">Typography</h2>
-                                <p className="text-sm text-slate-500 font-medium">Set the primary font family for the event portal.</p>
+                                <p className="text-sm text-slate-500 font-medium">اختر الخط وتحكم في وزنه وحجمه بالكامل.</p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {[
-                                { name: 'Manrope (Modern)', value: 'font-manrope' },
-                                { name: 'Inter (Classic)', value: 'font-inter' },
-                                { name: 'Outfit (Elegant)', value: 'font-outfit' },
-                                { name: 'Roboto (Functional)', value: 'font-roboto' }
-                            ].map((font) => (
+                        {/* Font Picker */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                            {FONTS.map((font) => (
                                 <button
                                     key={font.value}
                                     onClick={() => updateHeaderSetting('fontFamily', font.value)}
-                                    className={`flex items-center justify-between p-6 rounded-[1.5rem] border-2 transition-premium ${settings.header_settings.fontFamily === font.value ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100 hover:border-slate-200'}`}
+                                    className={`flex items-center justify-between p-6 rounded-[1.5rem] border-2 transition-premium ${settings.header_settings.fontFamily === font.value ? 'bg-amber-50 border-amber-300' : 'bg-white border-slate-100 hover:border-slate-200'}`}
                                 >
-                                    <span className={`text-lg font-bold ${font.value}`}>{font.name}</span>
+                                    <div className="text-left">
+                                        <span className={`text-xl block ${font.value}`} style={{ fontFamily: font.family, fontWeight: 700 }}>
+                                            {font.label}
+                                        </span>
+                                        <span className="text-xs text-slate-400 font-medium mt-0.5 block">{font.description}</span>
+                                    </div>
                                     {settings.header_settings.fontFamily === font.value && (
-                                        <div className="bg-amber-500 text-white p-1 rounded-full">
+                                        <div className="bg-amber-500 text-white p-1.5 rounded-full shrink-0">
                                             <Check size={14} strokeWidth={4} />
                                         </div>
                                     )}
                                 </button>
                             ))}
                         </div>
+
+                        {/* Weight & Size Controls */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+                            {/* Font Weight */}
+                            <div>
+                                <label className="block text-sm font-black text-[#0d0e0e] uppercase tracking-widest mb-3">
+                                    Font Weight
+                                </label>
+                                <div className="flex flex-col gap-2">
+                                    {selectedFont.weights.map((w) => (
+                                        <button
+                                            key={w.value}
+                                            onClick={() => updateHeaderSetting('fontWeight', w.value)}
+                                            className={`flex items-center justify-between px-5 py-3 rounded-2xl border transition-premium text-sm ${settings.header_settings.fontWeight === w.value ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-slate-50 border-slate-100 text-slate-500 hover:border-slate-200'}`}
+                                        >
+                                            <span
+                                                className={selectedFont.value}
+                                                style={{ fontFamily: selectedFont.family, fontWeight: parseInt(w.value) }}
+                                            >
+                                                {w.label}
+                                            </span>
+                                            {settings.header_settings.fontWeight === w.value && (
+                                                <Check size={14} strokeWidth={4} className="text-amber-600" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Font Size */}
+                            <div>
+                                <label className="block text-sm font-black text-[#0d0e0e] uppercase tracking-widest mb-3">
+                                    Font Size — <span className="text-amber-500">{settings.header_settings.fontSize || '3'}rem</span>
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0.75"
+                                    max="8"
+                                    step="0.25"
+                                    value={settings.header_settings.fontSize || '3'}
+                                    onChange={(e) => updateHeaderSetting('fontSize', e.target.value)}
+                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                />
+                                <div className="flex justify-between mt-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    <span>0.75rem</span>
+                                    <span>4rem</span>
+                                    <span>8rem</span>
+                                </div>
+
+                                {/* Live Preview */}
+                                <div className="mt-6 p-5 bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Live Preview</p>
+                                    <p
+                                        className={`leading-tight ${selectedFont.value}`}
+                                        style={{
+                                            fontFamily: selectedFont.family,
+                                            fontWeight: parseInt(settings.header_settings.fontWeight || '700'),
+                                            fontSize: `${settings.header_settings.fontSize || '3'}rem`,
+                                            lineHeight: 1.1,
+                                            wordBreak: 'break-word'
+                                        }}
+                                    >
+                                        أبجد
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </section>
 
-                    {/* Header Text Settings */}
+                    {/* ── Header Content ── */}
                     <section className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="bg-purple-50 p-3 rounded-2xl text-purple-600">
@@ -454,6 +581,7 @@ export default function EventVisualManager() {
                             )}
                         </div>
                     </section>
+
                 </div>
             </div>
         </div>

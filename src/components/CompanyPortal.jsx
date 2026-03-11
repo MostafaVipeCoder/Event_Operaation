@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, Send, Loader, AlertTriangle } from 'lucide-react';
 import DynamicFormBuilder from './DynamicFormBuilder';
-import CompanyCardPreview from './CompanyCardPreview';
+
+
 import { getEvent, getFormConfig, submitCompanyRegistration, uploadImage } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 
@@ -225,6 +226,7 @@ const CompanyPortal = () => {
     const isHeaderVisible = event?.header_settings?.visible ?? !!event?.header_image_url;
     const headerHeight = event?.header_height || '16rem';
     const headerSettings = event?.header_settings || { fontFamily: 'font-manrope' };
+    const displayImage = event?.form_cover_image_url || event?.header_image_url;
 
     return (
         <div
@@ -249,10 +251,10 @@ const CompanyPortal = () => {
                     }}
                 >
                     {/* Show image if type is image OR if type is not set but image exists */}
-                    {(headerSettings.type === 'image' || (!headerSettings.type && event.header_image_url)) && event.header_image_url && (
+                    {(headerSettings.type === 'image' || (!headerSettings.type && displayImage)) && displayImage && (
                         <div className="absolute inset-0">
                             <img
-                                src={getGoogleDriveDirectLink(event.header_image_url)}
+                                src={getGoogleDriveDirectLink(displayImage)}
                                 alt="Event Cover"
                                 className="w-full h-full object-cover scale-105"
                                 referrerPolicy="no-referrer"

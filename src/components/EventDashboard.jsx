@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList } from 'lucide-react';
+import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3 } from 'lucide-react';
 import { getEvent, updateEvent } from '../lib/api';
 import SyncButton from './SyncButton';
 
@@ -122,11 +122,10 @@ export default function EventDashboard() {
             btnColor: "text-white"
         },
         {
-            title: "Registration Portal",
+            title: "Form Builder",
             description: "Customize company and expert registration forms.",
             icon: <Inbox size={32} className="text-orange-600" />,
             manageLink: `/event/${eventId}/forms`,
-            previewLink: `/events/${eventId}/register/company`,
             color: "bg-orange-50/50 border-orange-100",
             accent: "#ea580c",
             btnColor: "bg-orange-600 text-white shadow-orange-100"
@@ -148,6 +147,15 @@ export default function EventDashboard() {
             color: "bg-blue-50/50 border-blue-100",
             accent: "#2563eb",
             btnColor: "bg-blue-600 text-white shadow-blue-100"
+        },
+        {
+            title: "Marketing Analytics",
+            description: "Track campaign performance and applicant sources in real-time.",
+            icon: <BarChart3 size={32} className="text-emerald-600" />,
+            manageLink: `/event/${eventId}/analytics`,
+            color: "bg-emerald-50/50 border-emerald-100",
+            accent: "#059669",
+            btnColor: "bg-emerald-600 text-white shadow-emerald-100"
         }
     ];
 
@@ -155,7 +163,7 @@ export default function EventDashboard() {
         <div className="min-h-screen bg-gray-200 font-manrope pb-24">
             {/* Header */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         <div className="flex items-center gap-6">
                             <Link to="/" className="p-3 rounded-2xl bg-slate-50 text-slate-400 hover:text-[#1a27c9] hover:bg-indigo-50 transition-premium group">
@@ -239,15 +247,17 @@ export default function EventDashboard() {
                                 <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                                     {module.icon}
                                 </div>
-                                <a
-                                    href={`#${module.previewLink}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#1a27c9] hover:bg-indigo-50 transition-premium"
-                                    title="Open Public Preview"
-                                >
-                                    <ExternalLink size={20} />
-                                </a>
+                                {module.previewLink && (
+                                    <a
+                                        href={`#${module.previewLink}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#1a27c9] hover:bg-indigo-50 transition-premium"
+                                        title="Open Public Preview"
+                                    >
+                                        <ExternalLink size={20} />
+                                    </a>
+                                )}
                             </div>
 
                             <h3 className="text-2xl font-black text-[#0d0e0e] mb-2 tracking-tight">{module.title}</h3>

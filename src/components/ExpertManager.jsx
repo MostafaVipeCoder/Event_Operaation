@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Search, Loader2, AlertCircle, X, Pencil, Upload, Check, Inbox, Users, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Trash2, Edit2, Layout, Database, AlertCircle, ExternalLink, Users, Inbox, Clock, Eye, CheckCircle, XCircle, Loader2, Pencil, Upload, Check, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ExpertCard from './ExpertCard';
 import SyncButton from './SyncButton';
@@ -75,7 +75,7 @@ const ExpertManager = () => {
 
         try {
             setIsUploading(true);
-            const publicUrl = await uploadImage(file, `experts/${eventId}`);
+            const publicUrl = await uploadImage(file, `experts / ${eventId} `);
             setFormData(prev => ({ ...prev, photo_url: publicUrl }));
         } catch (err) {
             console.error('Error uploading image:', err);
@@ -162,7 +162,7 @@ const ExpertManager = () => {
         <div className="min-h-screen bg-gray-200 font-manrope selection:bg-[#1a27c9]/10 selection:text-[#1a27c9]">
             {/* Header Area */}
             <div className="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm">
-                <div className="max-w-7xl mx-auto px-6 py-6">
+                <div className="max-w-[1600px] mx-auto px-6 py-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="flex items-center gap-6">
                             <button
@@ -181,20 +181,20 @@ const ExpertManager = () => {
                         <div className="flex p-1 bg-slate-100 rounded-2xl w-fit">
                             <button
                                 onClick={() => setActiveTab('curated')}
-                                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'curated'
+                                className={`px - 6 py - 3 rounded - xl text - [10px] font - black uppercase tracking - widest flex items - center gap - 2 transition - all ${activeTab === 'curated'
                                     ? 'bg-white text-[#1a27c9] shadow-sm'
                                     : 'text-slate-400 hover:text-slate-600'
-                                    }`}
+                                    } `}
                             >
                                 <Users size={16} />
                                 Expert Roster
                             </button>
                             <button
                                 onClick={() => setActiveTab('review')}
-                                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'review'
+                                className={`px - 6 py - 3 rounded - xl text - [10px] font - black uppercase tracking - widest flex items - center gap - 2 transition - all ${activeTab === 'review'
                                     ? 'bg-white text-[#1a27c9] shadow-sm'
                                     : 'text-slate-400 hover:text-slate-600'
-                                    }`}
+                                    } `}
                             >
                                 <Inbox size={16} />
                                 Review Desk
@@ -259,65 +259,87 @@ const ExpertManager = () => {
                             />
                         ))}
                     </div>
-                ) : activeTab === 'review' && (submissions.length > 0) ? (
-                    <div className="space-y-4">
-                        {submissions.filter(s => s.status === 'pending').map((submission) => (
-                            <div key={submission.submission_id} className="bg-white rounded-[2rem] border border-slate-100 p-8 hover:shadow-xl transition-premium group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-1 h-full bg-[#1a27c9] opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="flex items-center justify-between gap-8">
-                                    <div className="flex items-center gap-6 flex-1">
-                                        <div className="relative w-20 h-20 rounded-[1.5rem] overflow-hidden bg-slate-100 border border-slate-100 group-hover:scale-105 transition-transform">
-                                            {submission.photo_url ? (
-                                                <img src={submission.photo_url} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                                    <Users size={32} />
+                ) : activeTab === 'review' ? (
+                    <div className="space-y-6">
+                        {submissions.length > 0 ? (
+                            <div className="grid grid-cols-1 gap-4">
+                                {submissions.map((submission) => (
+                                    <div key={submission.submission_id} className="bg-white rounded-[2rem] border border-slate-100 p-8 hover:shadow-xl transition-premium group relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-1.5 h-full bg-[#1a27c9] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                                            <div className="flex items-center gap-6 flex-1">
+                                                <div className="relative w-24 h-24 rounded-[1.5rem] overflow-hidden bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform flex-shrink-0">
+                                                    {submission.photo_url ? (
+                                                        <img src={submission.photo_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-slate-200">
+                                                            <Users size={40} />
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-3 mb-1">
-                                                <h3 className="text-xl font-black text-[#0d0e0e] tracking-tight">{submission.expert_name}</h3>
-                                                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100 flex items-center gap-1.5">
-                                                    <Clock size={12} />
-                                                    Pending Review
-                                                </span>
+                                                <div>
+                                                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                                                        <h3 className="text-2xl font-black text-[#0d0e0e] tracking-tight">{submission.expert_name}</h3>
+                                                        <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100 flex items-center gap-1.5">
+                                                            <Clock size={12} />
+                                                            Pending Pulse
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-wrap items-center gap-4 text-sm font-bold text-slate-400 uppercase tracking-widest">
+                                                        <span>{submission.title}</span>
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                                                        <span>{submission.company}</span>
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                                                        <span className="text-[#1a27c9]">{new Date(submission.submitted_at).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <p className="text-sm font-bold text-slate-500">{submission.title} @ <span className="text-[#1a27c9]">{submission.company}</span></p>
+
+                                            <div className="flex flex-wrap items-center gap-3">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedSubmission(submission);
+                                                        setShowPreview(true);
+                                                    }}
+                                                    className="px-6 py-4 bg-slate-50 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-premium flex items-center gap-2 border border-transparent hover:border-slate-200"
+                                                >
+                                                    <Eye size={16} />
+                                                    Inspect
+                                                </button>
+                                                <button
+                                                    onClick={() => handleApproveExpert(submission)}
+                                                    disabled={actionLoading === submission.submission_id}
+                                                    className="px-6 py-4 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0d0e0e] hover:shadow-lg hover:shadow-emerald-200 transition-premium flex items-center gap-2 disabled:opacity-50"
+                                                >
+                                                    {actionLoading === submission.submission_id ? (
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    ) : (
+                                                        <CheckCircle size={16} />
+                                                    )}
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRejectExpert(submission)}
+                                                    disabled={actionLoading === submission.submission_id}
+                                                    className="px-6 py-4 bg-white text-rose-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 hover:text-rose-600 border border-slate-100 hover:border-rose-100 transition-premium flex items-center gap-2 disabled:opacity-50"
+                                                >
+                                                    <XCircle size={16} />
+                                                    Reject
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() => {
-                                                setSelectedSubmission(submission);
-                                                setShowPreview(true);
-                                            }}
-                                            className="px-6 py-3 bg-slate-50 text-slate-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-premium flex items-center gap-2"
-                                        >
-                                            <Eye size={16} />
-                                            Preview
-                                        </button>
-                                        <button
-                                            disabled={actionLoading === submission.submission_id}
-                                            onClick={() => handleApproveExpert(submission)}
-                                            className="px-6 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-premium flex items-center gap-2 shadow-sm"
-                                        >
-                                            <CheckCircle size={16} />
-                                            Approve
-                                        </button>
-                                        <button
-                                            disabled={actionLoading === submission.submission_id}
-                                            onClick={() => handleRejectExpert(submission)}
-                                            className="px-6 py-3 bg-rose-50 text-rose-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-premium flex items-center gap-2 shadow-sm"
-                                        >
-                                            <XCircle size={16} />
-                                            Reject
-                                        </button>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
-                        ))}
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-32 text-center bg-white rounded-[3rem] border border-slate-100 border-dashed">
+                                <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200 mb-6">
+                                    <Inbox size={32} />
+                                </div>
+                                <h3 className="text-xl font-black text-[#0d0e0e] tracking-tight mb-2 uppercase">Workspace Clear</h3>
+                                <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No pending expert signals awaiting your signal.</p>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-32 text-center">
@@ -551,6 +573,122 @@ const ExpertManager = () => {
                             >
                                 Close
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Submission Details Preview Modal */}
+            {showPreview && selectedSubmission && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-[#0d0e0e]/40 backdrop-blur-md" onClick={() => setShowPreview(false)} />
+                    <div className="bg-white w-full max-w-4xl rounded-[3rem] shadow-2xl relative overflow-hidden animate-in zoom-in duration-300">
+                        <div className="h-32 bg-gradient-to-r from-[#1a27c9] to-[#4f46e5]" />
+                        <div className="p-12 -mt-16">
+                            <div className="flex justify-between items-start mb-10">
+                                <div className="p-2 bg-white rounded-[2rem] shadow-xl">
+                                    <div className="w-28 h-28 rounded-[1.5rem] bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
+                                        {selectedSubmission.photo_url ? (
+                                            <img src={selectedSubmission.photo_url} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Users size={48} className="text-slate-200" />
+                                        )}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowPreview(false)}
+                                    className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-2xl text-white transition-premium mt-4"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                                <div className="space-y-8">
+                                    <div>
+                                        <h2 className="text-3xl font-black text-[#0d0e0e] tracking-tight mb-2">{selectedSubmission.expert_name}</h2>
+                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+                                            <Clock size={14} /> Submitting Pulse from Form Link
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-6 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Title</p>
+                                                <p className="font-bold text-[#0d0e0e]">{selectedSubmission.title || 'Expert'}</p>
+                                            </div>
+                                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Company</p>
+                                                <p className="font-bold text-[#0d0e0e]">{selectedSubmission.company || 'Not Specified'}</p>
+                                            </div>
+                                        </div>
+
+                                        {selectedSubmission.bio && (
+                                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Biography</p>
+                                                <p className="text-sm font-bold text-[#0d0e0e] leading-relaxed italic text-slate-600">"{selectedSubmission.bio}"</p>
+                                            </div>
+                                        )}
+
+                                        {selectedSubmission.additional_data && (
+                                            <div className="space-y-4">
+                                                <p className="text-[10px] font-black text-[#1a27c9] uppercase tracking-[0.2em]">Transmission Payload</p>
+                                                <div className="grid grid-cols-1 gap-3">
+                                                    {Object.entries(selectedSubmission.additional_data).map(([key, value]) => {
+                                                        if (key === '_column_order' || typeof value === 'object') return null;
+                                                        return (
+                                                            <div key={key} className="p-5 bg-white border border-slate-100 rounded-2xl flex justify-between items-center group hover:border-[#1a27c9]/20 transition-premium">
+                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key.replace(/_/g, ' ')}</p>
+                                                                <p className="font-bold text-[#0d0e0e] text-right">{String(value)}</p>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="hidden lg:flex flex-col items-center justify-center bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 p-8">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Roster Component Preview</p>
+                                    <div className="scale-110 pointer-events-none">
+                                        <ExpertCard
+                                            expert={{
+                                                name: selectedSubmission.expert_name,
+                                                title: selectedSubmission.title,
+                                                company: selectedSubmission.company,
+                                                bio: selectedSubmission.bio,
+                                                photo_url: selectedSubmission.photo_url
+                                            }}
+                                            previewMode={true}
+                                        />
+                                    </div>
+                                    <p className="mt-8 text-[10px] font-black text-[#1a27c9] uppercase tracking-[0.2em] animate-pulse">Live Pulse Preview</p>
+                                </div>
+                            </div>
+
+                            <div className="mt-10 flex items-center gap-4">
+                                <button
+                                    onClick={() => {
+                                        handleApproveExpert(selectedSubmission);
+                                        setShowPreview(false);
+                                    }}
+                                    className="flex-1 py-5 bg-[#1a27c9] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] transition-premium shadow-xl shadow-indigo-200/50 flex items-center justify-center gap-2"
+                                >
+                                    <CheckCircle size={18} />
+                                    Authorize Entry
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        handleRejectExpert(selectedSubmission);
+                                        setShowPreview(false);
+                                    }}
+                                    className="px-12 py-5 bg-white text-rose-500 border border-slate-100 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-50 transition-premium flex items-center justify-center gap-2"
+                                >
+                                    <XCircle size={18} />
+                                    Block
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

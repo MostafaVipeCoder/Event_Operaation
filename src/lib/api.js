@@ -808,7 +808,7 @@ const getDefaultFormConfig = (entityType) => {
                 placeholder: 'e.g., Cairo, Dubai, Remote'
             }
         ];
-    } else {
+    } else if (entityType === 'expert') {
         return [
             {
                 field_name: 'expert_name',
@@ -858,6 +858,193 @@ const getDefaultFormConfig = (entityType) => {
             }
         ];
     }
+    // Return empty array for 'selection_process' or any other types
+    return [];
+};
+
+// ==========================================
+// MULTI-FORM APIs
+// ==========================================
+
+/**
+ * Get all forms for an event
+ */
+export const getEventForms = async (eventId) => {
+    const { data, error } = await supabase
+        .from('event_forms')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data || [];
+};
+
+/**
+ * Create a new form and seed it with default fields based on target_module
+ */
+export const createEventForm = async (eventId, formName, targetModule) => {
+    // 1. Create the form record
+    const { data: form, error: formError } = await supabase
+        .from('event_forms')
+        .insert({ event_id: eventId, form_name: formName, target_module: targetModule })
+        .select()
+        .single();
+    if (formError) throw formError;
+
+    // 2. Seed default fields (empty for selection_process)
+    const defaultFields = getDefaultFormConfig(targetModule);
+    if (defaultFields.length > 0) {
+        const fieldsToInsert = defaultFields.map((field, idx) => ({
+            ...field,
+            event_id: eventId,
+            entity_type: targetModule,
+            form_id: form.form_id,
+            display_order: idx,
+        }));
+        const { error: fieldError } = await supabase
+            .from('form_field_configs')
+            .insert(fieldsToInsert);
+        if (fieldError) throw fieldError;
+    }
+
+    return form;
+};
+
+/**
+ * Update form metadata (name, is_active)
+ */
+export const updateEventForm = async (formId, updates) => {
+    const { data, error } = await supabase
+        .from('event_forms')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('form_id', formId)
+        .select()
+        .single();
+    if (error) throw error;
+    return data;
+};
+
+/**
+ * Delete a form and all its field configs (via CASCADE)
+ */
+export const deleteEventForm = async (formId) => {
+    const { error } = await supabase
+        .from('event_forms')
+        .delete()
+        .eq('form_id', formId);
+    if (error) throw error;
+    return { success: true };
+};
+
+/**
+ * Get field configs for a specific form_id
+ */
+export const getFormConfigById = async (formId) => {
+    const { data, error } = await supabase
+        .from('form_field_configs')
+        .select('*')
+        .eq('form_id', formId)
+        .order('display_order', { ascending: true });
+    if (error) throw error;
+    return data || [];
+};
+
+/**
+ * Save field configs for a specific form_id (replace all)
+ */
+export const saveFormConfigById = async (formId, eventId, targetModule, fields) => {
+    // Delete existing fields for this form
+    await supabase
+        .from('form_field_configs')
+        .delete()
+        .eq('form_id', formId);
+
+    if (fields.length === 0) return [];
+
+    const fieldsToInsert = fields.map((field, idx) => ({
+        ...field,
+        event_id: eventId,
+        entity_type: targetModule,
+        form_id: formId,
+        display_order: idx,
+    }));
+
+    const { data, error } = await supabase
+        .from('form_field_configs')
+        .insert(fieldsToInsert)
+        .select();
+    if (error) throw error;
+    return data;
+};
+
+/**
+ * Get a single event form by its ID
+ */
+export const getEventFormById = async (formId) => {
+    const { data, error } = await supabase
+        .from('event_forms')
+        .select('*')
+        .eq('form_id', formId)
+        .single();
+    if (error) throw error;
+    return data;
+};
+
+/**
+ * Submit data to the correct table based on target_module
+ */
+export const submitToForm = async (formId, eventId, targetModule, formData) => {
+    if (targetModule === 'company') {
+        const { startup_name, logo_url, industry, location, ...additionalData } = formData;
+        const { data, error } = await supabase
+            .from('company_submissions')
+            .insert([{
+                event_id: eventId,
+                form_id: formId,
+                startup_name: startup_name || formData[Object.keys(formData)[0]] || 'Unknown',
+                logo_url: logo_url || null,
+                industry: industry || null,
+                location: location || null,
+                additional_data: additionalData,
+                status: 'screening'
+            }])
+            .select().single();
+        if (error) throw error;
+        return data;
+    } else if (targetModule === 'expert') {
+        const { expert_name, photo_url, title, company, bio, ...additionalData } = formData;
+        const { data, error } = await supabase
+            .from('expert_submissions')
+            .insert([{
+                event_id: eventId,
+                form_id: formId,
+                expert_name: expert_name || formData[Object.keys(formData)[0]] || 'Unknown',
+                photo_url: photo_url || null,
+                title: title || null,
+                company: company || null,
+                bio: bio || null,
+                additional_data: additionalData,
+                status: 'pending'
+            }])
+            .select().single();
+        if (error) throw error;
+        return data;
+    } else if (targetModule === 'selection_process') {
+        // For selection_process, all fields go into company_submissions additional_data
+        const { data, error } = await supabase
+            .from('company_submissions')
+            .insert([{
+                event_id: eventId,
+                form_id: formId,
+                startup_name: formData[Object.keys(formData)[0]] || 'Applicant',
+                additional_data: formData,
+                status: 'screening'
+            }])
+            .select().single();
+        if (error) throw error;
+        return data;
+    }
+    throw new Error(`Unknown target_module: ${targetModule}`);
 };
 
 /**

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Upload, AlertCircle } from 'lucide-react';
 
 /**
@@ -15,6 +15,26 @@ import { Upload, AlertCircle } from 'lucide-react';
  */
 const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, onFileUpload }) => {
     const [uploadingFields, setUploadingFields] = useState({});
+
+    // Pre-fill any fields whose field_name matches a URL search param
+    useEffect(() => {
+        if (!fields.length) return;
+        const params = new URLSearchParams(window.location.search);
+        if (!params.toString()) return;
+
+        const prefilled = {};
+        fields.forEach(field => {
+            const paramValue = params.get(field.field_name);
+            if (paramValue !== null) {
+                prefilled[field.field_name] = paramValue;
+            }
+        });
+
+        if (Object.keys(prefilled).length > 0) {
+            onChange({ ...values, ...prefilled });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fields]);
 
     const handleFieldChange = (fieldName, value) => {
         onChange({ ...values, [fieldName]: value });
@@ -43,8 +63,10 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
             is_required,
             placeholder,
             help_text,
-            validation_rules = {}
+            validation_rules: raw_validation_rules = {}
         } = field;
+
+        const validation_rules = raw_validation_rules || {};
 
         const value = values[field_name] || '';
         const error = errors[field_name];
@@ -59,6 +81,18 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
             : `${inputBaseClasses} border-slate-200 focus:border-blue-500`;
 
         switch (field_type) {
+            case 'hidden':
+                // Hidden fields are invisible to the user but their value is submitted
+                return (
+                    <input
+                        key={field_name}
+                        type="hidden"
+                        name={field_name}
+                        value={value}
+                        readOnly
+                    />
+                );
+
             case 'text':
             case 'email':
             case 'url':

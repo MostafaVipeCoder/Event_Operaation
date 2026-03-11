@@ -10,7 +10,6 @@ const CompaniesPage = lazy(() => import('./components/CompaniesPage'));
 const EventDashboard = lazy(() => import('./components/EventDashboard'));
 const ExpertManager = lazy(() => import('./components/ExpertManager'));
 const StartupManager = lazy(() => import('./components/StartupManager'));
-const SubmissionManager = lazy(() => import('./components/SubmissionManager'));
 const StartupViewer = lazy(() => import('./components/StartupViewer'));
 const ExpertViewer = lazy(() => import('./components/ExpertViewer'));
 const CompanyPortal = lazy(() => import('./components/CompanyPortal'));
@@ -19,6 +18,8 @@ const FormEditor = lazy(() => import('./components/FormEditor'));
 const LoginPage = lazy(() => import('./components/LoginPage'));
 const EventVisualManager = lazy(() => import('./components/EventVisualManager'));
 const SelectionProcessManager = lazy(() => import('./components/SelectionProcessManager'));
+const GenericFormPortal = lazy(() => import('./components/GenericFormPortal'));
+const MarketingAnalytics = lazy(() => import('./components/MarketingAnalytics'));
 
 import PublicLayout from './components/PublicLayout';
 import { AuthProvider } from './contexts/AuthContext';
@@ -96,15 +97,16 @@ function App() {
               </ProtectedRoute>
             } />
 
-            <Route path="/event/:eventId/submissions" element={
-              <ProtectedRoute>
-                <SubmissionManager />
-              </ProtectedRoute>
-            } />
 
             <Route path="/event/:eventId/selection" element={
               <ProtectedRoute>
                 <SelectionProcessManager />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/event/:eventId/analytics" element={
+              <ProtectedRoute>
+                <MarketingAnalytics />
               </ProtectedRoute>
             } />
 
@@ -118,6 +120,7 @@ function App() {
             {/* Registration Portals (No Authentication Required, No Layout/Nav) */}
             <Route path="/events/:eventId/register/company" element={<CompanyPortal />} />
             <Route path="/events/:eventId/register/expert" element={<ExpertPortal />} />
+            <Route path="/events/:eventId/register/form/:formId" element={<GenericFormPortal />} />
           </Routes>
         </Suspense>
       </Router>
