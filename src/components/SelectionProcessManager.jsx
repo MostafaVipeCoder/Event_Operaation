@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     ArrowLeft,
     Search,
@@ -14,7 +14,9 @@ import {
     Ban,
     Globe,
     ExternalLink,
-    RefreshCw
+    RefreshCw,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -43,6 +45,55 @@ const SelectionProcessManager = () => {
     const [selectedSubmission, setSelectedSubmission] = useState(null);
     const [decisionModal, setDecisionModal] = useState({ show: false, submission: null, newStatus: null, reason: '' });
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    const currentSubmissions = submissions.filter(s => {
+        const matchesTab = s.status === activeTab || (activeTab === 'approved' && s.status === 'displayed');
+        const matchesSearch = s.startup_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.industry?.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesTab && matchesSearch;
+    });
+
+    const lastViewedIndexRef = useRef(-1);
+
+    useEffect(() => {
+        if (selectedSubmission) {
+            const idx = currentSubmissions.findIndex(s => s.submission_id === selectedSubmission.submission_id);
+            if (idx !== -1) {
+                lastViewedIndexRef.current = idx;
+            }
+        }
+    }, [selectedSubmission, currentSubmissions]);
+
+    const getNavigationState = () => {
+        if (!selectedSubmission) return { hasPrev: false, hasNext: false, prevIdx: -1, nextIdx: -1 };
+        const idx = currentSubmissions.findIndex(s => s.submission_id === selectedSubmission.submission_id);
+        if (idx !== -1) {
+            return {
+                hasPrev: idx > 0,
+                hasNext: idx < currentSubmissions.length - 1,
+                prevIdx: idx - 1,
+                nextIdx: idx + 1
+            };
+        } else {
+            const vIdx = lastViewedIndexRef.current;
+            return {
+                hasPrev: vIdx > 0,
+                hasNext: vIdx >= 0 && vIdx < currentSubmissions.length,
+                prevIdx: vIdx - 1,
+                nextIdx: vIdx
+            };
+        }
+    };
+
+    const navState = getNavigationState();
+
+    const handleNavigate = (direction) => {
+        const state = getNavigationState();
+        if (direction === 'prev' && state.hasPrev) {
+            setSelectedSubmission(currentSubmissions[state.prevIdx]);
+        } else if (direction === 'next' && state.hasNext) {
+            setSelectedSubmission(currentSubmissions[state.nextIdx]);
+        }
+    };
 
     const stages = [
         { id: 'screening', name: 'Screening', icon: <ClipboardList size={18} />, color: 'blue' },
@@ -191,12 +242,7 @@ const SelectionProcessManager = () => {
         return String(val);
     };
 
-    const currentSubmissions = submissions.filter(s => {
-        const matchesTab = s.status === activeTab || (activeTab === 'approved' && s.status === 'displayed');
-        const matchesSearch = s.startup_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.industry?.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesTab && matchesSearch;
-    });
+    // currentSubmissions moved to the top of the component
 
     // Get all unique keys from additional_data in the current set, respecting order
     const getColumns = () => {
@@ -479,7 +525,7 @@ const SelectionProcessManager = () => {
                 <div key={selectedSubmission.submission_id} className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-6">
                     <div className="bg-white rounded-[3rem] w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
                         {/* Modal Header */}
-                        <div className="p-10 pb-6 border-b border-slate-100 flex items-start justify-between relative overflow-hidden bg-gradient-to-br from-slate-50 to-white">
+                        <div className="p-10 pb-6 border-b border-slate-100 flex items-start h-[70vh] justify-between relative overflow-hidden bg-gradient-to-br from-slate-50 to-white">
                             <div className="flex gap-8 items-center relative z-10">
                                 <div className="w-24 h-24 rounded-3xl bg-white border border-slate-200 shadow-xl flex items-center justify-center overflow-hidden p-2">
                                     {selectedSubmission.logo_url ? (
@@ -502,12 +548,29 @@ const SelectionProcessManager = () => {
                                     </h2>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setSelectedSubmission(null)}
-                                className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-100 hover:bg-rose-50 transition-premium relative z-10"
-                            >
-                                <X size={20} />
-                            </button>
+                            <div className="flex items-center gap-2 relative z-10">
+                                <button
+                                    onClick={() => handleNavigate('prev')}
+                                    disabled={!navState.hasPrev}
+                                    className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-[#1a27c9]/5 transition-premium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <button
+                                    onClick={() => handleNavigate('next')}
+                                    disabled={!navState.hasNext}
+                                    className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-[#1a27c9]/5 transition-premium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
+                                <div className="w-px h-8 bg-slate-200 mx-2"></div>
+                                <button
+                                    onClick={() => setSelectedSubmission(null)}
+                                    className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-100 hover:bg-rose-50 transition-premium"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Modal Body */}

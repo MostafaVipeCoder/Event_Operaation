@@ -953,27 +953,54 @@ export const getFormConfigById = async (formId) => {
  * Save field configs for a specific form_id (replace all)
  */
 export const saveFormConfigById = async (formId, eventId, targetModule, fields) => {
-    // Delete existing fields for this form
-    await supabase
+    // 1. Delete existing fields for this form
+    const { error: deleteError } = await supabase
         .from('form_field_configs')
         .delete()
         .eq('form_id', formId);
+    
+    if (deleteError) {
+        console.error('[Supabase] Error deleting old configs:', deleteError);
+        throw deleteError;
+    }
 
-    if (fields.length === 0) return [];
+    if (!fields || fields.length === 0) return [];
 
-    const fieldsToInsert = fields.map((field, idx) => ({
-        ...field,
-        event_id: eventId,
-        entity_type: targetModule,
-        form_id: formId,
-        display_order: idx,
-    }));
+    // 2. Clean and map fields for insertion
+    // We remove config_id, created_at, updated_at to let DB generate them
+    // and ensure all objects have the same keys to avoid PostgREST 400 errors
+    const fieldsToInsert = fields.map((field, idx) => {
+        const cleanedMetadata = {
+            event_id: eventId,
+            form_id: formId,
+            entity_type: targetModule,
+            display_order: idx,
+            field_name: field.field_name,
+            field_label: field.field_label,
+            field_type: field.field_type,
+            is_required: field.is_required || false,
+            show_in_card: field.show_in_card || false,
+            placeholder: field.placeholder || '',
+            help_text: field.help_text || '',
+            is_custom: field.is_custom || false,
+            // Ensure JSON fields are handled correctly
+            field_options: field.field_options || [],
+            validation_rules: field.validation_rules || {}
+        };
+        return cleanedMetadata;
+    });
 
-    const { data, error } = await supabase
+    // 3. Perform the bulk insert
+    const { data, error: insertError } = await supabase
         .from('form_field_configs')
         .insert(fieldsToInsert)
         .select();
-    if (error) throw error;
+
+    if (insertError) {
+        console.error('[Supabase] Error inserting new configs:', insertError);
+        throw insertError;
+    }
+    
     return data;
 };
 

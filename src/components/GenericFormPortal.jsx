@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Loader, CheckCircle, AlertCircle } from 'lucide-react';
 import { getEvent, getEventFormById, getFormConfigById, submitToForm } from '../lib/api';
 import { uploadImage } from '../lib/api';
@@ -8,6 +8,12 @@ import DynamicFormBuilder from './DynamicFormBuilder';
 
 export default function GenericFormPortal() {
     const { eventId, formId } = useParams();
+    const [searchParams] = useSearchParams();
+    // Tracking params captured from URL (e.g. ?source=facebook&utm_campaign=spring)
+    const TRACKING_KEYS = ['source', 'utm_source', 'utm_medium', 'utm_campaign', 'channel', 'ref', 'from'];
+    const trackingData = Object.fromEntries(
+        TRACKING_KEYS.map(k => [k, searchParams.get(k)]).filter(([, v]) => v)
+    );
     const [formMeta, setFormMeta] = useState(null);
     const [event, setEvent] = useState(null);
     const [fields, setFields] = useState([]);
@@ -37,9 +43,34 @@ export default function GenericFormPortal() {
                 }
 
                 setFields(fieldData.filter(f => f.field_type !== 'hidden' || true)); // include hidden
-                // Seed initial values
                 const initial = {};
-                fieldData.forEach(f => { initial[f.field_name] = ''; });
+
+                fieldData.forEach(f => {
+                    let defaultVal = '';
+                    
+                    // 1. Direct URL mapping (e.g. ?custom_123=instgram)
+                    const exactParam = searchParams.get(f.field_name);
+                    if (exactParam) {
+                        defaultVal = exactParam;
+                    } 
+                    // 2. Fallbacks for hidden tracking/source fields using common names
+                    else if (f.field_type === 'hidden') {
+                        const label = (f.field_label || '').toLowerCase();
+                        if (label.includes('track') || label.includes('trak') || label.includes('source') || label.includes('منصة') || label.includes('utm')) {
+                            const TRACKING_KEYS = ['source', 'utm_source', 'utm_medium', 'utm_campaign', 'channel', 'ref', 'from'];
+                            for (const tk of TRACKING_KEYS) {
+                                const val = searchParams.get(tk);
+                                if (val) {
+                                    defaultVal = val;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    initial[f.field_name] = defaultVal; 
+                });
+
                 setFormValues(initial);
             } catch (err) {
                 setError('Form not found or no longer available.');
@@ -67,7 +98,23 @@ export default function GenericFormPortal() {
         try {
             setSubmitting(true);
             setError(null);
-            await submitToForm(formId, eventId, formMeta.target_module, formValues);
+            
+            // 1. Static URL tracking data
+            const finalTracking = { ...trackingData };
+            
+            // 2. Discover if any stored formValue represents a tracking source
+            fields.forEach(f => {
+                const label = (f.field_label || '').toLowerCase();
+                if (label.includes('track') || label.includes('trak') || label.includes('source') || label.includes('منصة') || label.includes('utm')) {
+                    if (formValues[f.field_name]) {
+                        finalTracking.source = formValues[f.field_name];
+                    }
+                }
+            });
+
+            // Merge everything
+            const enrichedFormValues = { ...formValues, ...finalTracking };
+            await submitToForm(formId, eventId, formMeta.target_module, enrichedFormValues);
             setSubmitted(true);
         } catch (err) {
             setError('Submission failed. Please try again.');
