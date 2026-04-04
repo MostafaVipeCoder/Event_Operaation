@@ -170,7 +170,7 @@ const StartupManager = () => {
                                 <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                             </button>
                             <div>
-                                <h1 className="text-3xl font-black text-[#0d0e0e] tracking-tight">Venture Grid</h1>
+                                <h1 className="text-3xl font-black text-[#0d0e0e] tracking-tight">Company Grid</h1>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Populate your events ecosystem</p>
                             </div>
                         </div>
@@ -223,7 +223,7 @@ const StartupManager = () => {
                                 className="flex items-center gap-3 bg-[#059669] text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-emerald-200 transition-premium group active:scale-95"
                             >
                                 <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
-                                <span>Add Venture</span>
+                                <span>Add Company</span>
                             </button>
                         </div>
                     </div>
