@@ -67,36 +67,8 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
               <span className="text-[10px] font-black uppercase tracking-[0.4em]">Operational Domain</span>
             </div>
             <p className="text-2xl md:text-4xl font-black text-slate-800 leading-tight uppercase tracking-tight">
-              {industry} & Advanced Industrial Infrastructure Solutions
+              {industry}
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12">
-            <div className="flex items-center gap-6 bg-slate-50/50 px-10 py-6 rounded-[2.5rem] border border-slate-100/50 group-hover:bg-white group-hover:border-slate-200 transition-all">
-              <MapPin size={24} className="text-slate-400" />
-              <div>
-                <span className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Governorate</span>
-                <span className="text-lg font-black text-[#0d0e0e] uppercase">{location}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-6 bg-slate-50/50 px-10 py-6 rounded-[2.5rem] border border-slate-100/50 group-hover:bg-white group-hover:border-slate-200 transition-all">
-              <Users size={24} className="text-slate-400" />
-              <div>
-                <span className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Growth Index</span>
-                <span className="text-lg font-black text-[#0d0e0e] uppercase">{company.employees || 'Expanding'}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Founder Section */}
-          <div className="flex items-center gap-6 pt-10 border-t border-slate-100 justify-center md:justify-start">
-            <div className="w-16 h-16 rounded-3xl bg-slate-900 border-2 border-slate-200 flex items-center justify-center text-white text-lg font-black shadow-xl">
-              {company.founder ? company.founder.split(' ')[1]?.charAt(0) || company.founder.charAt(0) : 'E'}
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1.5">Executive Founder</p>
-              <p className="text-xl font-black text-[#0d0e0e] tracking-tight">{company.founder || 'Ecosystem Architect'}</p>
-            </div>
           </div>
         </div>
 
@@ -234,18 +206,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
         <p className="text-sm font-bold text-slate-600 leading-relaxed uppercase tracking-tight line-clamp-2">{industry}</p>
       </div>
 
-      {/* Founder Area - Enhanced Precision */}
-      <div className="flex items-center justify-between pt-8 border-t border-slate-50 group-hover:border-slate-100 transition-colors z-10">
-        <div className="flex items-center gap-4 overflow-hidden">
-          <div className="w-12 h-12 rounded-2xl bg-slate-900 border-2 border-slate-200 flex items-center justify-center text-white text-xs font-black shadow-lg shrink-0">
-            {company.founder ? company.founder.split(' ')[1]?.charAt(0) || company.founder.charAt(0) : 'E'}
-          </div>
-          <div className="overflow-hidden">
-            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1.5">Executive Founder</p>
-            <p className="text-sm font-black text-[#0d0e0e] leading-none tracking-tight truncate">{company.founder || 'Ecosystem Architect'}</p>
-          </div>
-        </div>
-      </div>
+
 
       {/* Dynamic Interaction Overlay */}
       <div

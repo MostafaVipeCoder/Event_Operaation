@@ -82,13 +82,7 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                                 <span className="text-sm font-black text-[#0d0e0e] uppercase">{expert.company || 'Pioneer Group'}</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4 bg-slate-50/50 px-8 py-5 rounded-[2rem] border border-slate-100/50 group-hover:bg-white group-hover:border-slate-200 transition-all">
-                            <MapPin size={20} className="text-slate-400" />
-                            <div>
-                                <span className="block text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Strategic Base</span>
-                                <span className="text-sm font-black text-[#0d0e0e] uppercase">{expert.location || 'Global Expansion'}</span>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
 
