@@ -1,6 +1,76 @@
 import * as XLSX from 'xlsx';
 
 /**
+ * Formats any date value from Excel into a 'YYYY-MM-DD' string.
+ * Handles: JS Date objects, Excel serial numbers, and existing YYYY-MM-DD strings.
+ * @param {Date|number|string} value
+ * @returns {string|null}
+ */
+const formatDateToISO = (value) => {
+    if (!value && value !== 0) return null;
+
+    // Case 1: JS Date object (when cellDates:true is used in XLSX.read)
+    if (value instanceof Date) {
+        if (isNaN(value.getTime())) return null;
+        const year = value.getUTCFullYear();
+        const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(value.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // Case 2: Excel Serial Number as an integer (e.g., 45672)
+    if (typeof value === 'number') {
+        return convertExcelSerial(value);
+    }
+
+    // Case 3: String value
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+
+        // Case 3a: Already YYYY-MM-DD format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            return trimmed;
+        }
+
+        // Case 3b: Numeric string = Excel Serial Number (e.g., "45672")
+        if (/^\d+(\.\d+)?$/.test(trimmed)) {
+            return convertExcelSerial(parseFloat(trimmed));
+        }
+
+        // Case 3c: Human-readable date string (e.g., "January 1, 2026" or "01/01/2026")
+        const parsed = new Date(trimmed);
+        if (!isNaN(parsed.getTime())) {
+            const year = parsed.getFullYear();
+            const month = String(parsed.getMonth() + 1).padStart(2, '0');
+            const day = String(parsed.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    }
+
+    console.warn(`[Excel Parser] Could not parse date value: "${value}" (type: ${typeof value}). Sending as-is.`);
+    return String(value);
+};
+
+/**
+ * Converts an Excel serial date number to a YYYY-MM-DD string.
+ * Excel's epoch is January 1, 1900, with a known leap-year bug offset.
+ * @param {number} serial
+ * @returns {string|null}
+ */
+const convertExcelSerial = (serial) => {
+    if (!serial && serial !== 0) return null;
+    // Excel serial 1 = Jan 1, 1900. Unix epoch = Jan 1, 1970.
+    // Offset = 25569 days between the two epochs (accounting for Excel's leap year bug).
+    const utcMs = (serial - 25569) * 86400 * 1000;
+    const date = new Date(utcMs);
+    if (isNaN(date.getTime())) return null;
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+/**
  * Generates an Excel template for the agenda.
  * Includes two sheets: "Days" and "Agenda Slots".
  */
@@ -79,7 +149,7 @@ export const parseWorkbook = (workbook) => {
 
     const days = daysRaw.map(row => ({
         day_name: row['Day Name'] || row['Name'] || row['day'],
-        day_date: row['Date (YYYY-MM-DD)'] || row['Date'] || row['date']
+        day_date: formatDateToISO(row['Date (YYYY-MM-DD)'] || row['Date'] || row['date'])
     })).filter(d => d.day_name && d.day_date);
 
     // Parse Slots
@@ -217,7 +287,7 @@ export const parseAgendaExcel = (file) => {
         reader.onload = (e) => {
             try {
                 const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                 resolve(parseWorkbook(workbook));
             } catch (error) {
                 reject(error);
@@ -247,7 +317,7 @@ export const fetchAndParseGoogleSheet = async (url) => {
         }
 
         const buffer = await response.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array' });
+        const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
 
         return parseWorkbook(workbook);
     } catch (error) {

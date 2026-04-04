@@ -259,6 +259,18 @@ export default function AgendaViewer({ eventId }) {
                                             >
                                                 {slot.slot_title}
                                             </h3>
+                                            {slot.bullet_points?.length > 0 && (
+                                                <ul className="space-y-1.5 pl-1">
+                                                    {slot.bullet_points.map((point, i) => (
+                                                        <li key={i} className="flex items-start gap-2.5 animate-fadeIn">
+                                                            <div className="mt-[7px] h-1.5 w-1.5 rounded-full bg-indigo-300 shrink-0" />
+                                                            <span className="text-slate-500 font-medium leading-relaxed" style={{ fontSize: '0.88rem' }}>
+                                                                {point}
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
                                             {slot.presenter_name && slot.show_presenter && (
                                                 <div className="flex items-center gap-2 animate-fadeIn">
                                                     <div className="h-1.5 w-1.5 rounded-full bg-indigo-400" />

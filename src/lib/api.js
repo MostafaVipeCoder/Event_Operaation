@@ -407,7 +407,10 @@ export const importAgendaData = async (eventId, data) => {
                         day_number: (existingDays?.length || 0) + stats.days.added + 1
                     }])
                     .select().single();
-                if (dError) throw dError;
+                if (dError) {
+                    console.error('[Supabase Error] Failed to insert day. Payload:', { event_id: eventId, day_name: sDay.day_name, day_date: sDay.day_date, day_date_type: typeof sDay.day_date });
+                    throw dError;
+                }
                 dayIdMap.set(sDay.day_name, newDay.day_id);
                 stats.days.added++;
             }

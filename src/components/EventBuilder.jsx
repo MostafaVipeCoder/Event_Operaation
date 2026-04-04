@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Upload, Calendar, Clock, User, Save, ExternalLink, Edit2, UserCheck, UserX, Copy, Check, FileSpreadsheet, Download, UploadCloud, Loader2, AlertTriangle, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, Calendar, Clock, User, Save, ExternalLink, Edit2, UserCheck, UserX, Copy, Check, FileSpreadsheet, Download, UploadCloud, Loader2, AlertTriangle, X, List, GripVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
     getEventDays,
@@ -48,6 +48,7 @@ export default function EventBuilder({ event, onBack }) {
         endTime: '10:00',
         title: '',
         presenter: '',
+        bulletPoints: [],
         saving: false
     });
     const [eventDetails, setEventDetails] = useState(event);
@@ -230,13 +231,16 @@ export default function EventBuilder({ event, onBack }) {
             endTime: slot.end_time,
             title: slot.slot_title,
             presenter: slot.presenter_name || '',
+            bulletPoints: slot.bullet_points || [],
             saving: false
         });
     };
 
     const handleSaveSlot = async () => {
-        const { dayId, startTime, endTime, title, presenter, isEditing, slotId } = slotModal;
+        const { dayId, startTime, endTime, title, presenter, bulletPoints, isEditing, slotId } = slotModal;
         if (!startTime || !endTime || !title) return;
+        // Filter out empty bullet points before saving
+        const cleanBullets = (bulletPoints || []).filter(b => b.trim() !== '');
 
         try {
             // Store previous state for rollback
@@ -251,7 +255,8 @@ export default function EventBuilder({ event, onBack }) {
                         start_time: startTime,
                         end_time: endTime,
                         slot_title: title,
-                        presenter_name: presenter
+                        presenter_name: presenter,
+                        bullet_points: cleanBullets
                     } : s)
                 }));
             } else {
@@ -264,6 +269,7 @@ export default function EventBuilder({ event, onBack }) {
                     slot_title: title,
                     presenter_name: presenter,
                     show_presenter: !!presenter,
+                    bullet_points: cleanBullets,
                     isOptimistic: true
                 };
                 setSlots(prev => ({
@@ -281,7 +287,8 @@ export default function EventBuilder({ event, onBack }) {
                     start_time: startTime,
                     end_time: endTime,
                     slot_title: title,
-                    presenter_name: presenter
+                    presenter_name: presenter,
+                    bullet_points: cleanBullets
                 });
             } else {
                 await createSlot({
@@ -290,6 +297,7 @@ export default function EventBuilder({ event, onBack }) {
                     end_time: endTime,
                     slot_title: title,
                     presenter_name: presenter,
+                    bullet_points: cleanBullets,
                     sort_order: (slots[dayId]?.length || 0) + 1
                 });
             }
@@ -715,8 +723,14 @@ export default function EventBuilder({ event, onBack }) {
                                                         {/* Slot Content */}
                                                         <div className="flex-1 min-w-[200px]">
                                                             <p className="text-lg font-extrabold text-[#0d0e0e] leading-tight mb-1">{slot.slot_title}</p>
+                                                            {slot.bullet_points?.length > 0 && (
+                                                                <div className="flex items-center gap-1.5 mt-1">
+                                                                    <List size={12} className="text-indigo-400" />
+                                                                    <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest">{slot.bullet_points.length} نقطة</span>
+                                                                </div>
+                                                            )}
                                                             {slot.presenter_name && (
-                                                                <div className="flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-widest">
+                                                                <div className="flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">
                                                                     <User size={14} className="text-[#1a27c9]" />
                                                                     <span>{slot.presenter_name}</span>
                                                                 </div>
@@ -1121,6 +1135,56 @@ export default function EventBuilder({ event, onBack }) {
                                         placeholder="Full name or team..."
                                         className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-bold text-slate-600"
                                     />
+                                </div>
+
+                                {/* Bullet Points Section */}
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Sub-Topics / Bullet Points</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSlotModal(prev => ({ ...prev, bulletPoints: [...(prev.bulletPoints || []), ''] }))}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-[#1a27c9] rounded-xl text-xs font-black hover:bg-indigo-100 transition-colors"
+                                        >
+                                            <Plus size={14} />
+                                            Add Point
+                                        </button>
+                                    </div>
+
+                                    {slotModal.bulletPoints?.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {slotModal.bulletPoints.map((point, index) => (
+                                                <div key={index} className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-indigo-300 shrink-0" />
+                                                    <input
+                                                        type="text"
+                                                        value={point}
+                                                        onChange={(e) => {
+                                                            const updated = [...slotModal.bulletPoints];
+                                                            updated[index] = e.target.value;
+                                                            setSlotModal(prev => ({ ...prev, bulletPoints: updated }));
+                                                        }}
+                                                        placeholder={`النقطة ${index + 1}...`}
+                                                        className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-medium text-slate-700 text-sm"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const updated = slotModal.bulletPoints.filter((_, i) => i !== index);
+                                                            setSlotModal(prev => ({ ...prev, bulletPoints: updated }));
+                                                        }}
+                                                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors shrink-0"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="py-4 border-2 border-dashed border-slate-100 rounded-2xl text-center">
+                                            <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">لا توجد نقاط — اضغط "Add Point" لإضافة واحدة</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
