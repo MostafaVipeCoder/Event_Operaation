@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Search, Trash2, Edit2, Layout, Database, AlertCircle, ExternalLink, Users, Inbox, Clock, Eye, CheckCircle, XCircle, Loader2, Pencil, Upload, Check } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Trash2, Edit2, Layout, Database, AlertCircle, ExternalLink, Users, Inbox, Clock, Eye, CheckCircle, XCircle, Loader2, Pencil, Upload, Check, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import CompanyCard from './CompanyCard';
 import SyncButton from './SyncButton';
