@@ -5,6 +5,10 @@ import { fetchAndParseGoogleSheet, fetchAndParseGenericGoogleSheet } from './exc
 // EVENT APIs
 // ==========================================
 
+export const getShareUrl = (eventId) => {
+    return `https://nipunwrewluxaikyfbzg.functions.supabase.co/share-event?id=${eventId}`;
+};
+
 export const getEvents = async () => {
     console.log('[Supabase] Fetching all events');
     const { data, error } = await supabase

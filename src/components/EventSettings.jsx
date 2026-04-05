@@ -8,9 +8,11 @@ import {
     Settings,
     Share2,
     Upload,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Copy,
+    ClipboardCheck
 } from 'lucide-react';
-import { getEvent, updateEvent, uploadImage } from '../lib/api';
+import { getEvent, updateEvent, uploadImage, getShareUrl } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 
 export default function EventSettings() {
@@ -20,12 +22,21 @@ export default function EventSettings() {
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const [settings, setSettings] = useState({
         seo_title: '',
         seo_description: '',
         seo_image_url: ''
     });
+
+    const shareUrl = getShareUrl(eventId);
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     useEffect(() => {
         loadSettings();
@@ -121,6 +132,38 @@ export default function EventSettings() {
             <div className="max-w-4xl mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 gap-8">
                     
+                    {/* Professional Share Link */}
+                    <section className="bg-[#1a27c9] rounded-[2.5rem] p-8 shadow-premium text-white overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-8 opacity-10">
+                            <Share2 size={120} />
+                        </div>
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
+                                    <Share2 size={24} />
+                                </div>
+                                <h2 className="text-xl font-black italic tracking-tight">RABBIT SHARE LINK 🚀</h2>
+                            </div>
+                            
+                            <p className="text-white/80 font-medium mb-6 max-w-2xl">
+                                استخدم هذا الرابط للمشاركة في الواتساب وفيسبوك. هذا الرابط تم تصميمه برمجياً (Smart Redirect) ليضمن ظهور الصورة والنصوص التي تخصصها في الأسفل، حتى وإن كان تطبيق المحادثة لا يدعم المواقع الحديثة.
+                            </p>
+
+                            <div className="flex flex-col md:flex-row gap-4 items-center">
+                                <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 w-full font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap">
+                                    {shareUrl}
+                                </div>
+                                <button 
+                                    onClick={copyToClipboard}
+                                    className="px-8 py-4 bg-white text-[#1a27c9] rounded-2xl font-black uppercase tracking-widest hover:bg-opacity-90 transition-all flex items-center gap-2 shrink-0 shadow-xl"
+                                >
+                                    {copied ? <ClipboardCheck size={20} /> : <Copy size={20} />}
+                                    {copied ? 'Copied' : 'Copy Smart Link'}
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
                     {/* SEO Module */}
                     <section className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
                         <div className="flex items-center gap-3 mb-8">
@@ -128,8 +171,8 @@ export default function EventSettings() {
                                 <Share2 size={24} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-[#0d0e0e]">Social Sharing & SEO</h2>
-                                <p className="text-sm text-slate-500 font-medium">تحكم في النصوص والصور التي تظهر عند مشاركة رابط الفعالية عبر وسائل التواصل الاجتماعي (مثل واتساب ولينكدإن).</p>
+                                <h2 className="text-xl font-black text-[#0d0e0e]">Social Sharing & SEO Settings</h2>
+                                <p className="text-sm text-slate-500 font-medium">خصم نصوص المشاركة هنا، ثم استخدم الرابط في الأعلى للمشاركة.</p>
                             </div>
                         </div>
 
