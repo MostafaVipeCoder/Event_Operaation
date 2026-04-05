@@ -57,9 +57,33 @@ export default function AgendaViewer({ eventId }) {
 
             setLoading(false);
 
-            // Update Page Title
-            if (agendaData?.event?.event_name) {
-                document.title = `Athar Events | ${agendaData.event.event_name}`;
+            // Update Page Title and Meta Tags
+            if (agendaData?.event) {
+                const eventName = agendaData.event.event_name || 'Event';
+                const pageTitle = `Athar Events | ${eventName}`;
+                document.title = pageTitle;
+
+                // Helper to update or create meta tags
+                const setMetaTag = (selector, attribute, value) => {
+                    let element = document.querySelector(selector);
+                    if (element) {
+                        element.setAttribute(attribute, value);
+                    }
+                };
+
+                setMetaTag('meta[property="og:title"]', 'content', pageTitle);
+                setMetaTag('meta[property="twitter:title"]', 'content', pageTitle);
+
+                const desc = agendaData.event.description || 'احجز مقعدك الآن وتعرف على أحدث الأجندات والمتحدثين في هذا الحدث.';
+                setMetaTag('meta[name="description"]', 'content', desc);
+                setMetaTag('meta[property="og:description"]', 'content', desc);
+                setMetaTag('meta[property="twitter:description"]', 'content', desc);
+
+                if (agendaData.event.header_image_url) {
+                    const imageUrl = getGoogleDriveDirectLink(agendaData.event.header_image_url);
+                    setMetaTag('meta[property="og:image"]', 'content', imageUrl);
+                    setMetaTag('meta[property="twitter:image"]', 'content', imageUrl);
+                }
             }
         } catch (err) {
             console.error('Error loading agenda/experts:', err);
@@ -131,26 +155,25 @@ export default function AgendaViewer({ eventId }) {
                 backgroundAttachment: 'fixed'
             }}
         >
-            {/* Premium Header - Now Relative to Flow with PublicLayout */}
             {isHeaderVisible && (
                 <div
                     className="relative w-full z-10 shadow-sm flex items-center justify-center transition-all duration-700 overflow-hidden"
                     style={{
-                        height: headerHeight,
+                        height: headerSettings?.type === 'color' || (!event.header_image_url && headerSettings?.type !== 'image') ? headerHeight : undefined,
                         backgroundColor: headerSettings?.type === 'color' ? (headerSettings.color || '#ffffff') : '#f8fafc'
                     }}
                 >
                     {/* Show image if type is image OR if type is not set but image exists */}
                     {(headerSettings?.type === 'image' || (!headerSettings?.type && event.header_image_url)) && event.header_image_url && (
-                        <div className="absolute inset-0">
+                        <div className="w-full relative">
                             <img
                                 src={getGoogleDriveDirectLink(event.header_image_url)}
                                 alt="Event Cover"
-                                className="w-full h-full object-cover scale-105"
+                                className="w-full h-auto block"
                                 referrerPolicy="no-referrer"
                             />
                             <div
-                                className="absolute inset-0 transition-opacity duration-700"
+                                className="absolute inset-0 transition-opacity duration-700 pointer-events-none"
                                 style={{
                                     backgroundColor: headerSettings.overlayColor || '#000000',
                                     opacity: headerSettings.overlayOpacity || 0
@@ -160,7 +183,7 @@ export default function AgendaViewer({ eventId }) {
                     )}
 
                     {headerSettings?.showTitle && (
-                        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto flex flex-col items-center">
+                        <div className="absolute inset-0 z-10 text-center px-6 max-w-4xl mx-auto flex flex-col items-center justify-center pointer-events-none">
                             <h1
                                 className="font-black leading-[1.1] tracking-tight mb-4 drop-shadow-sm"
                                 style={{

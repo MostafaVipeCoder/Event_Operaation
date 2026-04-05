@@ -280,16 +280,27 @@ export default function EventVisualManager() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-black text-[#0d0e0e] uppercase tracking-widest mb-2">Header Height</label>
-                                    <select
-                                        value={settings.header_height}
-                                        onChange={(e) => setSettings(prev => ({ ...prev, header_height: e.target.value }))}
-                                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-[#1a27c9] outline-none"
-                                    >
-                                        <option value="12rem">Small (12rem)</option>
-                                        <option value="16rem">Medium (16rem)</option>
-                                        <option value="20rem">Large (20rem)</option>
-                                        <option value="24rem">Extra Large (24rem)</option>
-                                    </select>
+                                    {settings.header_settings.type === 'color' ? (
+                                        <select
+                                            value={settings.header_height}
+                                            onChange={(e) => setSettings(prev => ({ ...prev, header_height: e.target.value }))}
+                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-[#1a27c9] outline-none"
+                                        >
+                                            <option value="12rem">Small (12rem)</option>
+                                            <option value="16rem">Medium (16rem)</option>
+                                            <option value="20rem">Large (20rem)</option>
+                                            <option value="24rem">Extra Large (24rem)</option>
+                                        </select>
+                                    ) : (
+                                        <div className="w-full px-5 py-3.5 bg-blue-50 border border-blue-100 rounded-2xl">
+                                            <p className="text-sm font-bold text-blue-800">
+                                                Image determines height natively ✨
+                                            </p>
+                                            <p className="text-xs text-blue-600 font-medium mt-1">
+                                                To ensure mobile responsiveness without cropping, the header height adjusts dynamically based on the uploaded image. We recommend an aspect ratio of <strong>3:1</strong> (e.g., <strong>1200x400px</strong>) or <strong>4:1</strong> (e.g., <strong>1600x400px</strong>).
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-black text-[#0d0e0e] uppercase tracking-widest mb-2">Visibility</label>
