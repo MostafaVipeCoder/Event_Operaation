@@ -60,7 +60,7 @@ export default function AgendaViewer({ eventId }) {
             // Update Page Title and Meta Tags
             if (agendaData?.event) {
                 const eventName = agendaData.event.event_name || 'Event';
-                const pageTitle = `Athar Events | ${eventName}`;
+                const pageTitle = agendaData.event.seo_title || `Athar Events | ${eventName}`;
                 document.title = pageTitle;
 
                 // Helper to update or create meta tags
@@ -74,13 +74,14 @@ export default function AgendaViewer({ eventId }) {
                 setMetaTag('meta[property="og:title"]', 'content', pageTitle);
                 setMetaTag('meta[property="twitter:title"]', 'content', pageTitle);
 
-                const desc = agendaData.event.description || 'احجز مقعدك الآن وتعرف على أحدث الأجندات والمتحدثين في هذا الحدث.';
+                const desc = agendaData.event.seo_description || agendaData.event.description || 'احجز مقعدك الآن وتعرف على أحدث الأجندات والمتحدثين في هذا الحدث.';
                 setMetaTag('meta[name="description"]', 'content', desc);
                 setMetaTag('meta[property="og:description"]', 'content', desc);
                 setMetaTag('meta[property="twitter:description"]', 'content', desc);
 
-                if (agendaData.event.header_image_url) {
-                    const imageUrl = getGoogleDriveDirectLink(agendaData.event.header_image_url);
+                const seoImageRaw = agendaData.event.seo_image_url || agendaData.event.header_image_url;
+                if (seoImageRaw) {
+                    const imageUrl = getGoogleDriveDirectLink(seoImageRaw);
                     setMetaTag('meta[property="og:image"]', 'content', imageUrl);
                     setMetaTag('meta[property="twitter:image"]', 'content', imageUrl);
                 }

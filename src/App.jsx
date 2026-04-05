@@ -20,6 +20,7 @@ const EventVisualManager = lazy(() => import('./components/EventVisualManager'))
 const SelectionProcessManager = lazy(() => import('./components/SelectionProcessManager'));
 const GenericFormPortal = lazy(() => import('./components/GenericFormPortal'));
 const MarketingAnalytics = lazy(() => import('./components/MarketingAnalytics'));
+const EventSettings = lazy(() => import('./components/EventSettings'));
 
 import PublicLayout from './components/PublicLayout';
 import { AuthProvider } from './contexts/AuthContext';
@@ -75,6 +76,12 @@ function App() {
             <Route path="/event/:eventId/visuals" element={
               <ProtectedRoute>
                 <EventVisualManager />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/event/:eventId/settings" element={
+              <ProtectedRoute>
+                <EventSettings />
               </ProtectedRoute>
             } />
 

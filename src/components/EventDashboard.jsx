@@ -178,8 +178,17 @@ export default function EventDashboard() {
             icon: <BarChart3 size={32} className="text-emerald-600" />,
             manageLink: `/event/${eventId}/analytics`,
             color: "bg-emerald-50/50 border-emerald-100",
-            accent: "#059669",
+            accent: "#10b981",
             btnColor: "bg-emerald-600 text-white shadow-emerald-100"
+        },
+        {
+            title: "SEO & Settings",
+            description: "Configure SEO info and texts for social media sharing links.",
+            icon: <Settings size={32} className="text-gray-600" />,
+            manageLink: `/event/${eventId}/settings`,
+            color: "bg-gray-50 border-gray-200",
+            accent: "#4b5563",
+            btnColor: "bg-gray-700 text-white shadow-gray-200"
         }
     ];
 
