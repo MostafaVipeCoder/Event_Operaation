@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3 } from 'lucide-react';
+import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X } from 'lucide-react';
 import { getEvent, updateEvent } from '../lib/api';
 import SyncButton from './SyncButton';
 
@@ -14,6 +14,11 @@ export default function EventDashboard() {
     const [expertsColor, setExpertsColor] = useState('#9333ea'); // Default Purple
     const [startupsColor, setStartupsColor] = useState('#059669'); // Default Emerald
     const [themeSaved, setThemeSaved] = useState(false);
+
+    // Edit Name State
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [editedName, setEditedName] = useState('');
+    const [isSavingName, setIsSavingName] = useState(false);
 
     // Sync Metadata State
     const [gsheetsUrl, setGsheetsUrl] = useState('');
@@ -51,11 +56,30 @@ export default function EventDashboard() {
         }
     };
 
+    const handleSaveName = async () => {
+        if (!editedName.trim() || editedName === event.event_name) {
+            setIsEditingName(false);
+            return;
+        }
+        try {
+            setIsSavingName(true);
+            await updateEvent(eventId, { event_name: editedName });
+            setEvent(prev => ({ ...prev, event_name: editedName }));
+            setIsEditingName(false);
+        } catch (error) {
+            console.error('Error saving event name:', error);
+            alert('Failed to save event name.');
+        } finally {
+            setIsSavingName(false);
+        }
+    };
+
     const loadEventDetails = async () => {
         try {
             setLoading(true);
             const data = await getEvent(eventId);
             setEvent(data);
+            setEditedName(data.event_name || '');
             // Load theme from DB
             if (data.experts_color) setExpertsColor(data.experts_color);
             if (data.startups_color) setStartupsColor(data.startups_color);
@@ -170,7 +194,38 @@ export default function EventDashboard() {
                                 <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-black text-[#0d0e0e] tracking-tight">{event.event_name}</h1>
+                                {isEditingName ? (
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="text"
+                                            value={editedName}
+                                            onChange={(e) => setEditedName(e.target.value)}
+                                            className="text-2xl font-black text-[#0d0e0e] tracking-tight bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-[#1a27c9]"
+                                            autoFocus
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleSaveName();
+                                                if (e.key === 'Escape') {
+                                                    setEditedName(event.event_name);
+                                                    setIsEditingName(false);
+                                                }
+                                            }}
+                                            disabled={isSavingName}
+                                        />
+                                        <button onClick={handleSaveName} disabled={isSavingName} className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100">
+                                            <Check size={18} />
+                                        </button>
+                                        <button onClick={() => { setEditedName(event.event_name); setIsEditingName(false); }} disabled={isSavingName} className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-3">
+                                        <h1 className="text-2xl font-black text-[#0d0e0e] tracking-tight">{event.event_name}</h1>
+                                        <button onClick={() => setIsEditingName(true)} className="text-slate-400 hover:text-[#1a27c9] transition-colors" title="Edit Event Name">
+                                            <Edit2 size={16} />
+                                        </button>
+                                    </div>
+                                )}
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Event Master Control</p>
                             </div>
                         </div>

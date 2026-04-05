@@ -15,13 +15,8 @@ export default function PublicLayout() {
         <div className="min-h-screen bg-slate-50 font-manrope">
             {/* Desktop Header */}
             <header className="hidden md:block sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-[#1a27c9] rounded-xl flex items-center justify-center text-white font-black text-xl">
-                            S
-                        </div>
-                        <span className="font-black text-slate-900 uppercase tracking-widest text-sm">Startup List</span>
-                    </div>
+                <div className="max-w-7xl mx-auto flex items-center justify-center">
+                    
                     <nav className="flex items-center gap-1 bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50">
                         {navItems.map((item) => (
                             <NavLink
