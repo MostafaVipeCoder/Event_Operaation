@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Trash2, Upload, Calendar, Clock, User, Save, ExternalLink, Edit2, UserCheck, UserX, Copy, Check, FileSpreadsheet, Download, UploadCloud, Loader2, AlertTriangle, AlertCircle, X, List, GripVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {

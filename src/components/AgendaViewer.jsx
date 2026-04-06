@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, User, Calendar as CalendarIcon } from 'lucide-react';
 import { getFullAgenda } from '../lib/api';
 import { formatDate, formatTime, getGoogleDriveDirectLink } from '../lib/utils';
