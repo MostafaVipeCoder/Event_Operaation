@@ -18,12 +18,7 @@ export default defineConfig({
           if (id.includes('xlsx')) {
             return 'xlsx-lib';
           }
-          if (id.includes('react')) {
-            return 'react-core';
-          }
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
+          // Removing manual splitting for react core to ensure stable references
         },
       },
     },
