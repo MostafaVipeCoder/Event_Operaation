@@ -259,16 +259,15 @@ export default function AgendaViewer({ eventId }) {
                             >
                                 <div className="flex flex-col md:flex-row md:items-center gap-8">
                                     {/* Timeline Pin */}
-                                    <div className="flex flex-col items-start md:w-44 flex-shrink-0">
-                                        <div className="flex items-center gap-3 text-[#1a27c9] mb-1">
-                                            <div className="bg-indigo-50 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                                                <Clock size={16} />
-                                            </div>
-                                            <span className="font-black text-sm tracking-tighter uppercase whitespace-nowrap">
-                                                {formatTime(slot.start_time)}
-                                            </span>
+                                    <div className="flex items-center gap-3 text-[#1a27c9] md:w-56 flex-shrink-0">
+                                        <div className="bg-indigo-50 p-2 rounded-xl group-hover:scale-110 transition-transform">
+                                            <Clock size={16} />
                                         </div>
-                                        <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest pl-11">UNTIL {formatTime(slot.end_time)}</p>
+                                        <div className="flex items-center gap-2 font-black text-sm tracking-tighter uppercase whitespace-nowrap">
+                                            <span>{formatTime(slot.start_time)}</span>
+                                            <span className="opacity-40 text-xs">—</span>
+                                            <span>{formatTime(slot.end_time)}</span>
+                                        </div>
                                     </div>
 
                                     {/* Slot Narrator & Core */}
