@@ -12,6 +12,9 @@
     "gen-types": "supabase gen types typescript --project-id nipunwrewluxaikyfbzg > src/types/database.types.ts"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@supabase/supabase-js": "^2.95.3",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",

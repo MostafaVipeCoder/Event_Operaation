@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Upload, Calendar, Clock, User, Save, ExternalLink, Edit2, UserCheck, UserX, Copy, Check, FileSpreadsheet, Download, UploadCloud, Loader2, AlertTriangle, X, List, GripVertical } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, Calendar, Clock, User, Save, ExternalLink, Edit2, UserCheck, UserX, Copy, Check, FileSpreadsheet, Download, UploadCloud, Loader2, AlertTriangle, AlertCircle, X, List, GripVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
     getEventDays,
@@ -18,6 +18,120 @@ import {
 } from '../lib/api';
 import { formatDate, formatTime, getGoogleDriveDirectLink } from '../lib/utils';
 import { generateAgendaTemplate, parseAgendaExcel, fetchAndParseGoogleSheet } from '../lib/excel';
+import { updateSlotsOrder } from '../lib/api';
+
+// DnD Kit Imports
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Sortable Slot Component
+function SortableSlot({ slot, onEdit, onDelete, onTogglePresenter, isInvalid }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: slot.slot_id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : 'auto',
+        opacity: isDragging ? 0.5 : 1
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={`group/slot flex flex-col md:flex-row md:items-center justify-between p-5 bg-white border rounded-2xl gap-6 hover:border-[#1a27c9] transition-premium shadow-sm hover:shadow-lg hover:shadow-indigo-50/50 
+                ${isDragging ? 'shadow-2xl border-[#1a27c9] scale-[1.02]' : ''}
+                ${isInvalid ? 'border-red-500 shadow-lg shadow-red-50 ring-1 ring-red-500/20 bg-red-50/5' : 'border-slate-100'}
+            `}
+        >
+            <div className="flex-1 flex flex-col md:flex-row md:items-center gap-6 w-full">
+                {/* Drag Handle */}
+                <div 
+                    {...attributes} 
+                    {...listeners} 
+                    className="cursor-grab active:cursor-grabbing p-2 -ml-2 text-slate-300 hover:text-slate-500 transition-colors shrink-0"
+                >
+                    <GripVertical size={20} />
+                </div>
+
+                {/* Time Indicator */}
+                <div className="flex items-center gap-3 text-[#1a27c9] min-w-[160px] bg-indigo-50/50 px-4 py-2.5 rounded-xl font-black text-sm">
+                    <Clock size={16} />
+                    <span className="whitespace-nowrap">
+                        {formatTime(slot.start_time)} — {formatTime(slot.end_time)}
+                    </span>
+                </div>
+
+                {/* Slot Content */}
+                <div className="flex-1 min-w-[200px]">
+                    <p className="text-lg font-extrabold text-[#0d0e0e] leading-tight mb-1">{slot.slot_title}</p>
+                    {slot.bullet_points?.length > 0 && (
+                        <div className="flex items-center gap-1.5 mt-1">
+                            <List size={12} className="text-indigo-400" />
+                            <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest">{slot.bullet_points.length} نقطة</span>
+                        </div>
+                    )}
+                    {slot.presenter_name && (
+                        <div className="flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">
+                            <User size={14} className="text-[#1a27c9]" />
+                            <span>{slot.presenter_name}</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full md:w-auto justify-end opacity-60 group-hover/slot:opacity-100 transition-opacity">
+                {slot.presenter_name && (
+                    <button
+                        onClick={() => onTogglePresenter(slot)}
+                        className={`p-2.5 rounded-xl transition-premium border active:scale-95 ${slot.show_presenter
+                            ? 'text-emerald-600 bg-emerald-50 border-emerald-100 hover:bg-emerald-100'
+                            : 'text-slate-400 bg-slate-50 border-slate-100 hover:bg-slate-100'
+                            }`}
+                        title={slot.show_presenter ? 'Hide Speaker' : 'Show Speaker'}
+                    >
+                        {slot.show_presenter ? <UserCheck size={20} /> : <UserX size={20} />}
+                    </button>
+                )}
+                <button
+                    onClick={() => onEdit(slot)}
+                    className="p-2.5 text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-xl hover:bg-indigo-100 transition-premium active:scale-95"
+                    title="Edit Details"
+                >
+                    <Edit2 size={20} />
+                </button>
+                <button
+                    onClick={() => onDelete(slot.slot_id)}
+                    className="p-2.5 text-red-500 bg-red-50 border border-red-100 rounded-xl hover:bg-red-100 transition-premium active:scale-95"
+                    title="Remove Slot"
+                >
+                    <Trash2 size={20} />
+                </button>
+            </div>
+        </div>
+    );
+}
 
 export default function EventBuilder({ event, onBack }) {
     const navigate = useNavigate();
@@ -65,6 +179,12 @@ export default function EventBuilder({ event, onBack }) {
     const [lastSyncTime, setLastSyncTime] = useState(null);
     const [syncReport, setSyncReport] = useState(null);
     const [syncError, setSyncError] = useState(null);
+
+    // Staging and Validation States
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [pendingDeletions, setPendingDeletions] = useState([]);
+    const [pendingDayDeletions, setPendingDayDeletions] = useState([]);
+    const [invalidSlotIds, setInvalidSlotIds] = useState(new Set());
 
     // Custom UI Dialogs State
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -132,6 +252,17 @@ export default function EventBuilder({ event, onBack }) {
         }
     }, [event.event_id, eventDetails?.gsheets_url]);
 
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [hasUnsavedChanges]);
+
     const loadEventData = async (silent = false) => {
         try {
             if (!silent) setLoading(true);
@@ -163,48 +294,32 @@ export default function EventBuilder({ event, onBack }) {
         }
     };
 
-    const handleAddDay = async () => {
+    const handleAddDay = () => {
         if (!newDayName.trim()) {
             setDayError(true);
             setTimeout(() => setDayError(false), 3000);
             return;
         }
-        if (!newDayDate) return;
 
-        // Optimistic UI Update
-        const tempId = `temp-${Date.now()}`;
+        const tempId = `day-temp-${Date.now()}`;
         const newDay = {
             day_id: tempId,
             day_name: newDayName,
-            day_date: newDayDate,
+            day_date: newDayDate || new Date().toISOString().split('T')[0],
             day_number: days.length + 1,
-            event_id: event.event_id
+            event_id: event.event_id,
+            isOptimistic: true // Mark as new for handleFinalSave
         };
 
-        const previousDays = [...days];
         setDays(prev => [...prev, newDay]);
-        setSlots(prev => ({ ...prev, [tempId]: [] })); // Initialize empty slots for temp day
-
+        setSlots(prev => ({ ...prev, [tempId]: [] }));
+        
         // Clear inputs immediately
         setNewDayName('');
-        setNewDayDate('');
+        setNewDayDate(new Date().toISOString().split('T')[0]);
         setDayError(false);
-
-        try {
-            await createDay({
-                event_id: event.event_id,
-                day_name: newDay.day_name,
-                day_date: newDay.day_date,
-                day_number: newDay.day_number
-            });
-            // Silent refresh to get the real ID from server
-            loadEventData(true);
-        } catch (error) {
-            console.error('Error adding day:', error);
-            // Rollback on failure
-            setDays(previousDays);
-            showToast('فشل إضافة اليوم. يرجى المحاولة مرة أخرى.', 'error');
-        }
+        setHasUnsavedChanges(true);
+        showToast('تم إضافة اليوم إلى المسودة');
     };
 
     const handleOpenSlotModal = (dayId) => {
@@ -282,6 +397,8 @@ export default function EventBuilder({ event, onBack }) {
             setSlotModal(prev => ({ ...prev, show: false, saving: false }));
 
             // Process API in background
+            // DISABLED FOR STAGING - Now only updating local state
+            /*
             if (isEditing) {
                 await updateSlot(slotId, {
                     start_time: startTime,
@@ -301,9 +418,11 @@ export default function EventBuilder({ event, onBack }) {
                     sort_order: (slots[dayId]?.length || 0) + 1
                 });
             }
-
-            // Sync with real data in background
             loadEventData(true);
+            */
+
+            setHasUnsavedChanges(true);
+            validateAgendaOrder(dayId);
         } catch (error) {
             console.error('Error saving slot:', error);
             // Rollback on failure
@@ -314,37 +433,36 @@ export default function EventBuilder({ event, onBack }) {
 
     const handleDeleteDay = (dayId) => {
         askConfirm('متأكد إنك عايز تمسح اليوم ده؟ كل الفقرات اللي جواه هتتمسح.', async () => {
-            // Optimistic UI Update
-            const previousDays = [...days];
-            const previousSlots = { ...slots };
+            // Track deletion if it's a real day (not temp)
+            const dayToDelete = days.find(d => d.day_id === dayId);
+            if (dayToDelete && !dayToDelete.isOptimistic) {
+                setPendingDayDeletions(prev => [...prev, dayId]);
+            }
 
             setDays(prev => prev.filter(day => day.day_id !== dayId));
-            // Also remove slots for that day from UI
             setSlots(prev => {
                 const newSlots = { ...prev };
                 delete newSlots[dayId];
                 return newSlots;
             });
 
-            try {
-                await deleteDay(dayId);
-                // Background refresh to ensure consistency
-                loadEventData(true);
-                showToast('تم حذف اليوم بنجاح');
-            } catch (error) {
-                console.error('Error deleting day:', error);
-                // Rollback on failure
-                setDays(previousDays);
-                setSlots(previousSlots);
-                showToast('فشل حذف اليوم. يرجى المحاولة مرة أخرى.', 'error');
-            }
+            setHasUnsavedChanges(true);
+            showToast('تم حذف اليوم من المسودة (اضغط حفظ للتأكيد النهائي)');
         });
     };
 
     const handleDeleteSlot = (slotId) => {
-        askConfirm('متأكد إنك عايز تمسح الـ Slot ده؟', async () => {
-            // Optimistic UI Update
-            const previousSlots = { ...slots };
+        askConfirm('متأكد إنك عايز تمسح الفقرة دي؟', async () => {
+            // Find slot to track deletion
+            let deletedSlot = null;
+            Object.values(slots).forEach(daySlots => {
+                const found = daySlots.find(s => s.slot_id === slotId);
+                if (found) deletedSlot = found;
+            });
+
+            if (deletedSlot && !deletedSlot.isOptimistic) {
+                setPendingDeletions(prev => [...prev, slotId]);
+            }
 
             setSlots(prev => {
                 const newSlots = { ...prev };
@@ -354,17 +472,8 @@ export default function EventBuilder({ event, onBack }) {
                 return newSlots;
             });
 
-            try {
-                await deleteSlot(slotId);
-                // Background refresh to ensure consistency
-                loadEventData(true);
-                showToast('تم حذف الفقرة');
-            } catch (error) {
-                console.error('Error deleting slot:', error);
-                // Rollback on failure
-                setSlots(previousSlots);
-                showToast('فشل حذف الفقرة. يرجى المحاولة مرة أخرى.', 'error');
-            }
+            setHasUnsavedChanges(true);
+            showToast('تم حذف الفقرة من المسودة (اضغط حفظ للتأكيد النهائي)');
         });
     };
 
@@ -375,51 +484,29 @@ export default function EventBuilder({ event, onBack }) {
         setEditDayDate(day.day_date);
     };
 
-    const handleUpdateDay = async () => {
-        if (!editDayName.trim() || !editDayDate) return;
+    const handleUpdateDay = () => {
+        if (!editDayName.trim()) return;
 
-        const previousDays = [...days];
-
-        // Optimistic UI Update
-        setDays(prev => prev.map(day =>
-            day.day_id === editingDayId
-                ? { ...day, day_name: editDayName, day_date: editDayDate }
-                : day
+        setDays(prev => prev.map(d => 
+            d.day_id === editingDayId 
+                ? { ...d, day_name: editDayName, day_date: editDayDate } 
+                : d
         ));
-        setEditingDayId(null);
 
-        try {
-            await updateDay(editingDayId, {
-                day_name: editDayName,
-                day_date: editDayDate
-            });
-            // Silent refresh
-            loadEventData(true);
-        } catch (error) {
-            console.error('Error updating day:', error);
-            // Rollback on failure
-            setDays(previousDays);
-            showToast('فشل تحديث اليوم.', 'error');
-        }
+        setHasUnsavedChanges(true);
+        showToast('تم تحديث بيانات اليوم في المسودة');
     };
 
-    const handleTogglePresenter = async (slot) => {
-        try {
-            const newStatus = !slot.show_presenter;
-            // Optimistic update
-            const updatedSlots = { ...slots };
-            const daySlots = updatedSlots[slot.day_id].map(s =>
+    const handleTogglePresenter = (slot) => {
+        const newStatus = !slot.show_presenter;
+        setSlots(prev => ({
+            ...prev,
+            [slot.day_id]: prev[slot.day_id].map(s => 
                 s.slot_id === slot.slot_id ? { ...s, show_presenter: newStatus } : s
-            );
-            updatedSlots[slot.day_id] = daySlots;
-            setSlots(updatedSlots);
-
-            await updateSlot(slot.slot_id, { show_presenter: newStatus });
-        } catch (error) {
-            console.error('Error toggling presenter:', error);
-            showToast('فشل تحديث حالة المحاضر', 'error');
-            loadEventData(); // Revert on error
-        }
+            )
+        }));
+        
+        setHasUnsavedChanges(true);
     };
 
     const agendaUrl = `${window.location.href.split('#')[0].replace(/\/$/, '')}/#/agenda/${event.event_id}`;
@@ -429,6 +516,170 @@ export default function EventBuilder({ event, onBack }) {
         navigator.clipboard.writeText(agendaUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    // Validation Helper
+    const validateAgendaOrder = (dayId, updatedSlots = null) => {
+        const currentSlots = updatedSlots || slots[dayId] || [];
+        const newInvalidIds = new Set(invalidSlotIds);
+        
+        // Clear previous invalid IDs for this day
+        if (slots[dayId]) {
+            slots[dayId].forEach(s => newInvalidIds.delete(s.slot_id));
+        }
+
+        let isLogical = true;
+        for (let i = 0; i < currentSlots.length - 1; i++) {
+            const current = currentSlots[i];
+            const next = currentSlots[i + 1];
+            
+            // Compare times (HH:MM)
+            if (current.start_time > next.start_time) {
+                isLogical = false;
+                newInvalidIds.add(current.slot_id);
+                newInvalidIds.add(next.slot_id);
+            }
+        }
+
+        setInvalidSlotIds(newInvalidIds);
+        return isLogical;
+    };
+
+    // DnD Sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = async (event) => {
+        const { active, over } = event;
+        if (!active || !over || active.id === over.id) return;
+
+        // Find which day this slot belongs to
+        let targetDayId = null;
+        Object.keys(slots).forEach(dayId => {
+            if (slots[dayId].some(s => s.slot_id === active.id)) {
+                targetDayId = dayId;
+            }
+        });
+
+        if (!targetDayId) return;
+
+        const daySlots = [...slots[targetDayId]];
+        const oldIndex = daySlots.findIndex(s => s.slot_id === active.id);
+        const newIndex = daySlots.findIndex(s => s.slot_id === over.id);
+
+        const newDaySlots = arrayMove(daySlots, oldIndex, newIndex);
+
+        // Update local state first
+        setSlots(prev => ({
+            ...prev,
+            [targetDayId]: newDaySlots
+        }));
+
+        setHasUnsavedChanges(true);
+
+        // Chronological Validation
+        const isLogical = validateAgendaOrder(targetDayId, newDaySlots);
+
+        if (!isLogical) {
+            showToast('⚠️ الترتيب غير منطقي زمنياً! يرجى مراجعة الفقرات المحددة بالأحمر.', 'warning');
+        }
+
+        /* 
+        // DISABLED PERSISTENCE FOR STAGING
+        try {
+            const updates = newDaySlots.map((slot, index) => ({
+                ...slot,
+                sort_order: index + 1
+            }));
+            await updateSlotsOrder(updates);
+        } catch (error) {
+            console.error('Error updating slots order:', error);
+            showToast('فشل حفظ الترتيب الجديد', 'error');
+            loadEventData(true);
+        }
+        */
+    };
+
+    const [isSavingChanges, setIsSavingChanges] = useState(false);
+
+    const handleFinalSave = async () => {
+        try {
+            setIsSavingChanges(true);
+            
+            // 1. Handle Day Deletions
+            if (pendingDayDeletions.length > 0) {
+                console.log(`[Staging] Deleting ${pendingDayDeletions.length} days`);
+                for (const id of pendingDayDeletions) {
+                    await deleteDay(id);
+                }
+            }
+
+            // 2. Handle Slot Deletions
+            if (pendingDeletions.length > 0) {
+                console.log(`[Staging] Deleting ${pendingDeletions.length} slots`);
+                for (const id of pendingDeletions) {
+                    await deleteSlot(id);
+                }
+            }
+
+            // 3. Process Days and Slots
+            // We need to create days first to get real IDs for their slots
+            for (const day of days) {
+                let currentDayId = day.day_id;
+                
+                if (day.isOptimistic) {
+                    console.log(`[Staging] Creating new day: ${day.day_name}`);
+                    const newDay = await createDay({
+                        event_id: day.event_id,
+                        day_name: day.day_name,
+                        day_date: day.day_date,
+                        day_number: day.day_number
+                    });
+                    currentDayId = newDay.day_id;
+                } else if (hasUnsavedChanges) {
+                    // Update existing day if needed (currently we don't track day edits specifically, so we'll just skip or update all)
+                    await updateDay(day.day_id, {
+                        day_name: day.day_name,
+                        day_date: day.day_date,
+                        day_number: day.day_number
+                    });
+                }
+
+                // Prepare slots for this day
+                const daySlots = slots[day.day_id] || [];
+                const slotsToUpsert = daySlots.map((slot, index) => {
+                    const slotData = { 
+                        ...slot, 
+                        day_id: currentDayId, // Ensure it uses the real ID (new or existing)
+                        sort_order: index + 1 
+                    };
+                    if (slot.isOptimistic) {
+                        delete slotData.slot_id;
+                        delete slotData.isOptimistic;
+                    }
+                    return slotData;
+                });
+
+                if (slotsToUpsert.length > 0) {
+                    await updateSlotsOrder(slotsToUpsert);
+                }
+            }
+
+            setHasUnsavedChanges(false);
+            setPendingDeletions([]);
+            setPendingDayDeletions([]);
+            showToast('تم حفظ جميع التعديلات بنجاح! 🎉');
+            loadEventData(true);
+        } catch (error) {
+            console.error('Final save failed:', error);
+            showToast('فشل حفظ التعديلات النهائية.', 'error');
+        } finally {
+            setIsSavingChanges(false);
+        }
     };
 
     if (loading) {
@@ -487,11 +738,47 @@ export default function EventBuilder({ event, onBack }) {
                 </div>
 
                 {/* Content */}
-                <div className="max-w-7xl mx-auto px-4 py-8">
+                <div className="max-w-7xl mx-auto px-4 py-8 pb-32">
                     {activeTab === 'days' && (
                         <div className="space-y-6">
-
-
+                            {/* Save Changes Floating Bar */}
+                            {hasUnsavedChanges && (
+                                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 duration-500">
+                                    <div className="bg-[#0d0e0e] text-white px-8 py-5 rounded-[2.5rem] shadow-2xl shadow-indigo-200/50 flex items-center gap-8 border border-white/10 backdrop-blur-xl">
+                                        <div className="flex items-center gap-3 pr-8 border-r border-white/10">
+                                            <div className="w-3 h-3 rounded-full bg-amber-500 animate-pulse" />
+                                            <span className="font-bold text-sm tracking-tight whitespace-nowrap">عناصر غير محفوظة بالمسودة</span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={() => loadEventData(false)}
+                                                disabled={isSavingChanges}
+                                                className="px-6 py-2.5 hover:bg-white/10 rounded-2xl font-bold text-sm transition-premium disabled:opacity-30"
+                                            >
+                                                تجاهل التغييرات
+                                            </button>
+                                            <button
+                                                onClick={handleFinalSave}
+                                                disabled={isSavingChanges || invalidSlotIds.size > 0}
+                                                className="flex items-center gap-2 px-8 py-3 bg-[#1a27c9] hover:bg-[#151e9c] text-white rounded-2xl font-black text-sm transition-premium shadow-xl shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isSavingChanges ? (
+                                                    <Loader2 size={20} className="animate-spin" />
+                                                ) : (
+                                                    <Save size={20} />
+                                                )}
+                                                <span>حفظ التعديلات النهائية</span>
+                                            </button>
+                                        </div>
+                                        {invalidSlotIds.size > 0 && (
+                                            <div className="pl-4 flex items-center gap-2 text-red-400">
+                                                <AlertCircle size={18} />
+                                                <span className="text-xs font-bold">صلح الأخطاء الزمنية أولاً</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Sync Error Display */}
                             {syncError && (
@@ -704,70 +991,31 @@ export default function EventBuilder({ event, onBack }) {
                                     </div>
 
                                     {/* Slots List */}
-                                    <div className="p-4 space-y-3">
+                                    <div className="p-4">
                                         {slots[day.day_id]?.length > 0 ? (
-                                            slots[day.day_id].map((slot) => (
-                                                <div
-                                                    key={slot.slot_id}
-                                                    className="group/slot flex flex-col md:flex-row md:items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl gap-6 hover:border-[#1a27c9] transition-premium shadow-sm hover:shadow-lg hover:shadow-indigo-50/50"
+                                            <DndContext
+                                                sensors={sensors}
+                                                collisionDetection={closestCenter}
+                                                onDragEnd={handleDragEnd}
+                                            >
+                                                <SortableContext
+                                                    items={slots[day.day_id].map(s => s.slot_id)}
+                                                    strategy={verticalListSortingStrategy}
                                                 >
-                                                    <div className="flex-1 flex flex-col md:flex-row md:items-center gap-6 w-full">
-                                                        {/* Time Indicator */}
-                                                        <div className="flex items-center gap-3 text-[#1a27c9] min-w-[160px] bg-indigo-50/50 px-4 py-2.5 rounded-xl font-black text-sm">
-                                                            <Clock size={16} />
-                                                            <span className="whitespace-nowrap">
-                                                                {formatTime(slot.start_time)} — {formatTime(slot.end_time)}
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Slot Content */}
-                                                        <div className="flex-1 min-w-[200px]">
-                                                            <p className="text-lg font-extrabold text-[#0d0e0e] leading-tight mb-1">{slot.slot_title}</p>
-                                                            {slot.bullet_points?.length > 0 && (
-                                                                <div className="flex items-center gap-1.5 mt-1">
-                                                                    <List size={12} className="text-indigo-400" />
-                                                                    <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest">{slot.bullet_points.length} نقطة</span>
-                                                                </div>
-                                                            )}
-                                                            {slot.presenter_name && (
-                                                                <div className="flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">
-                                                                    <User size={14} className="text-[#1a27c9]" />
-                                                                    <span>{slot.presenter_name}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                    <div className="space-y-3">
+                                                        {slots[day.day_id].map((slot) => (
+                                                            <SortableSlot
+                                                                key={slot.slot_id}
+                                                                slot={slot}
+                                                                isInvalid={invalidSlotIds.has(slot.slot_id)}
+                                                                onEdit={handleEditSlot}
+                                                                onDelete={handleDeleteSlot}
+                                                                onTogglePresenter={handleTogglePresenter}
+                                                            />
+                                                        ))}
                                                     </div>
-
-                                                    <div className="flex items-center gap-2 w-full md:w-auto justify-end opacity-60 group-hover/slot:opacity-100 transition-opacity">
-                                                        {slot.presenter_name && (
-                                                            <button
-                                                                onClick={() => handleTogglePresenter(slot)}
-                                                                className={`p-2.5 rounded-xl transition-premium border active:scale-95 ${slot.show_presenter
-                                                                    ? 'text-emerald-600 bg-emerald-50 border-emerald-100 hover:bg-emerald-100'
-                                                                    : 'text-slate-400 bg-slate-50 border-slate-100 hover:bg-slate-100'
-                                                                    }`}
-                                                                title={slot.show_presenter ? 'Hide Speaker' : 'Show Speaker'}
-                                                            >
-                                                                {slot.show_presenter ? <UserCheck size={20} /> : <UserX size={20} />}
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            onClick={() => handleEditSlot(slot)}
-                                                            className="p-2.5 text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-xl hover:bg-indigo-100 transition-premium active:scale-95"
-                                                            title="Edit Details"
-                                                        >
-                                                            <Edit2 size={20} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteSlot(slot.slot_id)}
-                                                            className="p-2.5 text-red-500 bg-red-50 border border-red-100 rounded-xl hover:bg-red-100 transition-premium active:scale-95"
-                                                            title="Remove Slot"
-                                                        >
-                                                            <Trash2 size={20} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))
+                                                </SortableContext>
+                                            </DndContext>
                                         ) : (
                                             <div className="py-12 flex flex-col items-center justify-center text-slate-300">
                                                 <Clock size={40} className="mb-3 opacity-20" />

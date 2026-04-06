@@ -228,7 +228,9 @@ export default function AgendaViewer({ eventId }) {
                                     : 'bg-white border-2 border-slate-100 text-slate-400 hover:border-[#1a27c9]/30 hover:bg-slate-50'
                                     }`}
                             >
-                                <span className={`text-xs font-black uppercase tracking-[0.2em] ${selectedDay === index ? 'opacity-70' : 'text-slate-300'}`}>Day {index + 1}</span>
+                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] mb-0.5 ${selectedDay === index ? 'opacity-70' : 'text-slate-300'}`}>
+                                    {day.day_date ? formatDate(day.day_date) : `Day ${index + 1}`}
+                                </span>
                                 <span className="font-black text-lg tracking-tight leading-tight">{day.day_name}</span>
                             </button>
                         ))}
@@ -240,11 +242,13 @@ export default function AgendaViewer({ eventId }) {
                     <div className="text-center mb-16 animate-fadeIn">
                         <div className="inline-flex flex-col items-center">
                             <h2 className="text-4xl font-black text-[#0d0e0e] tracking-tight leading-none mb-3">{currentDay.day_name}</h2>
-                            <div className="flex items-center gap-2">
-                                <span className="h-1 w-1 rounded-full bg-indigo-200" />
-                                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em]">{formatDate(currentDay.day_date)}</p>
-                                <span className="h-1 w-1 rounded-full bg-indigo-200" />
-                            </div>
+                            {currentDay.day_date && (
+                                <div className="flex items-center gap-2">
+                                    <span className="h-1 w-1 rounded-full bg-indigo-200" />
+                                    <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em]">{formatDate(currentDay.day_date)}</p>
+                                    <span className="h-1 w-1 rounded-full bg-indigo-200" />
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

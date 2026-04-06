@@ -1203,3 +1203,17 @@ export const updateSubmissionStatus = async (submissionId, newStatus, additional
     if (error) throw error;
     return data;
 };
+
+export const updateSlotsOrder = async (slots) => {
+    console.log(`[Supabase] Updating ${slots.length} slots sort order`);
+    // Pass full objects to upsert to satisfy NOT NULL constraints
+    const { data, error } = await supabase
+        .from('agenda_slots')
+        .upsert(slots);
+
+    if (error) {
+        console.error('[Supabase Error] updateSlotsOrder:', error);
+        throw error;
+    }
+    return data;
+};
