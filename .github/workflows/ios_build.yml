@@ -31,18 +31,4 @@ jobs:
       - name: Capacitor Sync
         run: npx cap sync ios
 
-      - name: Build iOS App
-        run: |
-          cd ios/App
-          xcodebuild -scheme App -destination 'generic/platform=iOS' -derivedDataPath build -allowProvisioningUpdates build CODE_SIGNING_ALLOWED=NO
-          
-          # Create IPA structure
-          mkdir -p Payload
-          cp -r build/Build/Products/Debug-iphoneos/App.app Payload/
-          zip -v -r Dynamic-Agenda.ipa Payload/
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Dynamic-Agenda-iOS
-          path: ios/App/Dynamic-Agenda.ipa

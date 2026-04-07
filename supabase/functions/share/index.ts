@@ -4,10 +4,28 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 serve(async (req) => {
   const url = new URL(req.url)
   const eventId = url.searchParams.get('id')
+  const userAgent = req.headers.get("user-agent") || ""
 
   if (!eventId) {
     return new Response("Missing event ID", { status: 400 })
   }
+
+  // Define the target URL (Client-Side App)
+  const appUrl = `https://mostafavipecoder.github.io/Event_Operaation/#/agenda/${eventId}`
+
+  // 1. Bot Detection Logic
+  // Check if the request is from a crawler (WhatsApp, FB, Twitter, Slack, etc.)
+  const isBot = /bot|facebookexternalhit|whatsapp|telegram|twitterbot|pinterest|slackbot|linkedinbot/i.test(userAgent);
+
+  // 2. Perform Direct 302 Redirect for Real Users
+  // This bypasses the script-blocking issue and is much faster for humans.
+  if (!isBot) {
+    console.log(`[Share] Redirecting human user to app: ${appUrl}`);
+    return Response.redirect(appUrl, 302);
+  }
+
+  // 3. Serve HTML Meta Tags for Bots/Crawlers
+  console.log(`[Share] Serving meta tags to bot: ${userAgent}`);
 
   // Initialize Supabase Client
   const supabaseClient = createClient(
@@ -23,27 +41,26 @@ serve(async (req) => {
     .single()
 
   if (error || !event) {
-    return new Response("Event not found", { status: 404 })
+    // If event not found, redirect to home page as fallback
+    return Response.redirect("https://mostafavipecoder.github.io/Event_Operaation/", 302);
   }
 
   // Define metadata
   const title = event.seo_title || `Athar | ${event.event_name}`
   const description = event.seo_description || event.description || "انضم إلينا في هذا الحدث الرائع وتعرف على الأجندة والمتحدثين."
   
-  // Use a helper for Google Drive links if needed (simplified version for server-side)
-  const getImageUrl = (rawUrl) => {
+  const getImageUrl = (rawUrl: string | null) => {
     if (!rawUrl) return "https://mostafavipecoder.github.io/Event_Operaation/vite.svg"
     if (rawUrl.includes('drive.google.com')) {
-      const id = rawUrl.match(/[-\w]{25,}/);
-      return id ? `https://lh3.googleusercontent.com/d/${id}` : rawUrl;
+      const idMatch = rawUrl.match(/[-\w]{25,}/);
+      return idMatch ? `https://lh3.googleusercontent.com/d/${idMatch[0]}` : rawUrl;
     }
     return rawUrl;
   }
   
   const imageUrl = getImageUrl(event.seo_image_url || event.header_image_url)
-  const appUrl = `https://mostafavipecoder.github.io/Event_Operaation/#/agenda/${eventId}`
 
-  // Return HTML with Meta Tags and JS Redirect
+  // Return HTML with Meta Tags ONLY (no scripts needed for crawlers)
   const html = `
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -64,12 +81,6 @@ serve(async (req) => {
     <meta property="twitter:title" content="${title}">
     <meta property="twitter:description" content="${description}">
     <meta property="twitter:image" content="${imageUrl}">
-
-    <!-- Redirection Logic -->
-    <meta http-equiv="refresh" content="0;url=${appUrl}">
-    <script>
-        window.location.href = "${appUrl}";
-    </script>
 </head>
 <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc;">
     <div style="text-align: center;">
