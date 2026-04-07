@@ -9,6 +9,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
   const logo = company.logo_url || company.logoUrl;
   const industry = company.industry || company.sector || 'Ecosystem';
   const location = company.location || 'Global';
+  const description = company.description || company.bio || '';
 
   if (viewMode === 'list') {
     return (
@@ -66,9 +67,14 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
               <Briefcase size={24} />
               <span className="text-[10px] font-black uppercase tracking-[0.4em]">Operational Domain</span>
             </div>
-            <p className="text-2xl md:text-4xl font-black text-slate-800 leading-tight uppercase tracking-tight">
+            <p className="text-2xl md:text-3xl font-black text-slate-800 leading-tight uppercase tracking-tight mb-8">
               {industry}
             </p>
+            {description && (
+              <p className="text-xl md:text-2xl font-medium text-slate-500 leading-relaxed max-w-3xl">
+                {description}
+              </p>
+            )}
           </div>
         </div>
 
@@ -203,7 +209,12 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
           <Briefcase size={16} className="shrink-0" />
           <span className="text-[10px] font-black uppercase tracking-widest">Field of Work</span>
         </div>
-        <p className="text-sm font-bold text-slate-600 leading-relaxed uppercase tracking-tight line-clamp-2">{industry}</p>
+        <p className="text-sm font-bold text-slate-600 leading-relaxed uppercase tracking-tight mb-3">{industry}</p>
+        {description && (
+          <p className="text-xs font-medium text-slate-500 leading-relaxed line-clamp-3 italic">
+            "{description}"
+          </p>
+        )}
       </div>
 
 

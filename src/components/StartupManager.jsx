@@ -517,9 +517,14 @@ const StartupManager = () => {
                                     <Clock size={14} /> Submitting Pulse from Form Link
                                 </p>
                             </div>
-
-                            <div className="space-y-6 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar mb-10">
+                             <div className="space-y-6 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar mb-10">
                                 <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-6 bg-slate-50 rounded-2xl col-span-2">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Company Persona / Description</p>
+                                        <p className="font-bold text-[#0d0e0e] leading-relaxed italic">
+                                            {selectedSubmission.description || selectedSubmission.additional_data?.description || selectedSubmission.additional_data?.bio || "No description provided."}
+                                        </p>
+                                    </div>
                                     <div className="p-6 bg-slate-50 rounded-2xl">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Industry</p>
                                         <p className="font-bold text-[#0d0e0e]">{selectedSubmission.industry || 'Not Specified'}</p>
@@ -534,7 +539,7 @@ const StartupManager = () => {
                                         <p className="text-[10px] font-black text-[#059669] uppercase tracking-[0.2em]">Transmission Payload</p>
                                         <div className="grid grid-cols-1 gap-3">
                                             {Object.entries(selectedSubmission.additional_data).map(([key, value]) => {
-                                                if (key === '_column_order' || typeof value === 'object') return null;
+                                                if (key === '_column_order' || key === 'description' || key === 'bio' || typeof value === 'object') return null;
                                                 return (
                                                     <div key={key} className="p-5 bg-slate-50 border border-slate-100 rounded-2xl">
                                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{key.replace(/_/g, ' ')}</p>
@@ -546,6 +551,7 @@ const StartupManager = () => {
                                     </div>
                                 )}
                             </div>
+
 
                             <div className="flex items-center gap-4">
                                 <button

@@ -6,6 +6,7 @@ import DynamicFormBuilder from './DynamicFormBuilder';
 
 import { getEvent, getFormConfig, submitCompanyRegistration, uploadImage } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
+import CompanyCard from './CompanyCard';
 
 /**
  * CompanyPortal Component
@@ -358,9 +359,16 @@ const CompanyPortal = () => {
                                 </p>
                             </div>
 
-                            <CompanyCardPreview
-                                formData={formValues}
+                            <CompanyCard
+                                company={{
+                                    startup_name: formValues.name || formValues.startup_name || 'Your Company',
+                                    logo_url: formValues.logo_url || formValues.logoUrl,
+                                    industry: formValues.industry || formValues.sector || 'Industry',
+                                    location: formValues.location || 'Global',
+                                    description: formValues.description || formValues.bio || ''
+                                }}
                                 customColor="#1a27c9"
+                                viewMode="grid"
                             />
                         </div>
                     </div>
