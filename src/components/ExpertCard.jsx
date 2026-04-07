@@ -58,9 +58,9 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                                 href={linkedin}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-[2rem] flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:border-[#0077b5] hover:shadow-2xl transition-all group/link"
+                                className="w-24 h-24 bg-slate-50 border border-slate-100 rounded-3xl flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:border-[#0077b5] hover:shadow-2xl transition-all group/link"
                             >
-                                <Linkedin size={32} className="group-hover/link:scale-110 transition-transform" />
+                                <Linkedin size={40} className="group-hover/link:scale-110 transition-transform" />
                             </a>
                         )}
                     </div>
@@ -76,7 +76,15 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                             <Briefcase size={20} className="text-slate-400" />
                             <div>
                                 <span className="block text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Organization</span>
-                                <span className="text-sm font-black text-[#0d0e0e] uppercase">{expert.company || 'Pioneer Group'}</span>
+                                <span className="text-sm font-black text-[#0d0e0e] uppercase">{expert.company || 'Not Specified'}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 bg-slate-50/50 px-8 py-5 rounded-[2rem] border border-slate-100/50 group-hover:bg-white group-hover:border-slate-200 transition-all">
+                            <MapPin size={20} className="text-slate-400" />
+                            <div>
+                                <span className="block text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Base / Location</span>
+                                <span className="text-sm font-black text-[#0d0e0e] uppercase">{expert.location || 'Not Specified'}</span>
                             </div>
                         </div>
 
@@ -166,9 +174,9 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                             href={linkedin}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:border-[#0077b5] hover:shadow-lg transition-all"
+                            className="w-14 h-14 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:border-[#0077b5] hover:shadow-lg transition-all"
                         >
-                            <Linkedin size={20} />
+                            <Linkedin size={26} />
                         </a>
                     )}
                 </div>
@@ -223,14 +231,14 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                             <Briefcase size={14} />
                             <span className="text-[8px] font-black uppercase tracking-widest">Organization</span>
                         </div>
-                        <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.company || 'Pioneer Group'}</p>
+                        <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.company || 'Not Specified'}</p>
                     </div>
                     <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50 transition-all group-hover:bg-white group-hover:border-slate-200 overflow-hidden">
                         <div className="flex items-center gap-2 text-slate-400 mb-1">
                             <MapPin size={14} />
                             <span className="text-[8px] font-black uppercase tracking-widest">Base</span>
                         </div>
-                        <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.location || 'Global Expansion'}</p>
+                        <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.location || 'Not Specified'}</p>
                     </div>
                 </div>
             </div>

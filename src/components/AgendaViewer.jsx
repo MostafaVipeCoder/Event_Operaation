@@ -228,8 +228,8 @@ export default function AgendaViewer({ eventId }) {
                                     : 'bg-white border-2 border-slate-100 text-slate-400 hover:border-[#1a27c9]/30 hover:bg-slate-50'
                                     }`}
                             >
-                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] mb-0.5 ${selectedDay === index ? 'opacity-70' : 'text-slate-300'}`}>
-                                    {day.day_date ? formatDate(day.day_date) : `Day ${index + 1}`}
+                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] mb-0.5 ${selectedDay === index ? 'opacity-70' : 'text-slate-400'}`}>
+                                    Day {index + 1}
                                 </span>
                                 <span className="font-black text-lg tracking-tight leading-tight">{day.day_name}</span>
                             </button>

@@ -66,9 +66,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
                 {name}
               </h3>
               <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start">
-                <span className="px-5 py-2.5 rounded-2xl bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-100/50">
-                  {industry}
-                </span>
+                {/* Removed redundant industry badge */}
                 {stage && (
                   <span className="px-5 py-2.5 rounded-2xl bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-100/50">
                     {stage}
@@ -244,11 +242,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
 
       {/* Detailed Info */}
       <div className="mb-10 px-2 z-10 flex-1 overflow-hidden">
-        <div className="flex items-center gap-3 mb-2 text-slate-400">
-          <Briefcase size={16} className="shrink-0" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Field of Work</span>
-        </div>
-        <p className="text-sm font-bold text-slate-600 leading-relaxed uppercase tracking-tight mb-3">{industry}</p>
+        {/* Removed redundant field of work */}
         {description && (
           <p className="text-xs font-medium text-slate-500 leading-relaxed line-clamp-3 italic">
             "{description}"

@@ -172,12 +172,31 @@ export const parseWorkbook = (workbook) => {
     let experts = [];
     if (expertsSheet) {
         validateColumns(expertsSheet, 'Experts', ['Name']);
-        experts = XLSX.utils.sheet_to_json(expertsSheet).map(row => ({
-            name: row['Name'] || row['Full Name'],
-            title: row['Title'] || '',
-            bio: row['Bio'] || '',
-            linkedin_url: row['LinkedIn URL'] || row['LinkedIn'] || ''
-        })).filter(e => e.name);
+        experts = XLSX.utils.sheet_to_json(expertsSheet).map(row => {
+            const rowNormalized = {};
+            for (const key in row) {
+                if (key) rowNormalized[key.toLowerCase().trim()] = row[key];
+            }
+            
+            const get = (...keys) => {
+                for (const k of keys) {
+                    const normalizedK = k.toLowerCase().trim();
+                    if (rowNormalized[normalizedK] !== undefined && rowNormalized[normalizedK] !== null && String(rowNormalized[normalizedK]).trim() !== '') {
+                        return String(rowNormalized[normalizedK]).trim();
+                    }
+                }
+                return '';
+            };
+
+            return {
+                name: get('Name', 'Full Name', 'الاسم', 'اسم الخبير'),
+                title: get('Title', 'Position', 'المسمى الوظيفي', 'التخصص'),
+                company: get('Organization', 'Company', 'Work', 'المؤسسة', 'الجهة'),
+                location: get('Location', 'City', 'Gov.', 'المقر', 'المدينة', 'المحافظة'),
+                bio: get('Bio', 'Description', 'About', 'الوصف', 'نبذة'),
+                linkedin_url: get('LinkedIn', 'LinkedIn URL', 'لينكد إن')
+            };
+        }).filter(e => e.name);
     }
 
     // Parse Companies
@@ -215,18 +234,26 @@ export const parseWorkbook = (workbook) => {
                     const raw = get('Link', 'Links', 'Website', 'URL', 'Website URL', 'الموقع', 'رابط', 'روابط');
                     if (!raw) return [];
                     const rawStr = raw.toString();
-                    // Support comma-separated multiple links with auto-icon detection
-                    return rawStr.split(',').map(u => u.trim()).filter(Boolean).map((url, i) => {
+                    
+                    // Improved splitting: handle spaces, commas, newlines, and semicolons
+                    const parts = rawStr.split(/[\s,\n;]+/).map(u => u.trim()).filter(u => u.length > 3 && (u.startsWith('http') || u.includes('.')));
+                    
+                    return parts.map((url, i) => {
                         let icon = 'globe';
                         let label = i === 0 ? 'Website' : `Link ${i + 1}`;
-                        const lowerUrl = url.toLowerCase();
+                        
+                        // Clean URL - handle cases where it might not have http
+                        const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+                        const lowerUrl = fullUrl.toLowerCase();
+                        
                         if (lowerUrl.includes('linkedin.com')) { icon = 'linkedin'; label = 'LinkedIn'; }
                         else if (lowerUrl.includes('facebook.com')) { icon = 'facebook'; label = 'Facebook'; }
                         else if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) { icon = 'twitter'; label = 'Twitter'; }
                         else if (lowerUrl.includes('instagram.com')) { icon = 'instagram'; label = 'Instagram'; }
                         else if (lowerUrl.includes('github.com')) { icon = 'github'; label = 'GitHub'; }
                         else if (lowerUrl.includes('youtube.com')) { icon = 'youtube'; label = 'YouTube'; }
-                        return { label, url, icon };
+                        
+                        return { label, url: fullUrl, icon };
                     });
                 })(),
                 stage: get('Stage', 'Growth Stage', 'المرحلة').toLowerCase().replace(/\s+/g, '_'),

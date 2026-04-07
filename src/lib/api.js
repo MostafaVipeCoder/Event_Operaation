@@ -469,14 +469,19 @@ export const importAgendaData = async (eventId, data) => {
             for (const sExpert of sheetExperts) {
                 const existing = existingExperts?.find(e => e.name === sExpert.name);
                 const expertData = {
-                    title: sExpert.title,
-                    bio: sExpert.bio,
-                    linkedin_url: sExpert.linkedin_url
+                    title: sExpert.title || '',
+                    bio: sExpert.bio || '',
+                    company: sExpert.company || '',
+                    location: sExpert.location || '',
+                    linkedin_url: sExpert.linkedin_url || ''
                 };
 
                 if (existing) {
-                    const hasChanged = existing.title !== expertData.title ||
+                    const hasChanged = 
+                        existing.title !== expertData.title ||
                         existing.bio !== expertData.bio ||
+                        existing.company !== expertData.company ||
+                        existing.location !== expertData.location ||
                         existing.linkedin_url !== expertData.linkedin_url;
                     if (hasChanged) {
                         await supabase.from('experts').update(expertData).eq('expert_id', existing.expert_id);
@@ -1218,15 +1223,51 @@ export const updateSubmissionStatus = async (submissionId, newStatus, additional
 };
 
 export const updateSlotsOrder = async (slots) => {
-    console.log(`[Supabase] Updating ${slots.length} slots sort order`);
-    // Pass full objects to upsert to satisfy NOT NULL constraints
-    const { data, error } = await supabase
-        .from('agenda_slots')
-        .upsert(slots);
+    console.log(`[Supabase] Updating ${slots.length} slots sort order (Revise Split Logic)`);
+    
+    // Separate new slots (to be inserted) from existing slots (to be updated/upserted)
+    const newSlots = [];
+    const existingSlots = [];
 
-    if (error) {
-        console.error('[Supabase Error] updateSlotsOrder:', error);
+    slots.forEach(slot => {
+        const cleaned = { ...slot };
+        // Delete any UI-only metadata if it still exists
+        delete cleaned.isOptimistic;
+
+        if (!cleaned.slot_id || cleaned.slot_id === null || cleaned.slot_id === undefined) {
+            delete cleaned.slot_id;
+            newSlots.push(cleaned);
+        } else {
+            existingSlots.push(cleaned);
+        }
+    });
+
+    try {
+        let results = { inserted: [], upserted: [] };
+
+        // 1. Handle New Slots (Insert)
+        if (newSlots.length > 0) {
+            const { data, error } = await supabase
+                .from('agenda_slots')
+                .insert(newSlots)
+                .select();
+            if (error) throw error;
+            results.inserted = data;
+        }
+
+        // 2. Handle Existing Slots (Upsert)
+        if (existingSlots.length > 0) {
+            const { data, error } = await supabase
+                .from('agenda_slots')
+                .upsert(existingSlots)
+                .select();
+            if (error) throw error;
+            results.upserted = data;
+        }
+
+        return results;
+    } catch (error) {
+        console.error('[Supabase Error] updateSlotsOrder Split Logic:', error);
         throw error;
     }
-    return data;
 };

@@ -28,6 +28,7 @@ const ExpertManager = () => {
         name: '',
         title: '',
         company: '',
+        location: '',
         bio: '',
         linkedin_url: '',
         photo_url: ''
@@ -62,6 +63,7 @@ const ExpertManager = () => {
             name: expert.name || '',
             title: expert.title || '',
             company: expert.company || '',
+            location: expert.location || '',
             bio: expert.bio || '',
             linkedin_url: expert.linkedin_url || '',
             photo_url: expert.photo_url || ''
@@ -75,7 +77,7 @@ const ExpertManager = () => {
 
         try {
             setIsUploading(true);
-            const publicUrl = await uploadImage(file, `experts / ${eventId} `);
+            const publicUrl = await uploadImage(file, `experts/${eventId}`);
             setFormData(prev => ({ ...prev, photo_url: publicUrl }));
         } catch (err) {
             console.error('Error uploading image:', err);
@@ -88,7 +90,7 @@ const ExpertManager = () => {
     const handleDeleteExpert = async (expertId) => {
         try {
             await deleteExpert(expertId);
-            loadExperts();
+            loadData();
         } catch (err) {
             console.error('Error deleting expert:', err);
             alert('Failed to delete expert from the grid.');
@@ -143,7 +145,7 @@ const ExpertManager = () => {
             }
             setShowAddModal(false);
             setEditingExpert(null);
-            setFormData({ name: '', title: '', company: '', bio: '', linkedin_url: '', photo_url: '' });
+            setFormData({ name: '', title: '', company: '', location: '', bio: '', linkedin_url: '', photo_url: '' });
             loadData();
         } catch (err) {
             console.error('Error saving expert:', err);
@@ -155,7 +157,8 @@ const ExpertManager = () => {
 
     const filteredExperts = experts.filter(expert =>
         expert.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        expert.company?.toLowerCase().includes(searchTerm.toLowerCase())
+        expert.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        expert.location?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -181,20 +184,20 @@ const ExpertManager = () => {
                         <div className="flex p-1 bg-slate-100 rounded-2xl w-fit">
                             <button
                                 onClick={() => setActiveTab('curated')}
-                                className={`px - 6 py - 3 rounded - xl text - [10px] font - black uppercase tracking - widest flex items - center gap - 2 transition - all ${activeTab === 'curated'
+                                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'curated'
                                     ? 'bg-white text-[#1a27c9] shadow-sm'
                                     : 'text-slate-400 hover:text-slate-600'
-                                    } `}
+                                    }`}
                             >
                                 <Users size={16} />
                                 Expert Roster
                             </button>
                             <button
                                 onClick={() => setActiveTab('review')}
-                                className={`px - 6 py - 3 rounded - xl text - [10px] font - black uppercase tracking - widest flex items - center gap - 2 transition - all ${activeTab === 'review'
+                                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'review'
                                     ? 'bg-white text-[#1a27c9] shadow-sm'
                                     : 'text-slate-400 hover:text-slate-600'
-                                    } `}
+                                    }`}
                             >
                                 <Inbox size={16} />
                                 Review Desk
@@ -290,6 +293,8 @@ const ExpertManager = () => {
                                                         <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
                                                         <span>{submission.company}</span>
                                                         <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                                                        <span>{submission.location || 'No Location'}</span>
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
                                                         <span className="text-[#1a27c9]">{new Date(submission.submitted_at).toLocaleDateString()}</span>
                                                     </div>
                                                 </div>
@@ -364,7 +369,7 @@ const ExpertManager = () => {
                             onClick={() => {
                                 setShowAddModal(false);
                                 setEditingExpert(null);
-                                setFormData({ name: '', title: '', company: '', bio: '', linkedin_url: '', photo_url: '' });
+                                setFormData({ name: '', title: '', company: '', location: '', bio: '', linkedin_url: '', photo_url: '' });
                             }}
                             className="absolute top-8 right-8 text-slate-400 hover:text-rose-500 transition-colors"
                         >
@@ -409,15 +414,27 @@ const ExpertManager = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company / Organization</label>
-                                <input
-                                    type="text"
-                                    placeholder="Entity representing"
-                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
-                                    value={formData.company}
-                                    onChange={e => setFormData({ ...formData, company: e.target.value })}
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company / Organization</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Entity representing"
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
+                                        value={formData.company}
+                                        onChange={e => setFormData({ ...formData, company: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Location / City</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Base (e.g. Cairo, Egypt)"
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
+                                        value={formData.location}
+                                        onChange={e => setFormData({ ...formData, location: e.target.value })}
+                                    />
+                                </div>
                             </div>
 
                             <div className="space-y-2">
@@ -499,84 +516,7 @@ const ExpertManager = () => {
                     </div>
                 </div>
             )}
-            {/* Preview Modal */}
-            {showPreview && selectedSubmission && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-[3rem] w-full max-w-4xl p-12 shadow-3xl relative overflow-hidden animate-in zoom-in duration-300">
-                        <button
-                            onClick={() => setShowPreview(false)}
-                            className="absolute top-10 right-10 text-slate-400 hover:text-rose-500 transition-colors"
-                        >
-                            <X size={24} />
-                        </button>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            {/* Data Side */}
-                            <div className="space-y-8">
-                                <div>
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1a27c9]">Data Verification</span>
-                                    <h3 className="text-3xl font-black text-[#0d0e0e] tracking-tight mt-1">Submission Profile</h3>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {Object.entries({
-                                        Name: selectedSubmission.expert_name,
-                                        Title: selectedSubmission.title,
-                                        Company: selectedSubmission.company,
-                                        LinkedIn: selectedSubmission.linkedin_url,
-                                        Bio: selectedSubmission.bio,
-                                        ...selectedSubmission.additional_data
-                                    }).map(([key, value]) => {
-                                        if (!value || key === '_column_order') return null;
-                                        return (
-                                            <div key={key} className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">{key.replace(/_/g, ' ')}</span>
-                                                <span className="text-sm font-bold text-slate-700 leading-relaxed block break-words">
-                                                    {typeof value === 'object' ? JSON.stringify(value) : value}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Visual Side */}
-                            <div className="bg-slate-50 rounded-[2.5rem] border border-slate-100 p-8 flex flex-col items-center justify-center">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">Component Preview</span>
-                                <div className="scale-110">
-                                    <ExpertCard
-                                        expert={{
-                                            name: selectedSubmission.expert_name,
-                                            title: selectedSubmission.title,
-                                            company: selectedSubmission.company,
-                                            bio: selectedSubmission.bio,
-                                            photo_url: selectedSubmission.photo_url
-                                        }}
-                                        previewMode={true}
-                                    />
-                                </div>
-                                <p className="mt-8 text-[10px] font-black text-slate-300 uppercase tracking-widest">Live Agenda Mockup</p>
-                            </div>
-                        </div>
-
-                        <div className="mt-12 pt-8 border-t border-slate-100 flex gap-4">
-                            <button
-                                disabled={actionLoading}
-                                onClick={() => handleApproveExpert(selectedSubmission)}
-                                className="flex-1 py-5 bg-[#1a27c9] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#0d0e0e] shadow-2xl shadow-indigo-100 transition-premium"
-                            >
-                                Confirm Roster Entry
-                            </button>
-                            <button
-                                onClick={() => setShowPreview(false)}
-                                className="px-10 py-5 bg-white border border-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-premium text-slate-500"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Removed redundant preview modal */}
             {/* Submission Details Preview Modal */}
             {showPreview && selectedSubmission && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -611,8 +551,7 @@ const ExpertManager = () => {
                                         </p>
                                     </div>
 
-                                    <div className="space-y-6 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar">
-                                        <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-6 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar">                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Title</p>
                                                 <p className="font-bold text-[#0d0e0e]">{selectedSubmission.title || 'Expert'}</p>
@@ -621,7 +560,12 @@ const ExpertManager = () => {
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Company</p>
                                                 <p className="font-bold text-[#0d0e0e]">{selectedSubmission.company || 'Not Specified'}</p>
                                             </div>
+                                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Location</p>
+                                                <p className="font-bold text-[#0d0e0e]">{selectedSubmission.location || 'Not Specified'}</p>
+                                            </div>
                                         </div>
+
 
                                         {selectedSubmission.bio && (
                                             <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
@@ -657,6 +601,7 @@ const ExpertManager = () => {
                                                 name: selectedSubmission.expert_name,
                                                 title: selectedSubmission.title,
                                                 company: selectedSubmission.company,
+                                                location: selectedSubmission.location,
                                                 bio: selectedSubmission.bio,
                                                 photo_url: selectedSubmission.photo_url
                                             }}

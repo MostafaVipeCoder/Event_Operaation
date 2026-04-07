@@ -657,10 +657,13 @@ export default function EventBuilder({ event, onBack }) {
                         day_id: currentDayId, // Ensure it uses the real ID (new or existing)
                         sort_order: index + 1 
                     };
-                    if (slot.isOptimistic) {
+                    
+                    // Proactive cleanup: remove slot_id if it's optimistic or null
+                    if (slot.isOptimistic || !slot.slot_id) {
                         delete slotData.slot_id;
-                        delete slotData.isOptimistic;
                     }
+                    
+                    delete slotData.isOptimistic; // Always cleanup UI metadata
                     return slotData;
                 });
 
