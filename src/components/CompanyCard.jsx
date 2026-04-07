@@ -1,15 +1,38 @@
-import { MapPin, Users, Plus, Banknote, Briefcase, Pencil, Trash2 } from 'lucide-react';
+import { MapPin, Users, Plus, Banknote, Briefcase, Pencil, Trash2, ExternalLink, Globe, Linkedin, Facebook, Twitter, Instagram, Youtube, Github } from 'lucide-react';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 
-const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete }) => {
-  const getLightColor = (hex, opacity = '1a') => `${hex}${opacity}`;
+const LinkIcon = ({ type, ...props }) => {
+  switch (type) {
+    case 'linkedin': return <Linkedin {...props} />;
+    case 'facebook': return <Facebook {...props} />;
+    case 'twitter': return <Twitter {...props} />;
+    case 'instagram': return <Instagram {...props} />;
+    case 'youtube': return <Youtube {...props} />;
+    case 'github': return <Github {...props} />;
+    case 'globe': return <Globe {...props} />;
+    default: return <ExternalLink {...props} />;
+  }
+};
 
+const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete }) => {
   // Support both database schema and legacy mock data
   const name = company.startup_name || company.name || 'Unknown Builder';
   const logo = company.logo_url || company.logoUrl;
   const industry = company.industry || company.sector || 'Ecosystem';
-  const location = company.location || 'Global';
+  const location = company.location || company.governorate || 'Global';
+  const governorate = company.governorate || company.location || '';
   const description = company.description || company.bio || '';
+  const stage = company.stage ? company.stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
+  // Normalize links: support new links[] array and legacy website_url
+  const links = (() => {
+    let parsedLinks = company.links;
+    if (typeof parsedLinks === 'string') {
+        try { parsedLinks = JSON.parse(parsedLinks); } catch(e) { parsedLinks = []; }
+    }
+    if (Array.isArray(parsedLinks) && parsedLinks.length > 0) return parsedLinks;
+    if (company.website_url) return [{ label: 'Website', url: company.website_url, icon: 'globe' }];
+    return [];
+  })();
 
   if (viewMode === 'list') {
     return (
@@ -39,10 +62,6 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
         <div className="flex-1 z-10 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
             <div>
-              <div className="flex items-center gap-3 mb-6 justify-center md:justify-start">
-                <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: customColor }} />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Companies List</span>
-              </div>
               <h3 className="text-6xl md:text-8xl font-black text-[#0d0e0e] tracking-tighter mb-4 leading-[0.85] group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
                 {name}
               </h3>
@@ -50,10 +69,14 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
                 <span className="px-5 py-2.5 rounded-2xl bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-100/50">
                   {industry}
                 </span>
-                {company.status && (
-                  <span className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border ${company.status === 'Profitable' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-amber-600 bg-amber-50 border-amber-100'
-                    }`}>
-                    {company.status}
+                {stage && (
+                  <span className="px-5 py-2.5 rounded-2xl bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-100/50">
+                    {stage}
+                  </span>
+                )}
+                {governorate && (
+                  <span className="flex items-center gap-1.5 px-5 py-2.5 rounded-2xl bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-100/50">
+                    <MapPin size={12} /> {governorate}
                   </span>
                 )}
               </div>
@@ -65,15 +88,31 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
           <div className="mb-12">
             <div className="flex items-center gap-4 text-slate-400 mb-4 justify-center md:justify-start">
               <Briefcase size={24} />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em]">Operational Domain</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em]">Sector</span>
             </div>
             <p className="text-2xl md:text-3xl font-black text-slate-800 leading-tight uppercase tracking-tight mb-8">
               {industry}
             </p>
             {description && (
-              <p className="text-xl md:text-2xl font-medium text-slate-500 leading-relaxed max-w-3xl">
-                {description}
-              </p>
+              <p className="text-lg md:text-xl font-medium text-slate-500 leading-relaxed max-w-2xl mt-6">{description}</p>
+            )}
+
+            {/* Links */}
+            {links.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-6 justify-center md:justify-start">
+                {links.filter(l => l.url).map((link, i) => (
+                  <a
+                    key={i}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-slate-100 text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-[#1a27c9] hover:border-[#1a27c9] transition-all shadow-sm hover:shadow-md"
+                  >
+                    <LinkIcon type={link.icon} size={14} />
+                    {link.label || 'Link'}
+                  </a>
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -190,16 +229,16 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
         <div className="bg-slate-50/50 p-5 rounded-3xl border border-slate-100/50 group-hover:bg-white transition-all overflow-hidden">
           <div className="flex items-center gap-3 mb-2 text-slate-400">
             <MapPin size={16} className="shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-widest truncate">Gov.</span>
+            <span className="text-[10px] font-black uppercase tracking-widest truncate">المحافظة</span>
           </div>
-          <p className="text-sm font-black text-[#0d0e0e] uppercase truncate">{location}</p>
+          <p className="text-sm font-black text-[#0d0e0e] truncate">{governorate || location}</p>
         </div>
         <div className="bg-slate-50/50 p-5 rounded-3xl border border-slate-100/50 group-hover:bg-white transition-all overflow-hidden">
           <div className="flex items-center gap-3 mb-2 text-slate-400">
-            <Users size={16} className="shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-widest truncate">Growth</span>
+            <Banknote size={16} className="shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-widest truncate">المرحلة</span>
           </div>
-          <p className="text-sm font-black text-[#0d0e0e] uppercase truncate">{company.employees || 'Expanding'}</p>
+          <p className="text-sm font-black text-[#0d0e0e] uppercase truncate">{stage || '—'}</p>
         </div>
       </div>
 
@@ -214,6 +253,24 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
           <p className="text-xs font-medium text-slate-500 leading-relaxed line-clamp-3 italic">
             "{description}"
           </p>
+        )}
+
+        {/* Links */}
+        {links.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {links.filter(l => l.url).map((link, i) => (
+              <a
+                key={i}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-white hover:shadow-sm transition-all shadow-none"
+              >
+                <LinkIcon type={link.icon} size={12} />
+                {link.label || 'Link'}
+              </a>
+            ))}
+          </div>
         )}
       </div>
 

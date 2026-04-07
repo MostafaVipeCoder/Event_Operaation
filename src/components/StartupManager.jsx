@@ -26,8 +26,10 @@ const StartupManager = () => {
     const [formData, setFormData] = useState({
         name: '',
         industry: '',
+        stage: '',
+        governorate: '',
         description: '',
-        website_url: '',
+        links: [],
         logo_url: ''
     });
 
@@ -56,11 +58,27 @@ const StartupManager = () => {
 
     const handleEdit = (company) => {
         setEditingCompany(company);
+        
+        // Normalize links: support legacy website_url and new links array
+        let links = [];
+        let parsedLinks = company.links;
+        if (typeof parsedLinks === 'string') {
+            try { parsedLinks = JSON.parse(parsedLinks); } catch(e) { parsedLinks = []; }
+        }
+        
+        if (Array.isArray(parsedLinks) && parsedLinks.length > 0) {
+            links = parsedLinks.map(l => ({ ...l, icon: l.icon || 'globe' }));
+        } else if (company.website_url) {
+            links = [{ label: 'Website', url: company.website_url, icon: 'globe' }];
+        }
+
         setFormData({
             name: company.name || '',
             industry: company.industry || '',
+            stage: company.stage || '',
+            governorate: company.governorate || '',
             description: company.description || '',
-            website_url: company.website_url || '',
+            links,
             logo_url: company.logo_url || ''
         });
         setShowAddModal(true);
@@ -141,7 +159,7 @@ const StartupManager = () => {
             }
             setShowAddModal(false);
             setEditingCompany(null);
-            setFormData({ name: '', industry: '', description: '', website_url: '', logo_url: '' });
+            setFormData({ name: '', industry: '', stage: '', governorate: '', description: '', links: [], logo_url: '' });
             loadData();
         } catch (err) {
             console.error('Error saving startup:', err);
@@ -361,7 +379,7 @@ const StartupManager = () => {
                             onClick={() => {
                                 setShowAddModal(false);
                                 setEditingCompany(null);
-                                setFormData({ name: '', industry: '', description: '', website_url: '', logo_url: '' });
+                                setFormData({ name: '', industry: '', stage: '', governorate: '', description: '', website_url: '', logo_url: '' });
                             }}
                             className="absolute top-8 right-8 text-slate-400 hover:text-rose-500 transition-colors"
                         >
@@ -406,6 +424,63 @@ const StartupManager = () => {
                                 </div>
                             </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">مرحلة النمو (Stage)</label>
+                                    <select
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium appearance-none"
+                                        value={formData.stage}
+                                        onChange={e => setFormData({ ...formData, stage: e.target.value })}
+                                    >
+                                        <option value="">اختر المرحلة...</option>
+                                        <option value="idea">Idea Stage — فكرة</option>
+                                        <option value="mvp">MVP — نموذج أولي</option>
+                                        <option value="seed">Seed — بذرة</option>
+                                        <option value="growth">Growth — نمو</option>
+                                        <option value="series_a">Series A</option>
+                                        <option value="expansion">Expansion — توسع</option>
+                                        <option value="profitable">Profitable — رابحة</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">المحافظة (Governorate)</label>
+                                    <select
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium appearance-none"
+                                        value={formData.governorate}
+                                        onChange={e => setFormData({ ...formData, governorate: e.target.value })}
+                                    >
+                                        <option value="">اختر المحافظة...</option>
+                                        <option value="القاهرة">القاهرة</option>
+                                        <option value="الجيزة">الجيزة</option>
+                                        <option value="الإسكندرية">الإسكندرية</option>
+                                        <option value="المنوفية">المنوفية</option>
+                                        <option value="الشرقية">الشرقية</option>
+                                        <option value="القليوبية">القليوبية</option>
+                                        <option value="الغربية">الغربية</option>
+                                        <option value="كفر الشيخ">كفر الشيخ</option>
+                                        <option value="الدقهلية">الدقهلية</option>
+                                        <option value="البحيرة">البحيرة</option>
+                                        <option value="دمياط">دمياط</option>
+                                        <option value="بورسعيد">بورسعيد</option>
+                                        <option value="الإسماعيلية">الإسماعيلية</option>
+                                        <option value="السويس">السويس</option>
+                                        <option value="الفيوم">الفيوم</option>
+                                        <option value="بني سويف">بني سويف</option>
+                                        <option value="المنيا">المنيا</option>
+                                        <option value="أسيوط">أسيوط</option>
+                                        <option value="سوهاج">سوهاج</option>
+                                        <option value="قنا">قنا</option>
+                                        <option value="الأقصر">الأقصر</option>
+                                        <option value="أسوان">أسوان</option>
+                                        <option value="البحر الأحمر">البحر الأحمر</option>
+                                        <option value="الوادي الجديد">الوادي الجديد</option>
+                                        <option value="مطروح">مطروح</option>
+                                        <option value="شمال سيناء">شمال سيناء</option>
+                                        <option value="جنوب سيناء">جنوب سيناء</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Description</label>
                                 <textarea
@@ -416,18 +491,73 @@ const StartupManager = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Website URL</label>
-                                    <input
-                                        type="url"
-                                        placeholder="https://startup.io"
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium"
-                                        value={formData.website_url}
-                                        onChange={e => setFormData({ ...formData, website_url: e.target.value })}
-                                    />
+                            {/* Dynamic Links */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Links / روابط</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({ ...prev, links: [...(prev.links || []), { label: '', url: '', icon: 'globe' }] }))}
+                                        className="text-[10px] font-black uppercase tracking-widest text-[#059669] hover:text-[#0d0e0e] transition-colors flex items-center gap-1"
+                                    >
+                                        <span className="text-lg leading-none">+</span> Add Link
+                                    </button>
                                 </div>
-                                <div className="space-y-2">
+                                {(formData.links || []).map((link, idx) => (
+                                    <div key={idx} className="flex gap-2 items-center flex-wrap md:flex-nowrap">
+                                        <select
+                                            className="w-12 md:w-auto px-2 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium shrink-0"
+                                            value={link.icon || 'globe'}
+                                            onChange={e => {
+                                                const updated = [...formData.links];
+                                                updated[idx] = { ...updated[idx], icon: e.target.value };
+                                                setFormData(prev => ({ ...prev, links: updated }));
+                                            }}
+                                        >
+                                            <option value="globe">🌐</option>
+                                            <option value="facebook">📘</option>
+                                            <option value="linkedin">💼</option>
+                                            <option value="twitter">🐦</option>
+                                            <option value="instagram">📸</option>
+                                            <option value="youtube">📺</option>
+                                            <option value="github">💻</option>
+                                        </select>
+                                        <input
+                                            type="text"
+                                            placeholder="Label (e.g. Website, Pitch Deck)"
+                                            className="w-28 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium shrink-0"
+                                            value={link.label}
+                                            onChange={e => {
+                                                const updated = [...formData.links];
+                                                updated[idx] = { ...updated[idx], label: e.target.value };
+                                                setFormData(prev => ({ ...prev, links: updated }));
+                                            }}
+                                        />
+                                        <input
+                                            type="url"
+                                            placeholder="https://..."
+                                            className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium min-w-[200px]"
+                                            value={link.url}
+                                            onChange={e => {
+                                                const updated = [...formData.links];
+                                                updated[idx] = { ...updated[idx], url: e.target.value };
+                                                setFormData(prev => ({ ...prev, links: updated }));
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, links: prev.links.filter((_, i) => i !== idx) }))}
+                                            className="w-10 h-10 rounded-xl border border-slate-100 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all flex items-center justify-center shrink-0"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                                {(!formData.links || formData.links.length === 0) && (
+                                    <p className="text-xs text-slate-400 italic px-2">لا يوجد روابط بعد — اضغط "Add Link" لإضافة رابط</p>
+                                )}
+                            </div>
+                            <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company Logo</label>
                                     <div className="flex gap-3">
                                         <div className="relative flex-1">
@@ -456,7 +586,6 @@ const StartupManager = () => {
                                         </label>
                                     </div>
                                 </div>
-                            </div>
 
                             <div className="pt-6 flex gap-4">
                                 <button
@@ -464,7 +593,7 @@ const StartupManager = () => {
                                     onClick={() => setShowAddModal(false)}
                                     className="flex-1 px-8 py-5 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-premium"
                                 >
-                                    Abort
+                                    Cancel
                                 </button>
                                 <button
                                     disabled={isSubmitting}

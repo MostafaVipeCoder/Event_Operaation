@@ -497,15 +497,28 @@ export const importAgendaData = async (eventId, data) => {
             for (const sCompany of sheetCompanies) {
                 const existing = existingCompanies?.find(c => c.name === sCompany.name);
                 const companyData = {
-                    founder: sCompany.founder,
-                    location: sCompany.location,
-                    industry: sCompany.industry
+                    founder: sCompany.founder || '',
+                    location: sCompany.location || '',
+                    governorate: sCompany.governorate || sCompany.location || '',
+                    industry: sCompany.industry || '',
+                    description: sCompany.description || '',
+                    website_url: sCompany.website_url || '',
+                    links: Array.isArray(sCompany.links) ? sCompany.links : [],
+                    stage: sCompany.stage || '',
+                    logo_url: sCompany.logo_url || ''
                 };
 
                 if (existing) {
-                    const hasChanged = existing.founder !== companyData.founder ||
+                    const hasChanged =
+                        existing.founder !== companyData.founder ||
                         existing.location !== companyData.location ||
-                        existing.industry !== companyData.industry;
+                        existing.governorate !== companyData.governorate ||
+                        existing.industry !== companyData.industry ||
+                        existing.description !== companyData.description ||
+                        existing.website_url !== companyData.website_url ||
+                        JSON.stringify(existing.links) !== JSON.stringify(companyData.links) ||
+                        existing.stage !== companyData.stage ||
+                        existing.logo_url !== companyData.logo_url;
                     if (hasChanged) {
                         await supabase.from('companies').update(companyData).eq('company_id', existing.company_id);
                         stats.companies.updated++;

@@ -95,8 +95,8 @@ export const generateAgendaTemplate = () => {
 
     // 4. Companies Sheet Data
     const companiesData = [
-        ['Company Name', 'Founder', 'Governorate', 'Industry'],
-        ['Example Company', 'Founder Name', 'City', 'Tech']
+        ['Company Name', 'Gov.', 'Describtion', 'Industry', 'Link'],
+        ['Example Company', 'القاهرة', 'A short description about the company', 'Tech', 'https://example.com']
     ];
 
     const wb = XLSX.utils.book_new();
@@ -185,12 +185,54 @@ export const parseWorkbook = (workbook) => {
     let companies = [];
     if (companiesSheet) {
         validateColumns(companiesSheet, 'Companies', ['Company Name']);
-        companies = XLSX.utils.sheet_to_json(companiesSheet).map(row => ({
-            name: row['Company Name'] || row['Name'] || row['Startup Name'],
-            founder: row['Founder'] || row['CEO'] || '',
-            location: row['Governorate'] || row['Location'] || row['City'] || '',
-            industry: row['Industry'] || row['Sector'] || ''
-        })).filter(c => c.name);
+        companies = XLSX.utils.sheet_to_json(companiesSheet).map(row => {
+            // Flexible column name matching — covers English, Arabic, typos, and variations
+            const rowNormalized = {};
+            for (const key in row) {
+                if (key) rowNormalized[key.toLowerCase().trim()] = row[key];
+            }
+            
+            const get = (...keys) => {
+                for (const k of keys) {
+                    const normalizedK = k.toLowerCase().trim();
+                    if (rowNormalized[normalizedK] !== undefined && rowNormalized[normalizedK] !== null && String(rowNormalized[normalizedK]).trim() !== '') {
+                        return String(rowNormalized[normalizedK]).trim();
+                    }
+                }
+                return '';
+            };
+
+            return {
+                name: get('Company Name', 'Name', 'Startup Name', 'اسم الشركة', 'الشركة'),
+                founder: get('Founder', 'CEO', 'المؤسس'),
+                location: get('Gov.', 'Governorate', 'Location', 'City', 'المحافظة', 'المدينة'),
+                governorate: get('Gov.', 'Governorate', 'Location', 'City', 'المحافظة', 'المدينة'),
+                industry: get('Industry', 'Sector', 'القطاع', 'الفئة'),
+                description: get('Describtion', 'Description', 'Bio', 'About', 'الوصف', 'وصف الشركة', 'نبذة', 'عن الشركة'),
+                website_url: get('Link', 'Links', 'Website', 'URL', 'Website URL', 'الموقع', 'رابط', 'روابط')?.toString() || '',
+                // Also store as links array for multi-link support
+                links: (() => {
+                    const raw = get('Link', 'Links', 'Website', 'URL', 'Website URL', 'الموقع', 'رابط', 'روابط');
+                    if (!raw) return [];
+                    const rawStr = raw.toString();
+                    // Support comma-separated multiple links with auto-icon detection
+                    return rawStr.split(',').map(u => u.trim()).filter(Boolean).map((url, i) => {
+                        let icon = 'globe';
+                        let label = i === 0 ? 'Website' : `Link ${i + 1}`;
+                        const lowerUrl = url.toLowerCase();
+                        if (lowerUrl.includes('linkedin.com')) { icon = 'linkedin'; label = 'LinkedIn'; }
+                        else if (lowerUrl.includes('facebook.com')) { icon = 'facebook'; label = 'Facebook'; }
+                        else if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) { icon = 'twitter'; label = 'Twitter'; }
+                        else if (lowerUrl.includes('instagram.com')) { icon = 'instagram'; label = 'Instagram'; }
+                        else if (lowerUrl.includes('github.com')) { icon = 'github'; label = 'GitHub'; }
+                        else if (lowerUrl.includes('youtube.com')) { icon = 'youtube'; label = 'YouTube'; }
+                        return { label, url, icon };
+                    });
+                })(),
+                stage: get('Stage', 'Growth Stage', 'المرحلة').toLowerCase().replace(/\s+/g, '_'),
+                logo_url: get('Logo URL', 'Logo', 'لوجو')
+            };
+        }).filter(c => c.name);
     }
 
     return { days, slots, experts, companies };

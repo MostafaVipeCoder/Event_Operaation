@@ -478,7 +478,7 @@ const ExpertManager = () => {
                                     onClick={() => setShowAddModal(false)}
                                     className="flex-1 px-8 py-5 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-premium"
                                 >
-                                    Abort
+                                    Cancel
                                 </button>
                                 <button
                                     disabled={isSubmitting}

@@ -46,9 +46,6 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                 <div className="flex-1 z-10 py-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                         <div>
-                            <span className="inline-block text-[10px] font-black uppercase tracking-[0.4em] px-5 py-2.5 rounded-2xl bg-slate-50 text-slate-400 border border-slate-100/50 mb-6">
-                                {expert.role || 'Sector Disruptor'}
-                            </span>
                             <h3 className="text-6xl md:text-8xl font-black text-[#0d0e0e] tracking-tighter mb-4 leading-[0.85] group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
                                 {name}
                             </h3>
