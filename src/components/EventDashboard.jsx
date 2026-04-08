@@ -263,7 +263,7 @@ export default function EventDashboard() {
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">English Version</span>
                                 <div className="flex gap-2">
                                     <a 
-                                        href={`${window.location.origin}/#/agenda/${eventId}?lang=en`} 
+                                        href={`#/agenda/${eventId}?lang=en`} 
                                         target="_blank" 
                                         className="px-8 py-3 bg-white border-2 border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest hover:border-[#1a27c9] hover:text-[#1a27c9] transition-premium flex items-center gap-3 shadow-sm hover:shadow-md"
                                     >
@@ -279,7 +279,7 @@ export default function EventDashboard() {
                                 <span className="text-[10px] font-black text-[#1a27c9] uppercase tracking-widest text-center">Arabic Version (RTL)</span>
                                 <div className="flex gap-2">
                                     <a 
-                                        href={`${window.location.origin}/#/agenda/${eventId}?lang=ar`} 
+                                        href={`#/agenda/${eventId}?lang=ar`} 
                                         target="_blank" 
                                         className="px-8 py-3 bg-[#1a27c9] text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-premium flex items-center gap-3 shadow-xl shadow-indigo-200 font-arabic"
                                     >
