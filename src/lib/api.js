@@ -132,7 +132,8 @@ export const createEvent = async (eventData) => {
             header_height: eventData.header_height || '16rem',
             experts_color: eventData.experts_color || '#9333ea',
             startups_color: eventData.startups_color || '#059669',
-            header_settings: eventData.header_settings || {}
+            header_settings: eventData.header_settings || {},
+            show_day_names: eventData.show_day_names ?? true
         })
         .select()
         .single();

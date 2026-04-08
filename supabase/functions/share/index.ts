@@ -16,7 +16,7 @@ serve(async (req) => {
 
   // 1. Bot Detection Logic
   // Check if the request is from a crawler (WhatsApp, FB, Twitter, Slack, etc.)
-  const isBot = /bot|facebookexternalhit|whatsapp|telegram|twitterbot|pinterest|slackbot|linkedinbot/i.test(userAgent);
+  const isBot = /bot|facebookexternalhit|whatsapp|telegram|twitterbot|pinterest|slackbot|linkedinbot|embedly/i.test(userAgent);
 
   // 2. Perform Direct 302 Redirect for Real Users
   // This bypasses the script-blocking issue and is much faster for humans.
@@ -76,12 +76,16 @@ serve(async (req) => {
     <meta property="og:description" content="${description}">
     <meta property="og:image" content="${imageUrl}">
 
+    <meta property="og:site_name" content="Athar - أثر">
+    <meta name="description" content="${description}">
+    
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="${req.url}">
     <meta property="twitter:title" content="${title}">
     <meta property="twitter:description" content="${description}">
     <meta property="twitter:image" content="${imageUrl}">
+    <meta name="twitter:image:alt" content="${title}">
 </head>
 <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc;">
     <div style="text-align: center;">

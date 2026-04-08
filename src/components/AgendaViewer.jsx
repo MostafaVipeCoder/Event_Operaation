@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, User, Calendar as CalendarIcon } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { getFullAgenda } from '../lib/api';
 import { formatDate, formatTime, getGoogleDriveDirectLink } from '../lib/utils';
 import { getExperts } from '../lib/api';
@@ -11,6 +12,40 @@ export default function AgendaViewer({ eventId }) {
     const [selectedDay, setSelectedDay] = useState(0);
     const [experts, setExperts] = useState([]);
     const [error, setError] = useState(null);
+
+    // Language Handling
+    const [searchParams] = useSearchParams();
+    const lang = searchParams.get('lang') === 'ar' ? 'ar' : 'en';
+    const isRtl = lang === 'ar';
+
+    const translations = {
+        en: {
+            loading: "Syncing Event Pulse...",
+            errorTitle: "Sync Error",
+            retry: "Retry Pulse",
+            notFound: "Agenda not found",
+            day: "Day",
+            noSessions: "No Scheduled Pulses",
+            experts: "Experts",
+            companies: "Companies",
+            from: "from",
+            to: "to"
+        },
+        ar: {
+            loading: "جاري تحميل الأجندة...",
+            errorTitle: "خطأ في التحميل",
+            retry: "إعادة المحاولة",
+            notFound: "لم يتم العثور على الأجندة",
+            day: "اليوم",
+            noSessions: "لا توجد جلسات حالياً",
+            experts: "الخبراء",
+            companies: "الشركات",
+            from: "من",
+            to: "إلى"
+        }
+    };
+
+    const t = translations[lang];
     const [headerSettings, setHeaderSettings] = useState({
         visible: true,
         type: 'image',
@@ -95,27 +130,27 @@ export default function AgendaViewer({ eventId }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center font-manrope">
+            <div className={`min-h-screen bg-slate-50 flex flex-col items-center justify-center ${isRtl ? 'font-arabic' : 'font-manrope'}`} dir={isRtl ? 'rtl' : 'ltr'}>
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a27c9]"></div>
-                <p className="mt-4 text-slate-500 font-bold tracking-tight">Syncing Event Pulse...</p>
+                <p className="mt-4 text-slate-500 font-bold tracking-tight">{t.loading}</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-manrope">
+            <div className={`min-h-screen bg-slate-50 flex items-center justify-center p-6 ${isRtl ? 'font-arabic' : 'font-manrope'}`} dir={isRtl ? 'rtl' : 'ltr'}>
                 <div className="text-center max-w-sm bg-white p-10 rounded-3xl shadow-xl border border-slate-100">
                     <div className="bg-red-50 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-red-500">
                         <CalendarIcon size={40} />
                     </div>
-                    <h2 className="text-2xl font-black text-[#0d0e0e] mb-3">Sync Error</h2>
+                    <h2 className="text-2xl font-black text-[#0d0e0e] mb-3">{t.errorTitle}</h2>
                     <p className="text-slate-500 font-medium mb-8 leading-relaxed">{error}</p>
                     <button
                         onClick={() => window.location.reload()}
                         className="w-full py-4 bg-[#0d0e0e] text-white rounded-xl font-black transition-premium shadow-lg active:scale-95"
                     >
-                        Retry Pulse
+                        {t.retry}
                     </button>
                 </div>
             </div>
@@ -124,10 +159,10 @@ export default function AgendaViewer({ eventId }) {
 
     if (!agenda || !agenda.event) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="min-h-screen bg-white flex items-center justify-center" dir={isRtl ? 'rtl' : 'ltr'}>
                 <div className="text-center">
                     <CalendarIcon size={64} className="mx-auto text-gray-300 mb-4" />
-                    <h2 className="text-2xl text-gray-600">Agenda not found</h2>
+                    <h2 className="text-2xl text-gray-600 font-bold">{t.notFound}</h2>
                 </div>
             </div>
         );
@@ -146,14 +181,16 @@ export default function AgendaViewer({ eventId }) {
 
     return (
         <div
-            className={`min-h-screen selection:bg-indigo-100 antialiased ${headerSettings?.fontFamily || 'font-manrope'}`}
+            dir={isRtl ? 'rtl' : 'ltr'}
+            className={`min-h-screen selection:bg-indigo-100 antialiased ${headerSettings?.fontFamily || (isRtl ? 'font-arabic' : 'font-manrope')}`}
             style={{
                 backgroundImage: event.background_image_url
                     ? `url(${getGoogleDriveDirectLink(event.background_image_url)})`
                     : 'none',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                backgroundAttachment: 'fixed'
+                backgroundAttachment: 'fixed',
+                backgroundColor: '#f5f1f1ff'
             }}
         >
             {isHeaderVisible && (
@@ -218,20 +255,22 @@ export default function AgendaViewer({ eventId }) {
             >
                 {/* Day Navigation Tabs */}
                 {days.length > 1 && (
-                    <div className="flex justify-center gap-3 mb-16 flex-wrap animate-fadeIn">
+                    <div className="sticky top-0 md:top-[50px] z-40 bg-slate-50/90 backdrop-blur-md -mx-6 px-4 flex justify-center sm:justify-center overflow-x-auto sm:overflow-visible flex-nowrap sm:flex-wrap gap-1 sm:gap-3 mb-10 pb-6 pt-6 border-b border-slate-200/60 animate-fadeIn scrollbar-hide">
                         {days.map((day, index) => (
                             <button
                                 key={day.day_id}
                                 onClick={() => setSelectedDay(index)}
-                                className={`px-8 py-4 rounded-2xl transition-premium group flex flex-col items-center gap-0.5 min-w-[120px] ${selectedDay === index
-                                    ? 'bg-[#1a27c9] text-white shadow-xl shadow-indigo-200 -translate-y-1'
-                                    : 'bg-white border-2 border-slate-100 text-slate-400 hover:border-[#1a27c9]/30 hover:bg-slate-50'
-                                    }`}
+                                className={`px-1 sm:px-6 py-1.5 sm:py-3 rounded sm:rounded-xl transition-premium group flex flex-col items-center justify-center gap-0.5 min-w-[45px] sm:min-w-[105px] flex-1 sm:flex-none shrink-0 ${selectedDay === index
+                                    ? 'bg-[#1a27c9] text-white shadow-lg shadow-indigo-100'
+                                    : 'bg-white border border-slate-200 text-slate-400 hover:border-[#1a27c9]/30 hover:bg-slate-50'
+                                    } ${event.show_day_names === false ? 'h-[22px] sm:h-[44px]' : ''}`}
                             >
-                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] mb-0.5 ${selectedDay === index ? 'opacity-70' : 'text-slate-400'}`}>
-                                    Day {index + 1}
+                                <span className={`font-black uppercase tracking-tighter sm:tracking-[0.2em] mb-0.5 ${selectedDay === index ? 'opacity-70' : 'text-slate-400'} ${event.show_day_names === false ? 'text-[7px] sm:text-[11px]' : 'text-[7px] sm:text-[9px]'}`}>
+                                    {t.day} {index + 1}
                                 </span>
-                                <span className="font-black text-lg tracking-tight leading-tight">{day.day_name}</span>
+                                {event.show_day_names !== false && (
+                                    <span className="font-black text-[9px] sm:text-base tracking-tighter sm:tracking-tight leading-tight whitespace-nowrap">{day.day_name}</span>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -241,11 +280,13 @@ export default function AgendaViewer({ eventId }) {
                 {days.length === 1 && (
                     <div className="text-center mb-16 animate-fadeIn">
                         <div className="inline-flex flex-col items-center">
-                            <h2 className="text-4xl font-black text-[#0d0e0e] tracking-tight leading-none mb-3">{currentDay.day_name}</h2>
+                            <h2 className="text-3xl sm:text-4xl font-black text-[#0d0e0e] tracking-tight leading-none mb-3">
+                                {event.show_day_names !== false ? currentDay.day_name : `${t.day} ${selectedDay + 1}`}
+                            </h2>
                             {currentDay.day_date && (
                                 <div className="flex items-center gap-2">
                                     <span className="h-1 w-1 rounded-full bg-indigo-200" />
-                                    <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em]">{formatDate(currentDay.day_date)}</p>
+                                    <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em]">{formatDate(currentDay.day_date, lang === 'ar' ? { locale: 'ar-EG' } : {})}</p>
                                     <span className="h-1 w-1 rounded-full bg-indigo-200" />
                                 </div>
                             )}
@@ -268,9 +309,9 @@ export default function AgendaViewer({ eventId }) {
                                             <Clock size={16} />
                                         </div>
                                         <div className="flex items-center gap-2 font-black text-sm tracking-tighter uppercase whitespace-nowrap">
-                                            <span>{formatTime(slot.start_time)}</span>
+                                            <span>{formatTime(slot.start_time, lang)}</span>
                                             <span className="opacity-40 text-xs">—</span>
-                                            <span>{formatTime(slot.end_time)}</span>
+                                            <span>{formatTime(slot.end_time, lang)}</span>
                                         </div>
                                     </div>
 
@@ -278,7 +319,7 @@ export default function AgendaViewer({ eventId }) {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-col gap-3">
                                             <h3
-                                                className="text-[#0d0e0e] tracking-tight pr-4 leading-snug"
+                                                className={`text-[#0d0e0e] tracking-tight leading-snug ${isRtl ? 'pl-4' : 'pr-4'}`}
                                                 style={{
                                                     fontSize: headerSettings.contentSize || '1.35rem',
                                                     fontWeight: headerSettings.contentWeight || '900'
@@ -287,7 +328,7 @@ export default function AgendaViewer({ eventId }) {
                                                 {slot.slot_title}
                                             </h3>
                                             {slot.bullet_points?.length > 0 && (
-                                                <ul className="space-y-1.5 pl-1">
+                                                <ul className={`space-y-1.5 ${isRtl ? 'pr-1' : 'pl-1'}`}>
                                                     {slot.bullet_points.map((point, i) => (
                                                         <li key={i} className="flex items-start gap-2.5 animate-fadeIn">
                                                             <div className="mt-[7px] h-1.5 w-1.5 rounded-full bg-indigo-300 shrink-0" />
@@ -318,7 +359,7 @@ export default function AgendaViewer({ eventId }) {
                     ) : (
                         <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-slate-200">
                             <CalendarIcon size={48} className="mx-auto mb-4 text-slate-200" />
-                            <p className="text-slate-400 font-bold uppercase tracking-[0.25em] text-xs">No Scheduled Pulses</p>
+                            <p className="text-slate-400 font-bold uppercase tracking-[0.25em] text-xs">{t.noSessions}</p>
                         </div>
                     )}
                 </div>

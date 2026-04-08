@@ -33,6 +33,10 @@
         font-family: 'Tajawal', sans-serif;
     }
 
+    .font-arabic {
+        font-family: 'Tajawal', sans-serif;
+    }
+
     .transition-premium {
         transition-property: all;
         transition-duration: 400ms;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Upload, Calendar, Clock, User, Save, ExternalLink, Edit2, UserCheck, UserX, Copy, Check, FileSpreadsheet, Download, UploadCloud, Loader2, AlertTriangle, AlertCircle, X, List, GripVertical } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, Calendar, Clock, User, Save, ExternalLink, Edit2, UserCheck, UserX, Copy, Check, FileSpreadsheet, Download, UploadCloud, Loader2, AlertTriangle, AlertCircle, X, List, GripVertical, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
     getEventDays,
@@ -179,6 +179,7 @@ export default function EventBuilder({ event, onBack }) {
     const [lastSyncTime, setLastSyncTime] = useState(null);
     const [syncReport, setSyncReport] = useState(null);
     const [syncError, setSyncError] = useState(null);
+    const [showDayNames, setShowDayNames] = useState(event?.show_day_names !== false);
 
     // Staging and Validation States
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -270,7 +271,12 @@ export default function EventBuilder({ event, onBack }) {
             // If we don't have full event details, fetch them
             if (!eventDetails.event_name) {
                 const fullEvent = await getEvent(event.event_id);
-                if (fullEvent) setEventDetails(fullEvent);
+                if (fullEvent) {
+                    setEventDetails(fullEvent);
+                    setShowDayNames(fullEvent.show_day_names !== false);
+                }
+            } else {
+                setShowDayNames(eventDetails.show_day_names !== false);
             }
 
             const daysData = await getEventDays(event.event_id);
@@ -509,6 +515,13 @@ export default function EventBuilder({ event, onBack }) {
         setHasUnsavedChanges(true);
     };
 
+    const handleToggleDayNames = async () => {
+        const newValue = !showDayNames;
+        setShowDayNames(newValue);
+        setEventDetails(prev => ({ ...prev, show_day_names: newValue }));
+        setHasUnsavedChanges(true);
+    };
+
     const agendaUrl = `${window.location.href.split('#')[0].replace(/\/$/, '')}/#/agenda/${event.event_id}`;
 
     const [copied, setCopied] = useState(false);
@@ -671,6 +684,11 @@ export default function EventBuilder({ event, onBack }) {
                     await updateSlotsOrder(slotsToUpsert);
                 }
             }
+
+            // 4. Update Event Settings (show_day_names)
+            await updateEvent(event.event_id, {
+                show_day_names: showDayNames
+            });
 
             setHasUnsavedChanges(false);
             setPendingDeletions([]);
@@ -870,6 +888,36 @@ export default function EventBuilder({ event, onBack }) {
                                     )}
                                 </div>
                             )}
+
+                            {/* Agenda Display Settings Card */}
+                            <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm mb-6">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-indigo-50 p-3 rounded-2xl text-[#1a27c9]">
+                                            <Settings size={22} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-black text-[#0d0e0e]">إعدادات عرض الأجندة</h3>
+                                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">Agenda Display Options</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 min-w-[300px]">
+                                        <div className="flex-1">
+                                            <p className="font-bold text-sm text-[#0d0e0e]">إظهار أسماء الأيام</p>
+                                            <p className="text-[10px] text-slate-400 font-medium leading-none mt-1">Show custom day names</p>
+                                        </div>
+                                        <button
+                                            onClick={handleToggleDayNames}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${showDayNames ? 'bg-[#1a27c9]' : 'bg-slate-300'}`}
+                                        >
+                                            <span
+                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showDayNames ? 'translate-x-6' : 'translate-x-1'}`}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* Add Day Card - Optimized Form */}
                             <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">

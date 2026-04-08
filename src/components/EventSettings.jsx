@@ -27,7 +27,8 @@ export default function EventSettings() {
     const [settings, setSettings] = useState({
         seo_title: '',
         seo_description: '',
-        seo_image_url: ''
+        seo_image_url: '',
+        show_day_names: true
     });
 
     const shareUrl = getShareUrl(eventId);
@@ -49,7 +50,8 @@ export default function EventSettings() {
             setSettings({
                 seo_title: data.seo_title || '',
                 seo_description: data.seo_description || '',
-                seo_image_url: data.seo_image_url || ''
+                seo_image_url: data.seo_image_url || '',
+                show_day_names: data.show_day_names ?? true
             });
         } catch (error) {
             console.error('Error loading event settings:', error);
@@ -248,6 +250,7 @@ export default function EventSettings() {
                             </div>
                         </div>
                     </section>
+
                 </div>
             </div>
         </div>

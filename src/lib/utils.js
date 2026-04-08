@@ -1,8 +1,9 @@
 export const formatDate = (dateString, options = {}) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    // Default to something like "25 Dec 2025"
-    return date.toLocaleDateString('en-US', {
+    const locale = options.locale || 'en-US';
+    
+    return date.toLocaleDateString(locale, {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
@@ -10,8 +11,12 @@ export const formatDate = (dateString, options = {}) => {
     });
 };
 
-export const formatTime = (input) => {
+export const formatTime = (input, lang = 'en') => {
     if (!input) return '';
+
+    const isAr = lang === 'ar';
+    const amLabel = isAr ? 'ص' : 'AM';
+    const pmLabel = isAr ? 'م' : 'PM';
 
     // Handle potential numeric input (Excel time as fraction of day)
     if (typeof input === 'number') {
@@ -19,7 +24,7 @@ export const formatTime = (input) => {
         const hours = Math.floor(totalMinutes / 60);
         const minutes = totalMinutes % 60;
         const h12 = hours % 12 || 12;
-        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const ampm = hours >= 12 ? pmLabel : amLabel;
         return `${h12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     }
 
@@ -27,16 +32,15 @@ export const formatTime = (input) => {
     if (typeof input === 'string' && input.match(/^\d{1,2}:\d{2}(:\d{2})?$/)) {
         const [hours, minutes] = input.split(':');
         const h = parseInt(hours, 10);
-        const ampm = h >= 12 ? 'PM' : 'AM';
+        const ampm = h >= 12 ? pmLabel : amLabel;
         const h12 = h % 12 || 12;
         return `${h12}:${minutes} ${ampm}`;
     }
 
     // Case 2: Full Date string (ISO) or Date object
-    // Sometimes Sheets returns full date string for time cells
     const date = new Date(input);
     if (!isNaN(date.getTime())) {
-        return date.toLocaleTimeString('en-US', {
+        return date.toLocaleTimeString(isAr ? 'ar-EG' : 'en-US', {
             hour: 'numeric',
             minute: '2-digit',
             hour12: true

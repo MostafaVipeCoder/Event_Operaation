@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X } from 'lucide-react';
+import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X, Briefcase } from 'lucide-react';
 import { getEvent, updateEvent } from '../lib/api';
 import SyncButton from './SyncButton';
 
@@ -249,6 +249,49 @@ export default function EventDashboard() {
                 </div>
             </div>
 
+            {/* Public Access Hub - NEW SECTION */}
+            <div className="bg-[#1a27c9]/5 border-b border-[#1a27c9]/10 py-8">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div>
+                            <h2 className="text-xl font-black text-[#0d0e0e] tracking-tight mb-1">Public Access Hub</h2>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Share these links with your guests</p>
+                        </div>
+                        <div className="flex flex-wrap gap-4 items-center">
+                            {/* English Links */}
+                            <div className="flex flex-col gap-2">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">English Version</span>
+                                <div className="flex gap-2">
+                                    <a 
+                                        href={`${window.location.origin}/#/agenda/${eventId}?lang=en`} 
+                                        target="_blank" 
+                                        className="px-8 py-3 bg-white border-2 border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest hover:border-[#1a27c9] hover:text-[#1a27c9] transition-premium flex items-center gap-3 shadow-sm hover:shadow-md"
+                                    >
+                                        <ExternalLink size={16} /> Open English View
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div className="w-px h-12 bg-slate-200 hidden md:block" />
+
+                            {/* Arabic Links */}
+                            <div className="flex flex-col gap-2">
+                                <span className="text-[10px] font-black text-[#1a27c9] uppercase tracking-widest text-center">Arabic Version (RTL)</span>
+                                <div className="flex gap-2">
+                                    <a 
+                                        href={`${window.location.origin}/#/agenda/${eventId}?lang=ar`} 
+                                        target="_blank" 
+                                        className="px-8 py-3 bg-[#1a27c9] text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-premium flex items-center gap-3 shadow-xl shadow-indigo-200 font-arabic"
+                                    >
+                                        <ExternalLink size={16} /> فتح العرض بالعربية
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -311,17 +354,6 @@ export default function EventDashboard() {
                                 <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                                     {module.icon}
                                 </div>
-                                {module.previewLink && (
-                                    <a
-                                        href={`#${module.previewLink}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#1a27c9] hover:bg-indigo-50 transition-premium"
-                                        title="Open Public Preview"
-                                    >
-                                        <ExternalLink size={20} />
-                                    </a>
-                                )}
                             </div>
 
                             <h3 className="text-2xl font-black text-[#0d0e0e] mb-2 tracking-tight">{module.title}</h3>

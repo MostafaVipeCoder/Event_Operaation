@@ -35,9 +35,9 @@ const CompaniesPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-200 font-['Manrope']">
+        <div className="min-h-screen font-['Manrope']" style={{ backgroundColor: '#f5f1f1ff' }}>
             {/* Header */}
-            <div className="bg-gray-200 border-b border-slate-200">
+            <div className="border-b border-slate-200" style={{ backgroundColor: '#f5f1f1ff' }}>
                 <div className="max-w-[7xl] mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -100,7 +100,7 @@ const CompaniesPage = () => {
 
                 {/* Grid */}
                 {!loading && !error && filteredCompanies.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                         {filteredCompanies.map(company => (
                             <CompanyCard key={company.startup_id} company={company} />
                         ))}

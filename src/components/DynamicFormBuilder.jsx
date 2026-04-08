@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Upload, AlertCircle } from 'lucide-react';
 
 /**
@@ -17,14 +18,14 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
     const [uploadingFields, setUploadingFields] = useState({});
 
     // Pre-fill any fields whose field_name matches a URL search param
+    const [searchParams] = useSearchParams();
     useEffect(() => {
         if (!fields.length) return;
-        const params = new URLSearchParams(window.location.search);
-        if (!params.toString()) return;
+        if (!searchParams.toString()) return;
 
         const prefilled = {};
         fields.forEach(field => {
-            const paramValue = params.get(field.field_name);
+            const paramValue = searchParams.get(field.field_name);
             if (paramValue !== null) {
                 prefilled[field.field_name] = paramValue;
             }
