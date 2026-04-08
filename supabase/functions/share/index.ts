@@ -11,7 +11,8 @@ serve(async (req) => {
   }
 
   // Define the target URL (Client-Side App)
-  const appUrl = `https://mostafavipecoder.github.io/Event_Operaation/#/agenda/${eventId}`
+  // Note: For branded links to work, make sure this points to your custom domain
+  const appUrl = `https://athareg.com/#/agenda/${eventId}`
 
   // 1. Bot Detection Logic
   // Check if the request is from a crawler (WhatsApp, FB, Twitter, Slack, etc.)
@@ -42,15 +43,15 @@ serve(async (req) => {
 
   if (error || !event) {
     // If event not found, redirect to home page as fallback
-    return Response.redirect("https://mostafavipecoder.github.io/Event_Operaation/", 302);
+    return Response.redirect("https://athareg.com/", 302);
   }
 
   // Define metadata
-  const title = event.seo_title || `Athar | ${event.event_name}`
+  const title = event.seo_title || `Athar - ${event.event_name}`
   const description = event.seo_description || event.description || "انضم إلينا في هذا الحدث الرائع وتعرف على الأجندة والمتحدثين."
   
   const getImageUrl = (rawUrl: string | null) => {
-    if (!rawUrl) return "https://mostafavipecoder.github.io/Event_Operaation/vite.svg"
+    if (!rawUrl) return "https://athareg.com/logo.png" // Using a generic logo as fallback
     if (rawUrl.includes('drive.google.com')) {
       const idMatch = rawUrl.match(/[-\w]{25,}/);
       return idMatch ? `https://lh3.googleusercontent.com/d/${idMatch[0]}` : rawUrl;
@@ -84,7 +85,7 @@ serve(async (req) => {
 </head>
 <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc;">
     <div style="text-align: center;">
-        <h1 style="color: #1a27c9;">جاري توجيهك إلى الفعالية...</h1>
+        <h1 style="color: #1a27c9;">جاري توجيهك إلى منصة أثر...</h1>
         <p>إذا لم يتم توجيهك تلقائياً، <a href="${appUrl}">اضغط هنا</a></p>
     </div>
 </body>

@@ -2,11 +2,14 @@ import { supabase } from './supabase';
 import { fetchAndParseGoogleSheet, fetchAndParseGenericGoogleSheet } from './excel';
 
 // ==========================================
-// EVENT APIs
+// CONFIG & BRANDING
 // ==========================================
+const SHARING_BASE_URL = 'https://athareg.com/share';
+// If the user has a branded domain, they can set it here:
+// const SHARING_BASE_URL = 'https://yourbrand.com/share';
 
 export const getShareUrl = (eventId) => {
-    return `https://nipunwrewluxaikyfbzg.functions.supabase.co/share-event?id=${eventId}`;
+    return `${SHARING_BASE_URL}?id=${eventId}`;
 };
 
 export const getEvents = async () => {

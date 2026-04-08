@@ -142,11 +142,11 @@ export default function EventSettings() {
                                 <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
                                     <Share2 size={24} />
                                 </div>
-                                <h2 className="text-xl font-black italic tracking-tight">RABBIT SHARE LINK 🚀</h2>
+                                <h2 className="text-xl font-black italic tracking-tight">ATHAR SHARE LINK 🚀</h2>
                             </div>
                             
                             <p className="text-white/80 font-medium mb-6 max-w-2xl">
-                                استخدم هذا الرابط للمشاركة في الواتساب وفيسبوك. هذا الرابط تم تصميمه برمجياً (Smart Redirect) ليضمن ظهور الصورة والنصوص التي تخصصها في الأسفل، حتى وإن كان تطبيق المحادثة لا يدعم المواقع الحديثة.
+                                استخدم هذا الرابط للمشاركة في الواتساب وفيسبوك. هذا الرابط المصمم باسم "أثر" يضمن ظهور الصورة والنصوص التي تخصصها في الأسفل، حتى وإن كان تطبيق المحادثة لا يدعم المواقع الحديثة.
                             </p>
 
                             <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -158,7 +158,7 @@ export default function EventSettings() {
                                     className="px-8 py-4 bg-white text-[#1a27c9] rounded-2xl font-black uppercase tracking-widest hover:bg-opacity-90 transition-all flex items-center gap-2 shrink-0 shadow-xl"
                                 >
                                     {copied ? <ClipboardCheck size={20} /> : <Copy size={20} />}
-                                    {copied ? 'Copied' : 'Copy Smart Link'}
+                                    {copied ? 'Copied' : 'Copy Athar Link'}
                                 </button>
                             </div>
                         </div>
