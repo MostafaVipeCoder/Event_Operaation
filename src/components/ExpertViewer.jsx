@@ -112,9 +112,9 @@ export default function ExpertViewer() {
 
             <div className={`mx-auto px-6 pt-8 relative z-10 transition-all duration-700 ${viewMode === 'list' ? 'max-w-7xl' : 'max-w-7xl'}`}>
                 {/* Enterprise Header */}
-                <div className="mb-20 text-center relative group">
+                <div className="mb-10 text-center relative group">
                     <div className="flex flex-col items-center">
-                        <h1 className="text-3xl md:text-5xl font-black text-[#0d0e0e] tracking-tighter mb-6 leading-none uppercase">
+                        <h1 className={`text-3xl md:text-5xl font-black text-[#0d0e0e] tracking-tighter mb-4 leading-none ${!isRtl ? 'uppercase' : ''}`}>
                             {t.experts} <span className="text-[#1a27c9]">{t.list}</span>
                         </h1>
                         <p className="text-slate-400 text-lg md:text-xl font-medium max-w-2xl leading-relaxed">

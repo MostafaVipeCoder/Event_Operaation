@@ -36,7 +36,7 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
     if (viewMode === 'list') {
         return (
-            <div className={`group relative w-full bg-slate-50 rounded-[4rem] border border-slate-100 p-12 md:p-16 hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-12 md:gap-20 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-start ${isRtl ? 'font-arabic' : 'font-manrope'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+            <div className={`group relative w-full bg-slate-50 rounded-[4rem] border border-slate-100 p-8 md:p-12 hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-8 md:gap-16 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-start ${isRtl ? 'font-arabic' : 'font-manrope'}`} dir={isRtl ? 'rtl' : 'ltr'}>
                 {/* Immersive Background Accent */}
                 <div
                     className="absolute top-0 end-0 w-[500px] h-[500px] rounded-full opacity-[0.04] blur-[100px] -me-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -68,13 +68,13 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                 </div>
 
                 {/* Info Container */}
-                <div className="flex-1 z-10 py-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                <div className="flex-1 z-10 py-2">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                         <div>
-                            <h3 className="text-6xl md:text-8xl font-black text-[#0d0e0e] tracking-tighter mb-4 leading-[0.85] group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
+                            <h3 className={`text-4xl md:text-6xl font-black text-[#0d0e0e] tracking-tighter mb-2 leading-[0.85] group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
                                 {name}
                             </h3>
-                            <p className="text-[#1a27c9] text-sm md:text-lg font-black uppercase tracking-[0.3em] opacity-80 drop-shadow-sm">
+                            <p className={`text-[#1a27c9] text-sm md:text-base font-black opacity-80 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
                                 {expert.title}
                             </p>
                         </div>
@@ -90,9 +90,9 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                         )}
                     </div>
 
-                    <div className="h-px w-20 bg-slate-100 mb-10 mx-auto md:mx-0" />
+                    <div className="h-px w-20 bg-slate-100 mb-6 mx-auto md:mx-0" />
 
-                    <p className="text-slate-500 text-xl md:text-2xl leading-relaxed font-medium mb-12 transition-colors group-hover:text-slate-800">
+                    <p className="text-slate-500 text-lg md:text-xl leading-relaxed font-medium mb-8 transition-colors group-hover:text-slate-800">
                         "{expert.bio || t.fallbackBio}"
                     </p>
 
@@ -155,7 +155,7 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
     // Default Grid/Compact View (Enhanced for 2-column)
     return (
-        <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-8 md:p-12 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 min-h-[550px] items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-10 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 min-h-[500px] items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
             {/* Professional Background Accents */}
             <div
                 className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full opacity-[0.05] blur-[80px] -mr-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -209,8 +209,8 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
             </div>
 
             {/* Profile Section */}
-            <div className="flex flex-col items-center mb-8 z-10 w-full">
-                <div className="relative w-56 h-56 mb-10">
+            <div className="flex flex-col items-center mb-6 z-10 w-full">
+                <div className="relative w-48 h-48 mb-6">
                     {/* Shadow Layer */}
                     <div
                         className="absolute inset-4 rounded-[3.5rem] blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
@@ -236,10 +236,10 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                 </div>
 
                 <div className="px-4 w-full">
-                    <h3 className="text-4xl font-black text-[#0d0e0e] tracking-tight mb-4 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
+                    <h3 className={`text-3xl font-black text-[#0d0e0e] tracking-tight mb-2 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
                         {name}
                     </h3>
-                    <p className="text-[#1a27c9] text-xs font-black uppercase tracking-[0.3em] opacity-80 mb-8 drop-shadow-sm">
+                    <p className={`text-[#1a27c9] text-xs font-black opacity-80 mb-4 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
                         {expert.title}
                     </p>
                 </div>
@@ -247,7 +247,7 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
             {/* Content Section */}
             <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
-                <p className="text-slate-500 text-lg leading-relaxed font-medium mb-10 transition-colors group-hover:text-slate-800 line-clamp-4">
+                <p className="text-slate-500 text-[1rem] leading-relaxed font-medium mb-4 transition-colors group-hover:text-slate-800 line-clamp-4">
                     "{expert.bio || t.fallbackBio}"
                 </p>
 
