@@ -255,7 +255,7 @@ export default function AgendaViewer({ eventId }) {
             >
                 {/* Day Navigation Tabs */}
                 {days.length > 1 && (
-                    <div className="sticky top-0 md:top-[50px] z-40 bg-slate-50/90 backdrop-blur-md -mx-6 px-4 flex justify-center sm:justify-center overflow-x-auto sm:overflow-visible flex-nowrap sm:flex-wrap gap-1 sm:gap-3 mb-10 pb-6 pt-6 border-b border-slate-200/60 animate-fadeIn scrollbar-hide">
+                    <div className="sticky top-0 md:top-[50px] z-40 backdrop-blur-xl -mx-6 px-4 flex justify-center sm:justify-center overflow-x-auto sm:overflow-visible flex-nowrap sm:flex-wrap gap-1 sm:gap-3 mb-2 pb-6 pt-6 animate-fadeIn scrollbar-hide">
                         {days.map((day, index) => (
                             <button
                                 key={day.day_id}
@@ -302,26 +302,25 @@ export default function AgendaViewer({ eventId }) {
                                 key={slot.slot_id}
                                 className="bg-white rounded-[2rem] border border-slate-100 p-8 shadow-sm hover:shadow-xl transition-premium hover:-translate-y-0.5 group"
                             >
-                                <div className="flex flex-col md:flex-row md:items-center gap-8">
+                                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
                                     {/* Timeline Pin */}
-                                    <div className="flex items-center gap-3 text-[#1a27c9] md:w-56 flex-shrink-0">
-                                        <div className="bg-indigo-50 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                                            <Clock size={16} />
+                                    <div className="flex items-center gap-2 text-[#1a27c9] md:w-56 flex-shrink-0">
+                                        <div className="bg-indigo-50 p-1.5 rounded-lg group-hover:scale-110 transition-transform">
+                                            <Clock size={14} />
                                         </div>
-                                        <div className="flex items-center gap-2 font-black text-sm tracking-tighter uppercase whitespace-nowrap">
+                                        <div className="flex items-center gap-1.5 font-black text-[11px] sm:text-sm tracking-tighter uppercase whitespace-nowrap">
                                             <span>{formatTime(slot.start_time, lang)}</span>
-                                            <span className="opacity-40 text-xs">—</span>
+                                            <span className="opacity-30 text-[10px]">—</span>
                                             <span>{formatTime(slot.end_time, lang)}</span>
                                         </div>
                                     </div>
 
                                     {/* Slot Narrator & Core */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex flex-col gap-3">
+                                        <div className="flex flex-col gap-2">
                                             <h3
-                                                className={`text-[#0d0e0e] tracking-tight leading-snug ${isRtl ? 'pl-4' : 'pr-4'}`}
+                                                className={`text-[#0d0e0e] tracking-tight leading-snug ${isRtl ? 'pl-4' : 'pr-4'} text-[1.1rem] sm:text-[1.35rem]`}
                                                 style={{
-                                                    fontSize: headerSettings.contentSize || '1.35rem',
                                                     fontWeight: headerSettings.contentWeight || '900'
                                                 }}
                                             >
