@@ -36,9 +36,8 @@ const CompaniesPage = () => {
 
     return (
         <div className="min-h-screen font-['Manrope']" style={{ backgroundColor: '#f5f1f1ff' }}>
-            {/* Header */}
             <div className="border-b border-slate-200" style={{ backgroundColor: '#f5f1f1ff' }}>
-                <div className="max-w-[7xl] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div className="max-w-[7xl] mx-auto px-4 sm:px-6 lg:px-8 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
@@ -61,9 +60,9 @@ const CompaniesPage = () => {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1">
                 {/* Search / Filter Toolbar */}
-                <div className="mb-8">
+                <div className="mb-2">
                     <div className="relative max-w-md">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-5 w-5 text-slate-400" />
@@ -100,7 +99,7 @@ const CompaniesPage = () => {
 
                 {/* Grid */}
                 {!loading && !error && filteredCompanies.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {filteredCompanies.map(company => (
                             <CompanyCard key={company.startup_id} company={company} />
                         ))}

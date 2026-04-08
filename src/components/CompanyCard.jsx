@@ -188,7 +188,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
 
   // Premium Vertical Grid View (Matching Expert Style)
   return (
-    <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-8 md:p-12 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 min-h-[550px] items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-8 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Professional Background Accents */}
       <div
         className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full opacity-[0.05] blur-[80px] -mr-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -200,7 +200,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
       />
 
       {/* Top Bar with Badge & Social */}
-      <div className="flex justify-between items-center w-full mb-10 z-10">
+      <div className="flex justify-between items-center w-full mb-4 z-10">
         <div className="flex items-center gap-2">
           {company.status && (
             <div
@@ -246,8 +246,8 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
       </div>
 
       {/* Identity Profile Section */}
-      <div className="flex flex-col items-center mb-8 z-10 w-full">
-        <div className="relative w-48 h-48 mb-10">
+      <div className="flex flex-col items-center mb-2 z-10 w-full">
+        <div className="relative w-44 h-44 mb-4">
           {/* Shadow Layer */}
           <div
             className="absolute inset-4 rounded-[3rem] blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
@@ -273,10 +273,10 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
         </div>
 
         <div className="px-4 w-full">
-          <h3 className="text-4xl font-black text-[#0d0e0e] tracking-tight mb-4 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
+          <h3 className="text-3xl font-black text-[#0d0e0e] tracking-tight mb-1 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
             {name}
           </h3>
-          <p className="text-[#1a27c9] text-xs font-black uppercase tracking-[0.3em] opacity-80 mb-8 drop-shadow-sm">
+          <p className="text-[#1a27c9] text-xs font-black uppercase tracking-[0.3em] opacity-80 mb-2 drop-shadow-sm">
             {industry}
           </p>
         </div>
@@ -285,32 +285,32 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
       {/* Content Section */}
       <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
         {description && (
-          <p className="text-slate-500 text-lg leading-relaxed font-medium mb-10 transition-colors group-hover:text-slate-800 line-clamp-4 italic">
+          <p className="text-slate-500 text-base leading-relaxed font-medium mb-4 transition-colors group-hover:text-slate-800 line-clamp-4 italic">
             "{description}"
           </p>
         )}
 
-        <div className="grid grid-cols-2 gap-4 mt-auto">
-          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
-            <div className="flex items-center justify-center gap-2 text-slate-400 mb-2">
-              <MapPin size={16} />
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t.location}</span>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
+            <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
+              <MapPin size={14} />
+              <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.location}</span>
             </div>
-            <p className="text-xs font-black text-[#0d0e0e] uppercase truncate">{governorate || location || t.notSpecified}</p>
+            <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{governorate || location || t.notSpecified}</p>
           </div>
-          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
-            <div className="flex items-center justify-center gap-2 text-slate-400 mb-2">
-              <Users size={16} />
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t.identity}</span>
+          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
+            <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
+              <Users size={14} />
+              <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.identity}</span>
             </div>
-            <p className="text-xs font-black text-[#0d0e0e] uppercase truncate">{t.strategic}</p>
+            <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{t.strategic}</p>
           </div>
         </div>
 
         {/* Links */}
         {links.length > 0 && (
-          <div className="mt-8 border-t border-slate-50 pt-8 w-full">
-            <div className="flex items-center justify-center gap-2 text-slate-400 mb-4 opacity-60">
+          <div className="mt-4 border-t border-slate-50 pt-4 w-full">
+            <div className="flex items-center justify-center gap-2 text-slate-400 mb-2 opacity-60">
                 <span className="h-px w-8 bg-slate-200" />
                 <span className="text-[9px] font-black uppercase tracking-[0.3em]">{t.connection}</span>
                 <span className="h-px w-8 bg-slate-200" />

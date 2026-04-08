@@ -113,10 +113,10 @@ export default function StartupViewer() {
 
             <div className="max-w-7xl mx-auto px-6 pt-8 relative z-10 transition-all duration-700">
                 {/* Enterprise Header */}
-                <div className="mb-20 text-center relative group">
+                <div className="mb-2 text-center relative group">
                     <div className="flex flex-col items-center">
 
-                        <h1 className="text-3xl md:text-5xl font-black text-[#0d0e0e] tracking-tighter mb-6 leading-none uppercase">
+                        <h1 className="text-3xl md:text-5xl font-black text-[#0d0e0e] tracking-tighter mb-1 leading-none uppercase">
                             {t.startup} <span className="text-[#1a27c9]">{t.list}</span>
                         </h1>
                         <p className="text-slate-400 text-lg md:text-xl font-medium max-w-2xl leading-relaxed">
@@ -128,7 +128,7 @@ export default function StartupViewer() {
 
             <div className="max-w-7xl mx-auto px-6 relative z-10 transition-all duration-700">
                 {/* Grid Layout - Dynamic spacing based on viewMode */}
-                <div className={`grid gap-12 transition-all duration-700 ${viewMode === 'list'
+                <div className={`grid gap-6 transition-all duration-700 ${viewMode === 'list'
                     ? 'grid-cols-1 max-w-6xl mx-auto'
                     : 'grid-cols-1 md:grid-cols-2'
                     }`}>

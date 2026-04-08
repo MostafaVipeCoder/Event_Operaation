@@ -155,7 +155,7 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
     // Default Grid/Compact View (Enhanced for 2-column)
     return (
-        <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-10 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 min-h-[500px] items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-10 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
             {/* Professional Background Accents */}
             <div
                 className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full opacity-[0.05] blur-[80px] -mr-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -166,51 +166,48 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                 style={{ backgroundColor: customColor }}
             />
 
-            {/* Top Bar with Badge & Social */}
-            <div className="flex justify-between items-center w-full mb-10 z-10">
-                
-                
-                <div className="flex items-center gap-2">
-                    {onEdit && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(expert);
-                            }}
-                            className="w-11 h-11 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all group/edit"
-                        >
-                            <Pencil size={18} className="group-hover/edit:rotate-12 transition-transform" />
-                        </button>
-                    )}
-                    {onDelete && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (window.confirm('Are you sure you want to remove this expert?')) {
-                                    onDelete(expert.expert_id || expert.id);
-                                }
-                            }}
-                            className="w-11 h-11 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-xl transition-all group/delete"
-                        >
-                            <Trash2 size={18} className="group-hover/delete:scale-110 transition-transform" />
-                        </button>
-                    )}
+            {/* Actions & Social Overlay (Repositioned to Photo) */}
+            <div className={`absolute top-6 ${isRtl ? 'left-6' : 'right-6'} z-20 flex flex-col gap-2`}>
+                {onEdit && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(expert);
+                        }}
+                        className="w-10 h-10 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all group/edit"
+                    >
+                        <Pencil size={16} className="group-hover/edit:rotate-12 transition-transform" />
+                    </button>
+                )}
+                {onDelete && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm('Are you sure you want to remove this expert?')) {
+                                onDelete(expert.expert_id || expert.id);
+                            }
+                        }}
+                        className="w-10 h-10 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-xl transition-all group/delete"
+                    >
+                        <Trash2 size={16} className="group-hover/delete:scale-110 transition-transform" />
+                    </button>
+                )}
+            </div>
+
+            {/* Profile Section */}
+            <div className="flex flex-col items-center mb-2 z-10 w-full relative">
+                <div className="relative w-44 h-44 mb-3">
+                    {/* LinkedIn Pin next to Image */}
                     {linkedin && (
                         <a
                             href={linkedin}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-14 h-14 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:border-[#0077b5] hover:shadow-xl transition-all group/link"
+                            className={`absolute -top-2 -right-2 z-30 w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-[#0077b5] shadow-xl hover:scale-110 transition-all hover:bg-slate-50`}
                         >
-                            <Linkedin size={28} className="group-hover/link:scale-110 transition-transform" />
+                            <Linkedin size={24} />
                         </a>
                     )}
-                </div>
-            </div>
-
-            {/* Profile Section */}
-            <div className="flex flex-col items-center mb-6 z-10 w-full">
-                <div className="relative w-48 h-48 mb-6">
                     {/* Shadow Layer */}
                     <div
                         className="absolute inset-4 rounded-[3.5rem] blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
@@ -236,10 +233,10 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                 </div>
 
                 <div className="px-4 w-full">
-                    <h3 className={`text-3xl font-black text-[#0d0e0e] tracking-tight mb-2 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
+                    <h3 className={`text-2xl font-black text-[#0d0e0e] tracking-tight mb-1 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
                         {name}
                     </h3>
-                    <p className={`text-[#1a27c9] text-xs font-black opacity-80 mb-4 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
+                    <p className={`text-[#1a27c9] text-[10px] font-black opacity-80 mb-2 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
                         {expert.title}
                     </p>
                 </div>
@@ -247,24 +244,24 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
             {/* Content Section */}
             <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
-                <p className="text-slate-500 text-[1rem] leading-relaxed font-medium mb-4 transition-colors group-hover:text-slate-800 line-clamp-4">
+                <p className="text-slate-500 text-[0.95rem] leading-relaxed font-medium mb-2 transition-colors group-hover:text-slate-800 line-clamp-4">
                     "{expert.bio || t.fallbackBio}"
                 </p>
 
-                <div className="grid grid-cols-2 gap-4 mt-auto">
-                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
-                        <div className="flex items-center justify-center gap-2 text-slate-400 mb-2">
-                            <Briefcase size={16} />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t.organization}</span>
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
+                        <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
+                            <Briefcase size={14} />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.organization}</span>
                         </div>
-                        <p className="text-xs font-black text-[#0d0e0e] uppercase truncate">{expert.company || t.notSpecified}</p>
+                        <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.company || t.notSpecified}</p>
                     </div>
-                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
-                        <div className="flex items-center justify-center gap-2 text-slate-400 mb-2">
-                            <MapPin size={16} />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t.location}</span>
+                    <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
+                        <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
+                            <MapPin size={14} />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.location}</span>
                         </div>
-                        <p className="text-xs font-black text-[#0d0e0e] uppercase truncate">{expert.location || t.notSpecified}</p>
+                        <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.location || t.notSpecified}</p>
                     </div>
                 </div>
             </div>
