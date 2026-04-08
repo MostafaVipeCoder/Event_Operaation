@@ -66,7 +66,7 @@ export default function PublicLayout() {
             </main>
 
             {/* Mobile Bottom Nav */}
-            <nav className="md:hidden fixed bottom-6 inset-x-6 z-50 bg-white/90 backdrop-blur-2xl border border-slate-100 shadow-2xl shadow-indigo-200/40 rounded-[2.5rem] p-2 flex items-center justify-around">
+            <nav className="md:hidden fixed bottom-6 inset-x-6 z-50 bg-white/95 backdrop-blur-2xl border border-slate-200 shadow-[0_20px_50px_rgba(26,39,201,0.15)] rounded-[2.5rem] p-2 flex items-center justify-around">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}
