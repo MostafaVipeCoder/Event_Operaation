@@ -36,7 +36,7 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
       notSpecified: "Not Specified"
     },
     ar: {
-      sector: "المجال",
+      sector: "القطاع",
       location: "الموقع",
       identity: "الهوية",
       stage: "المرحلة",
@@ -199,50 +199,49 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
         style={{ backgroundColor: customColor }}
       />
 
-      {/* Top Bar with Badge & Social */}
-      <div className="flex justify-between items-center w-full mb-4 z-10">
-        <div className="flex items-center gap-2">
-          {company.status && (
-            <div
-              className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border ${company.status === 'Profitable'
-                ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
-                : 'text-amber-600 bg-amber-50 border-amber-100'
-                }`}
-            >
-              {company.status}
-            </div>
-          )}
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] px-5 py-2.5 rounded-2xl bg-white border border-slate-100 shadow-sm text-slate-500 whitespace-nowrap">
-            {t.stage}: {stage || t.growth}
-          </span>
-        </div>
+      {/* Top Bar with Badge (Centered/Left) */}
+      <div className="flex flex-col items-center justify-center w-full mb-2 z-10 gap-2">
+        {company.status && (
+          <div
+            className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border ${company.status === 'Profitable'
+              ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
+              : 'text-amber-600 bg-amber-50 border-amber-100'
+              }`}
+          >
+            {company.status}
+          </div>
+        )}
+        <span className="text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-2xl bg-white border border-slate-100 shadow-sm text-slate-500 max-w-full truncate">
+          {t.stage}: {stage || t.growth}
+        </span>
+      </div>
 
-        <div className="flex items-center gap-2">
-          {onEdit && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(company);
-              }}
-              className="w-11 h-11 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all group/edit"
-            >
-              <Pencil size={18} className="group-hover/edit:rotate-12 transition-transform" />
-            </button>
-          )}
-          {onDelete && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (window.confirm('Are you sure you want to remove this company?')) {
-                  onDelete(company.company_id || company.id);
-                }
-              }}
-              className="w-11 h-11 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-xl transition-all group/delete"
-            >
-              <Trash2 size={18} className="group-hover/delete:scale-110 transition-transform" />
-            </button>
-          )}
-        </div>
+      {/* Actions Overlay */}
+      <div className={`absolute top-6 ${isRtl ? 'left-6' : 'right-6'} z-20 flex flex-col gap-2`}>
+        {onEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(company);
+            }}
+            className="w-10 h-10 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all group/edit"
+          >
+            <Pencil size={16} className="group-hover/edit:rotate-12 transition-transform" />
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (window.confirm('Are you sure you want to remove this company?')) {
+                onDelete(company.company_id || company.id);
+              }
+            }}
+            className="w-10 h-10 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-xl transition-all group/delete"
+          >
+            <Trash2 size={16} className="group-hover/delete:scale-110 transition-transform" />
+          </button>
+        )}
       </div>
 
       {/* Identity Profile Section */}
@@ -273,12 +272,9 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
         </div>
 
         <div className="px-4 w-full">
-          <h3 className="text-3xl font-black text-[#0d0e0e] tracking-tight mb-1 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
+          <h3 className="text-3xl font-black text-[#0d0e0e] tracking-tight mb-2 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
             {name}
           </h3>
-          <p className="text-[#1a27c9] text-xs font-black uppercase tracking-[0.3em] opacity-80 mb-2 drop-shadow-sm">
-            {industry}
-          </p>
         </div>
       </div>
 
@@ -300,10 +296,10 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
           </div>
           <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
             <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
-              <Users size={14} />
-              <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.identity}</span>
+              <Briefcase size={14} />
+              <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.sector}</span>
             </div>
-            <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{t.strategic}</p>
+            <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{industry || t.notSpecified}</p>
           </div>
         </div>
 
