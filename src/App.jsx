@@ -20,7 +20,7 @@ const EventVisualManager = lazy(() => import('./components/EventVisualManager'))
 const SelectionProcessManager = lazy(() => import('./components/SelectionProcessManager'));
 const GenericFormPortal = lazy(() => import('./components/GenericFormPortal'));
 const MarketingAnalytics = lazy(() => import('./components/MarketingAnalytics'));
-const EventSettings = lazy(() => import('./components/EventSettings'));
+// EventSettings module removed intentionally
 
 import PublicLayout from './components/PublicLayout';
 import { AuthProvider } from './contexts/AuthContext';
@@ -39,6 +39,15 @@ const LoadingFallback = () => (
     </div>
   </div>
 );
+
+// Global URL parameter interception for social sharing links (replaces # with ?)
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('agenda')) {
+  const eventId = urlParams.get('agenda');
+  const lang = urlParams.get('lang') || 'ar';
+  // Replace the URL to use Hash Router to load the app State properly
+  window.history.replaceState(null, '', window.location.pathname + `#/agenda/${eventId}?lang=${lang}`);
+}
 
 function App() {
   return (
@@ -79,11 +88,7 @@ function App() {
               </ProtectedRoute>
             } />
 
-            <Route path="/event/:eventId/settings" element={
-              <ProtectedRoute>
-                <EventSettings />
-              </ProtectedRoute>
-            } />
+
 
             {/* Modules */}
             <Route path="/event/:eventId/agenda" element={

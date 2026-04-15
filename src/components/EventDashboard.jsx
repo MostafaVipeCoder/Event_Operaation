@@ -180,15 +180,6 @@ export default function EventDashboard() {
             color: "bg-emerald-50/50 border-emerald-100",
             accent: "#10b981",
             btnColor: "bg-emerald-600 text-white shadow-emerald-100"
-        },
-        {
-            title: "SEO & Settings",
-            description: "Configure SEO info and texts for social media sharing links.",
-            icon: <Settings size={32} className="text-gray-600" />,
-            manageLink: `/event/${eventId}/settings`,
-            color: "bg-gray-50 border-gray-200",
-            accent: "#4b5563",
-            btnColor: "bg-gray-700 text-white shadow-gray-200"
         }
     ];
 
@@ -262,12 +253,23 @@ export default function EventDashboard() {
                             <div className="flex flex-col gap-2">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">English Version</span>
                                 <div className="flex gap-2">
-                                    <a 
-                                        href={`#/agenda/${eventId}?lang=en`} 
-                                        target="_blank" 
-                                        className="px-8 py-3 bg-white border-2 border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest hover:border-[#1a27c9] hover:text-[#1a27c9] transition-premium flex items-center gap-3 shadow-sm hover:shadow-md"
+                                    <button 
+                                        onClick={(e) => {
+                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`;
+                                            navigator.clipboard.writeText(link);
+                                            e.currentTarget.innerHTML = 'Copied!';
+                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> Copy Link'; }, 2000);
+                                        }}
+                                        className="px-4 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest hover:border-[#1a27c9] hover:text-[#1a27c9] transition-premium flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
                                     >
-                                        <ExternalLink size={16} /> Open English View
+                                        <ClipboardList size={16} /> Copy Link
+                                    </button>
+                                    <a 
+                                        href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`} 
+                                        target="_blank" 
+                                        className="px-6 py-3 bg-white border-2 border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest hover:border-[#1a27c9] hover:text-[#1a27c9] transition-premium flex items-center gap-3 shadow-sm hover:shadow-md whitespace-nowrap"
+                                    >
+                                        <ExternalLink size={16} /> Open
                                     </a>
                                 </div>
                             </div>
@@ -278,12 +280,23 @@ export default function EventDashboard() {
                             <div className="flex flex-col gap-2">
                                 <span className="text-[10px] font-black text-[#1a27c9] uppercase tracking-widest text-center">Arabic Version (RTL)</span>
                                 <div className="flex gap-2">
-                                    <a 
-                                        href={`#/agenda/${eventId}?lang=ar`} 
-                                        target="_blank" 
-                                        className="px-8 py-3 bg-[#1a27c9] text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-premium flex items-center gap-3 shadow-xl shadow-indigo-200 font-arabic"
+                                    <button 
+                                        onClick={(e) => {
+                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`;
+                                            navigator.clipboard.writeText(link);
+                                            e.currentTarget.innerHTML = 'تم النسخ!';
+                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> نسخ الرابط'; }, 2000);
+                                        }}
+                                        className="px-4 py-3 bg-white text-[#1a27c9] border border-indigo-100 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-indigo-50 transition-premium flex items-center justify-center gap-2 shadow-sm font-arabic whitespace-nowrap"
                                     >
-                                        <ExternalLink size={16} /> فتح العرض بالعربية
+                                        <ClipboardList size={16} /> نسخ الرابط
+                                    </button>
+                                    <a 
+                                        href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`} 
+                                        target="_blank" 
+                                        className="px-6 py-3 bg-[#1a27c9] text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-premium flex items-center gap-3 shadow-xl shadow-indigo-200 font-arabic whitespace-nowrap"
+                                    >
+                                        <ExternalLink size={16} /> فتح
                                     </a>
                                 </div>
                             </div>

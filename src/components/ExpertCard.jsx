@@ -1,8 +1,30 @@
-import { MapPin, Briefcase, Linkedin, Twitter, ExternalLink, Pencil, Trash2 } from 'lucide-react';
+import { MapPin, Briefcase, Linkedin, Twitter, ExternalLink, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { getGoogleDriveDirectLink } from '../lib/utils';
+import { getGoogleDriveFallbackUrls } from '../lib/utils';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import LazyImage from './LazyImage';
 
-const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete }) => {
+const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({
+        id: expert.expert_id || expert.id,
+        disabled: previewMode
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : undefined,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
     const getLightColor = (hex, opacity = '1a') => `${hex}${opacity}`;
 
     // Language Handling
@@ -36,7 +58,21 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
     if (viewMode === 'list') {
         return (
-            <div className={`group relative w-full bg-slate-50 rounded-[4rem] border border-slate-100 p-8 md:p-12 hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-8 md:gap-16 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-start ${isRtl ? 'font-arabic' : 'font-manrope'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+            <div 
+                ref={setNodeRef}
+                style={style}
+                className={`group relative w-full bg-slate-50 rounded-[4rem] border border-slate-100 p-8 md:p-12 hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-8 md:gap-16 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-start ${isRtl ? 'font-arabic' : 'font-manrope'}`} dir={isRtl ? 'rtl' : 'ltr'}
+            >
+                {/* Drag Handle */}
+                {!previewMode && (
+                    <div 
+                        {...attributes} 
+                        {...listeners}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-2 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity z-30"
+                    >
+                        <GripVertical size={24} />
+                    </div>
+                )}
                 {/* Immersive Background Accent */}
                 <div
                     className="absolute top-0 end-0 w-[500px] h-[500px] rounded-full opacity-[0.04] blur-[100px] -me-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -50,20 +86,21 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                         style={{ backgroundColor: customColor }}
                     />
                     <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-[3.5rem] md:rounded-[4.5rem] overflow-hidden border-8 border-white shadow-2xl bg-slate-50 transition-all duration-700 group-hover:scale-[1.02]">
-                        {photo ? (
-                            <img
-                                src={getGoogleDriveDirectLink(photo)}
-                                alt={name}
-                                className="w-full h-full object-cover grayscale-[0.1] contrast-[1.05] group-hover:grayscale-0 transition-all duration-700"
-                            />
-                        ) : (
-                            <div
-                                className="w-full h-full flex items-center justify-center text-8xl font-black"
-                                style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
-                            >
-                                {name.charAt(0)}
-                            </div>
-                        )}
+                        <LazyImage
+                            src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
+                            urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
+                            alt={name}
+                            objectFit="cover"
+                            className="grayscale-[0.1] contrast-[1.05] group-hover:grayscale-0 transition-all duration-700"
+                            fallback={
+                                <div
+                                    className="w-full h-full flex items-center justify-center text-8xl font-black"
+                                    style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
+                                >
+                                    {name.charAt(0)}
+                                </div>
+                            }
+                        />
                     </div>
                 </div>
 
@@ -155,7 +192,21 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
     // Default Grid/Compact View (Enhanced for 2-column)
     return (
-        <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-10 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div 
+            ref={setNodeRef}
+            style={style}
+            className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-10 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}
+        >
+            {/* Drag Handle */}
+            {!previewMode && (
+                <div 
+                    {...attributes} 
+                    {...listeners}
+                    className="absolute top-6 left-6 cursor-grab active:cursor-grabbing p-2 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity z-30"
+                >
+                    <GripVertical size={20} />
+                </div>
+            )}
             {/* Professional Background Accents */}
             <div
                 className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full opacity-[0.05] blur-[80px] -mr-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -215,20 +266,21 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                     />
                     {/* Image Container */}
                     <div className="relative w-full h-full rounded-[3.5rem] overflow-hidden border-4 border-white shadow-2xl bg-slate-50 transition-transform duration-1000 group-hover:scale-[1.05]">
-                        {photo ? (
-                            <img
-                                src={getGoogleDriveDirectLink(photo)}
-                                alt={name}
-                                className="w-full h-full object-cover grayscale-[0.2] contrast-[1.1] group-hover:grayscale-0 transition-all duration-1000"
-                            />
-                        ) : (
-                            <div
-                                className="w-full h-full flex items-center justify-center text-6xl font-black"
-                                style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
-                            >
-                                {name.charAt(0)}
-                            </div>
-                        )}
+                        <LazyImage
+                            src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
+                            urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
+                            alt={name}
+                            objectFit="cover"
+                            className="grayscale-[0.2] contrast-[1.1] group-hover:grayscale-0 transition-all duration-1000"
+                            fallback={
+                                <div
+                                    className="w-full h-full flex items-center justify-center text-6xl font-black"
+                                    style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
+                                >
+                                    {name.charAt(0)}
+                                </div>
+                            }
+                        />
                     </div>
                 </div>
 

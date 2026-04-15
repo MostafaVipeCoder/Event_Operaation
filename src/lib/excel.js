@@ -89,14 +89,14 @@ export const generateAgendaTemplate = () => {
 
     // 3. Experts Sheet Data
     const expertsData = [
-        ['Name', 'Title', 'Bio', 'LinkedIn URL'],
-        ['Example Expert', 'CEO @ Example', 'A short bio about the expert', 'https://linkedin.com/in/example']
+        ['Name', 'Title', 'Working at', 'Bio', 'LinkedIn URL', 'photo'],
+        ['Example Expert', 'CEO @ Example', 'Athar', 'A short bio about the expert', 'https://linkedin.com/in/example', 'https://example.com/photo.jpg']
     ];
 
     // 4. Companies Sheet Data
     const companiesData = [
-        ['Company Name', 'Gov.', 'Describtion', 'Industry', 'Link'],
-        ['Example Company', 'القاهرة', 'A short description about the company', 'Tech', 'https://example.com']
+        ['Company Name', 'Gov.', 'Describtion', 'Industry', 'Stage', 'Link'],
+        ['Example Company', 'القاهرة', 'A short description about the company', 'Tech', 'Seed', 'https://example.com']
     ];
 
     const wb = XLSX.utils.book_new();
@@ -191,10 +191,11 @@ export const parseWorkbook = (workbook) => {
             return {
                 name: get('Name', 'Full Name', 'الاسم', 'اسم الخبير'),
                 title: get('Title', 'Position', 'المسمى الوظيفي', 'التخصص'),
-                company: get('Organization', 'Company', 'Work', 'المؤسسة', 'الجهة'),
+                company: get('Working at', 'Organization', 'Company', 'Work', 'المؤسسة', 'الجهة'),
                 location: get('Location', 'City', 'Gov.', 'المقر', 'المدينة', 'المحافظة'),
                 bio: get('Bio', 'Description', 'About', 'الوصف', 'نبذة'),
-                linkedin_url: get('LinkedIn', 'LinkedIn URL', 'لينكد إن')
+                linkedin_url: get('LinkedIn URL', 'LinkedIn', 'لينكد إن'),
+                photo_url: get('photo', 'Photo URL', 'Image', 'الصورة')
             };
         }).filter(e => e.name);
     }

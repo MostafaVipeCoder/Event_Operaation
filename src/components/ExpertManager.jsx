@@ -3,7 +3,28 @@ import { ArrowLeft, Plus, Search, Trash2, Edit2, Layout, Database, AlertCircle, 
 import { useNavigate, useParams } from 'react-router-dom';
 import ExpertCard from './ExpertCard';
 import SyncButton from './SyncButton';
-import { getExperts, createExpert, updateExpert, deleteExpert, uploadImage, getSubmissions, approveSubmission, rejectSubmission } from '../lib/api';
+import { 
+    getExperts, createExpert, updateExpert, deleteExpert, 
+    uploadImage, getSubmissions, approveSubmission, rejectSubmission,
+    bulkUpdateExperts 
+} from '../lib/api';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragOverlay,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 
 const ExpertManager = () => {
     const { eventId } = useParams();
@@ -22,6 +43,7 @@ const ExpertManager = () => {
     const [selectedSubmission, setSelectedSubmission] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
+    const [activeId, setActiveId] = useState(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -33,6 +55,18 @@ const ExpertManager = () => {
         linkedin_url: '',
         photo_url: ''
     });
+
+    // DnD Sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const loadData = async () => {
         try {
@@ -140,7 +174,8 @@ const ExpertManager = () => {
             } else {
                 await createExpert({
                     ...formData,
-                    event_id: eventId
+                    event_id: eventId,
+                    sort_order: experts.length + 1
                 });
             }
             setShowAddModal(false);
@@ -160,6 +195,35 @@ const ExpertManager = () => {
         expert.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         expert.location?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleDragStart = (event) => {
+        setActiveId(event.active.id);
+    };
+
+    const handleDragEnd = async (event) => {
+        const { active, over } = event;
+        setActiveId(null);
+        
+        if (!over || active.id === over.id) return;
+
+        const oldIndex = experts.findIndex(e => (e.expert_id || e.id) === active.id);
+        const newIndex = experts.findIndex(e => (e.expert_id || e.id) === over.id);
+
+        const newExperts = arrayMove(experts, oldIndex, newIndex);
+        setExperts(newExperts);
+
+        // Persist to database
+        const updates = newExperts.map((expert, index) => ({
+            expert_id: expert.expert_id || expert.id,
+            sort_order: index + 1
+        }));
+
+        try {
+            await bulkUpdateExperts(updates);
+        } catch (err) {
+            console.error('Failed to sync expert order:', err);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-200 font-manrope selection:bg-[#1a27c9]/10 selection:text-[#1a27c9]">
@@ -252,16 +316,37 @@ const ExpertManager = () => {
                         <button onClick={() => window.location.reload()} className="mt-8 px-6 py-3 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-premium">Retry Initialization</button>
                     </div>
                 ) : activeTab === 'curated' && filteredExperts.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredExperts.map(expert => (
-                            <ExpertCard
-                                key={expert.expert_id || expert.id}
-                                expert={expert}
-                                onEdit={handleEdit}
-                                onDelete={handleDeleteExpert}
-                            />
-                        ))}
-                    </div>
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                        modifiers={[restrictToFirstScrollableAncestor]}
+                    >
+                        <SortableContext
+                            items={filteredExperts.map(e => e.expert_id || e.id)}
+                            strategy={rectSortingStrategy}
+                        >
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {filteredExperts.map(expert => (
+                                    <ExpertCard
+                                        key={expert.expert_id || expert.id}
+                                        expert={expert}
+                                        onEdit={handleEdit}
+                                        onDelete={handleDeleteExpert}
+                                    />
+                                ))}
+                            </div>
+                        </SortableContext>
+                        <DragOverlay adjustScale={true}>
+                            {activeId ? (
+                                <ExpertCard
+                                    expert={experts.find(e => (e.expert_id || e.id) === activeId)}
+                                    previewMode={true}
+                                />
+                            ) : null}
+                        </DragOverlay>
+                    </DndContext>
                 ) : activeTab === 'review' ? (
                     <div className="space-y-6">
                         {submissions.length > 0 ? (

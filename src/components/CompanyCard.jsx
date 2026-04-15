@@ -1,6 +1,9 @@
-import { MapPin, Users, Plus, Banknote, Briefcase, Pencil, Trash2, ExternalLink, Globe, Linkedin, Facebook, Twitter, Instagram, Youtube, Github } from 'lucide-react';
+import { MapPin, Users, Plus, Banknote, Briefcase, Pencil, Trash2, ExternalLink, Globe, Linkedin, Facebook, Twitter, Instagram, Youtube, Github, GripVertical } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useSearchParams } from 'react-router-dom';
-import { getGoogleDriveDirectLink } from '../lib/utils';
+import { getGoogleDriveFallbackUrls } from '../lib/utils';
+import LazyImage from './LazyImage';
 
 const LinkIcon = ({ type, ...props }) => {
   switch (type) {
@@ -15,7 +18,26 @@ const LinkIcon = ({ type, ...props }) => {
   }
 };
 
-const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete }) => {
+const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({
+    id: company.company_id || company.id,
+    disabled: previewMode
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   const getLightColor = (hex, opacity = '1a') => `${hex}${opacity}`;
 
   // Language Handling
@@ -70,7 +92,13 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
 
   if (viewMode === 'list') {
     return (
-      <div className={`group relative w-full bg-slate-50 rounded-[4rem] border border-slate-100 p-12 md:p-16 shadow-sm hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-12 md:gap-20 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-start ${isRtl ? 'font-arabic' : 'font-manrope'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+      <div ref={setNodeRef} style={style} className={`group relative w-full bg-slate-50 rounded-[4rem] border border-slate-100 p-12 md:p-16 shadow-sm hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-12 md:gap-20 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-start ${isRtl ? 'font-arabic' : 'font-manrope'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+        {/* Drag Handle */}
+        {!previewMode && (
+            <div {...attributes} {...listeners} className="absolute top-8 left-8 cursor-grab active:cursor-grabbing p-2 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity z-30">
+                <GripVertical size={24} />
+            </div>
+        )}
         {/* Immersive Background Accent */}
         <div
           className="absolute top-0 end-0 w-[500px] h-[500px] rounded-full opacity-[0.04] blur-[100px] -me-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -83,12 +111,16 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
             className="absolute inset-6 rounded-[4rem] blur-3xl opacity-30 transition-opacity group-hover:opacity-50"
             style={{ backgroundColor: customColor }}
           />
-          <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-[3.5rem] md:rounded-[4.5rem] overflow-hidden border-8 border-white shadow-2xl bg-white flex items-center justify-center transition-all duration-700  group-hover:scale-105">
-            {logo ? (
-              <img src={getGoogleDriveDirectLink(logo)} alt={name} className="w-full h-full object-contain p-12 grayscale-[0.2] group-hover:grayscale-0 transition-all" />
-            ) : (
-              <span className="text-8xl font-black opacity-20" style={{ color: customColor }}>{name.charAt(0)}</span>
-            )}
+          <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-[3.5rem] md:rounded-[4.5rem] overflow-hidden border-8 border-white shadow-2xl bg-white flex items-center justify-center transition-all duration-700 group-hover:scale-105">
+            <LazyImage
+              src={logo ? getGoogleDriveFallbackUrls(logo)[0] : null}
+              urls={logo ? getGoogleDriveFallbackUrls(logo) : []}
+              alt={name}
+              objectFit="contain"
+              padding={true}
+              className="grayscale-[0.2] group-hover:grayscale-0 transition-all"
+              fallback={<span className="text-8xl font-black opacity-20" style={{ color: customColor }}>{name.charAt(0)}</span>}
+            />
           </div>
         </div>
 
@@ -188,7 +220,13 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
 
   // Premium Vertical Grid View (Matching Expert Style)
   return (
-    <div className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-8 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+    <div ref={setNodeRef} style={style} className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-8 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+      {/* Drag Handle */}
+      {!previewMode && (
+          <div {...attributes} {...listeners} className="absolute top-6 left-6 cursor-grab active:cursor-grabbing p-2 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity z-30">
+              <GripVertical size={20} />
+          </div>
+      )}
       {/* Professional Background Accents */}
       <div
         className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full opacity-[0.05] blur-[80px] -mr-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
@@ -254,20 +292,22 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
           />
           {/* Image Container */}
           <div className="relative w-full h-full rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center transition-transform duration-1000 group-hover:scale-[1.05]">
-            {logo ? (
-              <img
-                src={getGoogleDriveDirectLink(logo)}
-                alt={name}
-                className="w-full h-full object-contain p-8 grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000"
-              />
-            ) : (
-              <div
-                className="w-full h-full flex items-center justify-center text-6xl font-black"
-                style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
-              >
-                {name.charAt(0)}
-              </div>
-            )}
+            <LazyImage
+              src={logo ? getGoogleDriveFallbackUrls(logo)[0] : null}
+              urls={logo ? getGoogleDriveFallbackUrls(logo) : []}
+              alt={name}
+              objectFit="contain"
+              padding={true}
+              className="grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000"
+              fallback={
+                <div
+                  className="w-full h-full flex items-center justify-center text-6xl font-black"
+                  style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
+                >
+                  {name.charAt(0)}
+                </div>
+              }
+            />
           </div>
         </div>
 

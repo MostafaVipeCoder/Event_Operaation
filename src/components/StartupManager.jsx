@@ -3,7 +3,25 @@ import { X as CloseIcon, ArrowLeft, Plus, Search, Trash2, Edit2, Layout, Databas
 import { useNavigate, useParams } from 'react-router-dom';
 import CompanyCard from './CompanyCard';
 import SyncButton from './SyncButton';
-import { getCompanies, createCompany, updateCompany, deleteCompany, uploadImage, getSubmissions, approveSubmission, rejectSubmission } from '../lib/api';
+import { getCompanies, createCompany, updateCompany, deleteCompany, uploadImage, getSubmissions, approveSubmission, rejectSubmission, bulkUpdateCompanies } from '../lib/api';
+import { 
+    DndContext, 
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragOverlay,
+    defaultDropAnimationSideEffects
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 
 const StartupManager = () => {
     const { eventId } = useParams();
@@ -21,6 +39,18 @@ const StartupManager = () => {
     const [selectedSubmission, setSelectedSubmission] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
+    const [activeId, setActiveId] = useState(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     // Form State
     const [formData, setFormData] = useState({
@@ -154,7 +184,8 @@ const StartupManager = () => {
             } else {
                 await createCompany({
                     ...formData,
-                    event_id: eventId
+                    event_id: eventId,
+                    sort_order: companies.length + 1
                 });
             }
             setShowAddModal(false);
@@ -166,6 +197,34 @@ const StartupManager = () => {
             alert('Failed to save venture.');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDragStart = (event) => {
+        setActiveId(event.active.id);
+    };
+
+    const handleDragEnd = async (event) => {
+        const { active, over } = event;
+        setActiveId(null);
+
+        if (active.id !== over?.id) {
+            const oldIndex = companies.findIndex((c) => (c.company_id || c.id) === active.id);
+            const newIndex = companies.findIndex((c) => (c.company_id || c.id) === over.id);
+
+            const newCompanies = arrayMove(companies, oldIndex, newIndex);
+            setCompanies(newCompanies);
+
+            try {
+                const updates = newCompanies.map((c, index) => ({
+                    company_id: c.company_id || c.id,
+                    sort_order: index + 1
+                }));
+                await bulkUpdateCompanies(updates);
+            } catch (err) {
+                console.error('Error updating company order:', err);
+                loadData(); // Revert on failure
+            }
         }
     };
 
@@ -266,16 +325,49 @@ const StartupManager = () => {
                     </div>
                 ) : activeTab === 'curated' ? (
                     filteredCompanies.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {filteredCompanies.map(company => (
-                                <CompanyCard
-                                    key={company.company_id || company.id}
-                                    company={company}
-                                    onEdit={handleEdit}
-                                    onDelete={handleDeleteCompany}
-                                />
-                            ))}
-                        </div>
+                        <DndContext 
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragStart={handleDragStart}
+                            onDragEnd={handleDragEnd}
+                            modifiers={[restrictToFirstScrollableAncestor]}
+                        >
+                            <SortableContext 
+                                items={filteredCompanies.map(c => c.company_id || c.id)}
+                                strategy={rectSortingStrategy}
+                                disabled={searchTerm.length > 0}
+                            >
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {filteredCompanies.map(company => (
+                                        <CompanyCard
+                                            key={company.company_id || company.id}
+                                            company={company}
+                                            onEdit={handleEdit}
+                                            onDelete={handleDeleteCompany}
+                                        />
+                                    ))}
+                                </div>
+                            </SortableContext>
+                            
+                            <DragOverlay dropAnimation={{
+                                sideEffects: defaultDropAnimationSideEffects({
+                                    styles: {
+                                        active: {
+                                            opacity: '0.5',
+                                        },
+                                    },
+                                }),
+                            }}>
+                                {activeId ? (
+                                    <div className="w-full max-w-sm opacity-80 pointer-events-none scale-105 transition-transform duration-300">
+                                        <CompanyCard 
+                                            company={companies.find(c => (c.company_id || c.id) === activeId)} 
+                                            previewMode={true}
+                                        />
+                                    </div>
+                                ) : null}
+                            </DragOverlay>
+                        </DndContext>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-32 text-center">
                             <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-300 mb-6 border border-slate-100">

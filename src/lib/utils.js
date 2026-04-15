@@ -51,31 +51,69 @@ export const formatTime = (input, lang = 'en') => {
     return input;
 };
 
+/**
+ * Extracts Google Drive file ID from any Google Drive URL format.
+ * Returns null if the URL is not a Google Drive link or ID can't be extracted.
+ */
+export const extractGoogleDriveId = (url) => {
+    if (!url) return null;
+    if (!url.includes('drive.google.com') && !url.includes('docs.google.com')) return null;
+
+    // Patterns:
+    // 1. /file/d/ID/view
+    // 2. /d/ID/
+    // 3. ?id=ID or &id=ID
+    // 4. /open?id=ID
+    const patterns = [
+        /\/file\/d\/([-\w]{10,})/,
+        /\/d\/([-\w]{10,})/,
+        /[?&]id=([-\w]{10,})/,
+    ];
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match?.[1]) return match[1];
+    }
+    return null;
+};
+
+/**
+ * Converts a Google Drive sharing URL to a direct image URL.
+ * Uses lh3.googleusercontent.com/d/ID as primary (most reliable - no consent page).
+ * Falls back to thumbnail endpoint if image is not accessible via lh3.
+ */
 export const getGoogleDriveDirectLink = (url) => {
     if (!url) return '';
 
-    // Check if it's already a direct link or not Google Drive
-    if (!url.includes('drive.google.com') && !url.includes('docs.google.com')) {
-        return url;
+    const id = extractGoogleDriveId(url);
+
+    if (id) {
+        // lh3.googleusercontent.com/d/ID is the most reliable:
+        // - No virus scan / consent page for any file size
+        // - No cookies required
+        // - Works for publicly shared files
+        return `https://lh3.googleusercontent.com/d/${id}`;
     }
 
-    // Extraction patterns:
-    // 1. /file/d/ID/view
-    // 2. id=ID
-    // 3. /d/ID/ (folders or simple file paths)
-    const idMatch = url.match(/\/d\/([-\w]{25,})/) ||
-        url.match(/[?&]id=([-\w]{25,})/) ||
-        url.match(/\/file\/d\/([-\w]{25,})/);
-
-    if (idMatch && idMatch[1]) {
-        // The thumbnail endpoint is much more reliable than uc?export=view 
-        // because it avoids the "virus scan" warning on larger images
-        // and doesn't require specific cookie settings.
-        // sz=w1500 ensures high resolution.
-        return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1500`;
-    }
-
+    // Not a Drive link — return as-is (Supabase Storage, Cloudinary, etc.)
     return url;
+};
+
+/**
+ * Returns an ordered list of URLs to try for a Google Drive image.
+ * LazyImage uses this for automatic fallback.
+ */
+export const getGoogleDriveFallbackUrls = (url) => {
+    if (!url) return [];
+
+    const id = extractGoogleDriveId(url);
+    if (!id) return [url]; // Non-Drive URL: no fallback needed
+
+    return [
+        `https://lh3.googleusercontent.com/d/${id}`,           // Primary: most reliable
+        `https://drive.google.com/thumbnail?id=${id}&sz=w1500`, // Secondary: thumbnail API
+        `https://drive.google.com/uc?export=view&id=${id}`,    // Tertiary: direct download (may show consent)
+    ];
 };
 
 export const exportToCSV = (data, filename = 'export.csv') => {

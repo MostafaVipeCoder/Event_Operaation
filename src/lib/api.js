@@ -73,7 +73,8 @@ export const getFullAgenda = async (eventId) => {
     const { data: experts, error: expertsError } = await supabase
         .from('experts')
         .select('*')
-        .eq('event_id', eventId);
+        .eq('event_id', eventId)
+        .order('sort_order', { ascending: true });
     if (expertsError) throw expertsError;
 
     const { data: companies, error: companiesError } = await supabase
@@ -97,7 +98,8 @@ export const getExperts = async (eventId) => {
     const { data, error } = await supabase
         .from('experts')
         .select('*')
-        .eq('event_id', eventId);
+        .eq('event_id', eventId)
+        .order('sort_order', { ascending: true });
     if (error) throw error;
     return data;
 };
@@ -106,7 +108,8 @@ export const getCompanies = async (eventId) => {
     const { data, error } = await supabase
         .from('companies')
         .select('*')
-        .eq('event_id', eventId);
+        .eq('event_id', eventId)
+        .order('sort_order', { ascending: true });
     if (error) throw error;
     return data;
 };
@@ -486,15 +489,25 @@ export const importAgendaData = async (eventId, data) => {
                         existing.bio !== expertData.bio ||
                         existing.company !== expertData.company ||
                         existing.location !== expertData.location ||
-                        existing.linkedin_url !== expertData.linkedin_url;
+                        existing.linkedin_url !== expertData.linkedin_url ||
+                        existing.photo_url !== sExpert.photo_url;
                     if (hasChanged) {
-                        await supabase.from('experts').update(expertData).eq('expert_id', existing.expert_id);
+                        await supabase.from('experts').update({
+                            ...expertData,
+                            photo_url: sExpert.photo_url || existing.photo_url
+                        }).eq('expert_id', existing.expert_id);
                         stats.experts.updated++;
                     } else {
                         stats.experts.skipped++;
                     }
                 } else {
-                    await supabase.from('experts').insert([{ event_id: eventId, name: sExpert.name, ...expertData }]);
+                    await supabase.from('experts').insert([{ 
+                        event_id: eventId, 
+                        name: sExpert.name, 
+                        ...expertData,
+                        photo_url: sExpert.photo_url || '',
+                        sort_order: (existingExperts?.length || 0) + stats.experts.added + 1
+                    }]);
                     stats.experts.added++;
                 }
             }
@@ -535,7 +548,12 @@ export const importAgendaData = async (eventId, data) => {
                         stats.companies.skipped++;
                     }
                 } else {
-                    await supabase.from('companies').insert([{ event_id: eventId, name: sCompany.name, ...companyData }]);
+                    await supabase.from('companies').insert([{ 
+                        event_id: eventId, 
+                        name: sCompany.name, 
+                        ...companyData,
+                        sort_order: (existingCompanies?.length || 0) + stats.companies.added + 1
+                    }]);
                     stats.companies.added++;
                 }
             }
@@ -1274,4 +1292,20 @@ export const updateSlotsOrder = async (slots) => {
         console.error('[Supabase Error] updateSlotsOrder Split Logic:', error);
         throw error;
     }
+};
+
+export const bulkUpdateExperts = async (updates) => {
+    console.log('[Supabase] Bulk updating experts sort order:', updates.length);
+    const { error } = await supabase
+        .from('experts')
+        .upsert(updates, { onConflict: 'expert_id' });
+    if (error) throw error;
+};
+
+export const bulkUpdateCompanies = async (updates) => {
+    console.log('[Supabase] Bulk updating companies sort order:', updates.length);
+    const { error } = await supabase
+        .from('companies')
+        .upsert(updates, { onConflict: 'company_id' });
+    if (error) throw error;
 };
