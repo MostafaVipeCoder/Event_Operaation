@@ -24,6 +24,9 @@ export default function EventDashboard() {
     const [gsheetsUrl, setGsheetsUrl] = useState('');
     const [isSavingUrl, setIsSavingUrl] = useState(false);
 
+    // Share Settings State
+    const [isAgendaOnly, setIsAgendaOnly] = useState(false);
+
     useEffect(() => {
         loadEventDetails();
     }, [eventId]);
@@ -246,7 +249,20 @@ export default function EventDashboard() {
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         <div>
                             <h2 className="text-xl font-black text-[#0d0e0e] tracking-tight mb-1">Public Access Hub</h2>
-                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Share these links with your guests</p>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">Share these links with your guests</p>
+                            
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${isAgendaOnly ? 'bg-[#1a27c9] border-[#1a27c9]' : 'bg-white border-slate-300 group-hover:border-[#1a27c9]'}`}>
+                                    {isAgendaOnly && <Check size={14} className="text-white" />}
+                                </div>
+                                <span className="text-sm font-bold text-slate-700 select-none">Agenda Only Link (Hide Navigation)</span>
+                                <input 
+                                    type="checkbox" 
+                                    className="hidden" 
+                                    checked={isAgendaOnly} 
+                                    onChange={(e) => setIsAgendaOnly(e.target.checked)} 
+                                />
+                            </label>
                         </div>
                         <div className="flex flex-wrap gap-4 items-center">
                             {/* English Links */}
@@ -255,7 +271,8 @@ export default function EventDashboard() {
                                 <div className="flex gap-2">
                                     <button 
                                         onClick={(e) => {
-                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`;
+                                            const params = isAgendaOnly ? '&mode=agenda_only' : '';
+                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en${params}`;
                                             navigator.clipboard.writeText(link);
                                             e.currentTarget.innerHTML = 'Copied!';
                                             setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> Copy Link'; }, 2000);
@@ -265,7 +282,7 @@ export default function EventDashboard() {
                                         <ClipboardList size={16} /> Copy Link
                                     </button>
                                     <a 
-                                        href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`} 
+                                        href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en${isAgendaOnly ? '&mode=agenda_only' : ''}`} 
                                         target="_blank" 
                                         className="px-6 py-3 bg-white border-2 border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest hover:border-[#1a27c9] hover:text-[#1a27c9] transition-premium flex items-center gap-3 shadow-sm hover:shadow-md whitespace-nowrap"
                                     >
@@ -282,7 +299,8 @@ export default function EventDashboard() {
                                 <div className="flex gap-2">
                                     <button 
                                         onClick={(e) => {
-                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`;
+                                            const params = isAgendaOnly ? '&mode=agenda_only' : '';
+                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar${params}`;
                                             navigator.clipboard.writeText(link);
                                             e.currentTarget.innerHTML = 'تم النسخ!';
                                             setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> نسخ الرابط'; }, 2000);
@@ -292,7 +310,7 @@ export default function EventDashboard() {
                                         <ClipboardList size={16} /> نسخ الرابط
                                     </button>
                                     <a 
-                                        href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`} 
+                                        href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar${isAgendaOnly ? '&mode=agenda_only' : ''}`} 
                                         target="_blank" 
                                         className="px-6 py-3 bg-[#1a27c9] text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-premium flex items-center gap-3 shadow-xl shadow-indigo-200 font-arabic whitespace-nowrap"
                                     >

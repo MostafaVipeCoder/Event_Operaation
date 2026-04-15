@@ -44,9 +44,19 @@ const LoadingFallback = () => (
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('agenda')) {
   const eventId = urlParams.get('agenda');
-  const lang = urlParams.get('lang') || 'ar';
+  const hashParams = new URLSearchParams();
+  for (const [key, value] of urlParams.entries()) {
+    if (key !== 'agenda') {
+      hashParams.append(key, value);
+    }
+  }
+  // Default to Arabic if no lang specified
+  if (!hashParams.has('lang')) {
+    hashParams.append('lang', 'ar');
+  }
+  
   // Replace the URL to use Hash Router to load the app State properly
-  window.history.replaceState(null, '', window.location.pathname + `#/agenda/${eventId}?lang=${lang}`);
+  window.history.replaceState(null, '', window.location.pathname + `#/agenda/${eventId}?${hashParams.toString()}`);
 }
 
 function App() {
