@@ -39,7 +39,7 @@ const ExpertPortal = () => {
 
             // Update Page Title
             if (eventData?.event_name) {
-                document.title = `Athar Events | Registration for ${eventData.event_name}`;
+                document.title = `Athar Programs | Registration for ${eventData.event_name}`;
             }
 
             if (!eventData.expert_portal_enabled) {

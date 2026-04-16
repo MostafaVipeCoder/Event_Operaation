@@ -58,7 +58,7 @@ export default function ExpertViewer() {
 
                 // Update Page Title
                 if (eventData?.event_name) {
-                    document.title = `Athar Events | ${eventData.event_name}`;
+                    document.title = `Athar Programs | ${eventData.event_name}`;
                 }
             } catch (e) {
                 console.error('Failed to sync visionary grid:', e);

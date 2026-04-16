@@ -4,6 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { getEvents, createEvent, deleteEvent } from '../lib/api';
 import { formatDate } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
+import { usePresence } from '../hooks/usePresence';
+import ActiveUsers from './ActiveUsers';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -11,6 +13,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newEventName, setNewEventName] = useState('');
+    const { activeUsers } = usePresence('global_dashboard');
     const [createStatus, setCreateStatus] = useState('idle'); // idle, loading, success
     const [error, setError] = useState(null);
     const { signOut } = useAuth();
@@ -102,15 +105,18 @@ export default function Dashboard() {
                                 <Calendar className="text-white" size={24} />
                             </div>
                             <div>
-                                <h1 className="text-xl font-extrabold text-[#0d0e0e] tracking-tight">Athar event magments tool</h1>
+                                <h1 className="text-xl font-extrabold text-[#0d0e0e] tracking-tight">Athar Program magments tool</h1>
                                 <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Professional Event Ecosystem</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => setShowCreateModal(true)}
-                                className="flex items-center gap-2 bg-[#1a27c9] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#1a27c9]/90 transition-premium shadow-md active:scale-95"
-                            >
+                        <div className="flex items-center gap-6">
+                            <ActiveUsers users={activeUsers} />
+                            
+                            <div className="flex items-center gap-3 border-l border-slate-200 pl-6">
+                                <button
+                                    onClick={() => setShowCreateModal(true)}
+                                    className="flex items-center gap-2 bg-[#1a27c9] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#1a27c9]/90 transition-premium shadow-md active:scale-95"
+                                >
                                 <Plus size={18} />
                                 <span>Create Event</span>
                             </button>
@@ -122,6 +128,7 @@ export default function Dashboard() {
                             >
                                 <LogOut size={20} />
                             </button>
+                            </div>
                         </div>
                     </div>
                 </div>

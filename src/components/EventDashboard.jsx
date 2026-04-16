@@ -3,12 +3,15 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X, Briefcase } from 'lucide-react';
 import { getEvent, updateEvent } from '../lib/api';
 import SyncButton from './SyncButton';
+import { usePresence } from '../hooks/usePresence';
+import ActiveUsers from './ActiveUsers';
 
 export default function EventDashboard() {
     const { eventId } = useParams();
     const navigate = useNavigate();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const { activeUsers } = usePresence(`event_dashboard_${eventId}`);
 
     // Theme State
     const [expertsColor, setExpertsColor] = useState('#9333ea'); // Default Purple
@@ -230,11 +233,16 @@ export default function EventDashboard() {
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Event Master Control</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <SyncButton eventId={eventId} onSyncComplete={() => window.location.reload()} />
-                            <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${event.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-500 border border-slate-200'
-                                }`}>
-                                • {event.status || 'Active'}
+                        <div className="flex items-center gap-6">
+                            {/* Active Users Present In This Event */}
+                            <ActiveUsers users={activeUsers} />
+                            
+                            <div className="flex items-center gap-4 border-l border-slate-200 pl-6">
+                                <SyncButton eventId={eventId} onSyncComplete={() => window.location.reload()} />
+                                <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${event.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                    }`}>
+                                    • {event.status || 'Active'}
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -95,7 +95,7 @@ export default function AgendaViewer({ eventId }) {
             // Update Page Title and Meta Tags
             if (agendaData?.event) {
                 const eventName = agendaData.event.event_name || 'Event';
-                const pageTitle = agendaData.event.seo_title || `Athar Events | ${eventName}`;
+                const pageTitle = agendaData.event.seo_title || `Athar Programs | ${eventName}`;
                 document.title = pageTitle;
 
                 // Helper to update or create meta tags
