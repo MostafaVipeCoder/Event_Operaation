@@ -13,7 +13,7 @@ export default function PublicLayout() {
         en: {
             agenda: "Agenda",
             experts: "Experts",
-            companies: "Companies"
+            companies: "Startups"
         },
         ar: {
             agenda: "الأجندة",
