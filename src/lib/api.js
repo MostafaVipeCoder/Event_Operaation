@@ -460,6 +460,7 @@ export const importAgendaData = async (eventId, data, previewOnly = false) => {
                 const existing = existingCompanies?.find(c => normalize(c.name) === normalize(sCompany.name));
                 const companyData = {
                     founder: (sCompany.founder || '').trim(),
+                    role: (sCompany.role || '').trim(),
                     location: (sCompany.location || '').trim(),
                     governorate: (sCompany.governorate || sCompany.location || '').trim(),
                     industry: (sCompany.industry || '').trim(),
@@ -473,6 +474,7 @@ export const importAgendaData = async (eventId, data, previewOnly = false) => {
                 if (existing) {
                     const hasChanged =
                         normalize(existing.founder) !== normalize(companyData.founder) ||
+                        normalize(existing.role) !== normalize(companyData.role) ||
                         normalize(existing.location) !== normalize(companyData.location) ||
                         normalize(existing.industry) !== normalize(companyData.industry) ||
                         normalize(existing.description) !== normalize(companyData.description) ||

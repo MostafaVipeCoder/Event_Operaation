@@ -285,8 +285,8 @@ const SelectionProcessManager = () => {
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
-                            <div className="relative group">
+                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto mt-4 lg:mt-0">
+                            <div className="relative w-full sm:w-auto grow">
                                 <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                 <input
                                     type="text"
@@ -525,30 +525,30 @@ const SelectionProcessManager = () => {
                 <div key={selectedSubmission.submission_id} className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-6">
                     <div className="bg-white rounded-[3rem] w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
                         {/* Modal Header */}
-                        <div className="p-10 pb-6 border-b border-slate-100 flex items-start h-[70vh] justify-between relative overflow-hidden bg-gradient-to-br from-slate-50 to-white">
-                            <div className="flex gap-8 items-center relative z-10">
-                                <div className="w-24 h-24 rounded-3xl bg-white border border-slate-200 shadow-xl flex items-center justify-center overflow-hidden p-2">
+                        <div className="p-6 md:p-10 pb-6 border-b border-slate-100 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 relative overflow-hidden bg-gradient-to-br from-slate-50 to-white flex-shrink-0">
+                            <div className="flex flex-col sm:flex-row gap-6 items-center text-center sm:text-left relative z-10 w-full">
+                                <div className="w-24 h-24 rounded-3xl bg-white border border-slate-200 shadow-xl flex items-center justify-center overflow-hidden p-2 flex-shrink-0">
                                     {selectedSubmission.logo_url ? (
                                         <img src={selectedSubmission.logo_url} alt="Logo" className="w-full h-full object-contain" />
                                     ) : (
                                         <ClipboardList className="text-slate-200" size={40} />
                                     )}
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="px-3 py-1 bg-[#1a27c9]/10 text-[#1a27c9] text-[10px] font-black uppercase tracking-widest rounded-lg">
+                                <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-2">
+                                        <span className="px-3 py-1 bg-[#1a27c9]/10 text-[#1a27c9] text-[10px] font-black uppercase tracking-widest rounded-lg break-normal">
                                             {selectedSubmission.status}
                                         </span>
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                            Submitted At: {new Date(selectedSubmission.submitted_at).toLocaleDateString()}
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest break-normal whitespace-normal">
+                                            Submitted: {new Date(selectedSubmission.submitted_at).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    <h2 className="text-4xl font-black text-[#0d0e0e] tracking-tight leading-none">
+                                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#0d0e0e] tracking-tight leading-none truncate whitespace-normal">
                                         {selectedSubmission.startup_name}
                                     </h2>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 relative z-10">
+                            <div className="flex items-center justify-center md:justify-end gap-2 relative z-10 w-full md:w-auto flex-shrink-0">
                                 <button
                                     onClick={() => handleNavigate('prev')}
                                     disabled={!navState.hasPrev}
@@ -574,7 +574,7 @@ const SelectionProcessManager = () => {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-white">
+                        <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar bg-white">
                             <div className="max-w-2xl mx-auto space-y-12">
                                 {/* Review Summary Section */}
                                 <div className="space-y-6">
@@ -635,13 +635,13 @@ const SelectionProcessManager = () => {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-8 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 mt-auto">
-                            <div className="flex items-center gap-2 mr-auto">
+                        <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4 mt-auto flex-shrink-0">
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 w-full md:w-auto">
                                 {selectedSubmission.status === 'screening' && (
                                     <>
                                         <button
                                             onClick={() => handleStatusUpdate(selectedSubmission.submission_id, 'interview')}
-                                            className="px-6 py-4 rounded-2xl bg-purple-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-purple-700 transition-premium shadow-lg shadow-purple-100"
+                                            className="flex-1 md:flex-none px-4 md:px-6 py-4 rounded-2xl bg-purple-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-purple-700 transition-premium shadow-lg shadow-purple-100"
                                         >
                                             Move to Interview
                                         </button>
@@ -731,7 +731,7 @@ const SelectionProcessManager = () => {
                             </div>
                             <button
                                 onClick={() => setSelectedSubmission(null)}
-                                className="px-8 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-premium"
+                                className="w-full md:w-auto px-8 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-premium"
                             >
                                 Close View
                             </button>
@@ -742,26 +742,26 @@ const SelectionProcessManager = () => {
 
             {/* Decision Reason Modal */}
             {decisionModal.show && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 flex flex-col">
-                        <div className="p-8 border-b border-slate-50 flex items-center justify-between">
-                            <div>
-                                <h2 className="text-2xl font-black text-[#0d0e0e] tracking-tight">
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-[2.5rem] md:rounded-[40px] shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-slate-100 flex flex-col">
+                        <div className="p-6 md:p-8 border-b border-slate-50 flex items-start justify-between">
+                            <div className="pr-4">
+                                <h2 className="text-xl md:text-2xl font-black text-[#0d0e0e] tracking-tight">
                                     Decision Context
                                 </h2>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 break-words">
                                     Moving {decisionModal.submission.startup_name} to {decisionModal.newStatus}
                                 </p>
                             </div>
                             <button
                                 onClick={() => setDecisionModal({ show: false, submission: null, newStatus: null, reason: '' })}
-                                className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-premium"
+                                className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-premium flex-shrink-0"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
-                        <div className="p-8 space-y-6">
+                        <div className="p-6 md:p-8 space-y-6">
                             <div className="space-y-3">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                     {decisionModal.newStatus === 'interview'
@@ -783,10 +783,10 @@ const SelectionProcessManager = () => {
                             </div>
                         </div>
 
-                        <div className="p-8 bg-slate-50 border-t border-slate-100 flex gap-3">
+                        <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
                             <button
                                 onClick={() => setDecisionModal({ show: false, submission: null, newStatus: null, reason: '' })}
-                                className="flex-1 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-100 transition-premium"
+                                className="w-full sm:flex-1 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-100 transition-premium"
                             >
                                 Cancel
                             </button>
@@ -795,13 +795,13 @@ const SelectionProcessManager = () => {
                                     reason_provided: true,
                                     reason: decisionModal.reason
                                 })}
-                                className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-premium shadow-lg ${decisionModal.newStatus === 'rejected' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-200' :
+                                className={`w-full sm:flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-premium shadow-lg ${decisionModal.newStatus === 'rejected' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-200' :
                                     decisionModal.newStatus === 'holding' ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-200' :
                                         decisionModal.newStatus === 'interview' ? 'bg-purple-600 hover:bg-purple-700 shadow-purple-200' :
                                             'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'
                                     }`}
                             >
-                                {decisionModal.newStatus === 'interview' ? 'Proceed to Interview' : 'Confirm Decision'}
+                                {decisionModal.newStatus === 'interview' ? 'Proceed' : 'Confirm'}
                             </button>
                         </div>
                     </div>

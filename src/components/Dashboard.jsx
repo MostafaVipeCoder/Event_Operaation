@@ -254,7 +254,7 @@ export default function Dashboard() {
             {
                 showCreateModal && (
                     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl scale-in-center">
+                        <div className="bg-white rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl scale-in-center max-h-[90vh] overflow-y-auto flex flex-col">
                             {createStatus === 'idle' ? (
                                 <>
                                     <div className="text-center mb-8">

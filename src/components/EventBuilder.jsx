@@ -1378,7 +1378,7 @@ export default function EventBuilder({ event, onBack }) {
                 {/* Slot Addition/Edit Modal */}
                 {slotModal.show && (
                     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-manrope">
-                        <div className="bg-white rounded-[2.5rem] w-full max-w-xl p-10 shadow-2xl scale-in-center border border-slate-100">
+                        <div className="bg-white rounded-[2.5rem] w-full max-w-xl p-6 md:p-10 shadow-2xl scale-in-center border border-slate-100 max-h-[90vh] overflow-y-auto flex flex-col">
                             <div className="flex items-center gap-4 mb-8">
                                 <div className="bg-indigo-50 p-3 rounded-2xl">
                                     <Plus size={24} className="text-[#1a27c9]" />
@@ -1520,7 +1520,7 @@ export default function EventBuilder({ event, onBack }) {
                 confirmState.show && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fadeIn">
                         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setConfirmState({ show: false, message: '', onConfirm: null })} />
-                        <div className="bg-white rounded-3xl p-8 max-w-md w-full relative z-10 shadow-2xl border border-white active:scale-[0.99] transition-transform">
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-2xl border border-white active:scale-[0.99] transition-transform">
                             <div className="flex flex-col items-center text-center">
                                 <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-6 text-rose-500">
                                     <AlertTriangle size={36} />

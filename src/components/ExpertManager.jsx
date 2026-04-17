@@ -306,15 +306,15 @@ const ExpertManager = () => {
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="relative group">
+                        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto mt-4 xl:mt-0 justify-center xl:justify-end">
+                            <div className="relative group w-full sm:w-auto grow">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1a27c9] transition-colors" size={18} />
                                 <input
                                     type="text"
                                     placeholder="Search experts..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium w-full md:w-64"
+                                    className="pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium w-full sm:w-64"
                                 />
                             </div>
                             <SyncButton
@@ -345,18 +345,18 @@ const ExpertManager = () => {
             {showSettingsModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-[#0d0e0e]/60 backdrop-blur-sm" onClick={() => setShowSettingsModal(false)} />
-                    <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300 flex flex-col">
+                        <div className="p-6 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
                             <div>
-                                <h2 className="text-2xl font-black text-[#0d0e0e] tracking-tight">Expert Card Settings</h2>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Configure visibility & constraints</p>
+                                <h2 className="text-xl sm:text-2xl font-black text-[#0d0e0e] tracking-tight">Expert Card Settings</h2>
+                                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Configure visibility & constraints</p>
                             </div>
-                            <button onClick={() => setShowSettingsModal(false)} className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-all">
+                            <button onClick={() => setShowSettingsModal(false)} className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-all flex-shrink-0">
                                 <X size={20} />
                             </button>
                         </div>
 
-                        <div className="p-8 max-h-[60vh] overflow-y-auto">
+                        <div className="p-6 sm:p-8 overflow-y-auto">
                             <div className="space-y-4">
                                 {formConfig.map((field, idx) => (
                                     <div key={field.field_name} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-[#1a27c9]/30 transition-all">
@@ -840,31 +840,31 @@ const ExpertManager = () => {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-[#0d0e0e]/40 backdrop-blur-md" onClick={() => setShowPreview(false)} />
                     <div className="bg-white w-full max-w-4xl rounded-[3rem] shadow-2xl relative overflow-hidden animate-in zoom-in duration-300">
-                        <div className="h-32 bg-gradient-to-r from-[#1a27c9] to-[#4f46e5]" />
-                        <div className="p-12 -mt-16">
-                            <div className="flex justify-between items-start mb-10">
+                        <div className="h-24 sm:h-32 bg-gradient-to-r from-[#1a27c9] to-[#4f46e5]" />
+                        <div className="p-8 sm:p-12 -mt-12 sm:-mt-16 relative">
+                            <button
+                                onClick={() => setShowPreview(false)}
+                                className="absolute top-4 right-4 sm:top-12 sm:right-12 p-3 bg-white/10 sm:bg-white/10 hover:bg-white/20 sm:hover:bg-white/20 backdrop-blur-sm rounded-2xl text-white transition-premium z-10"
+                            >
+                                <X size={20} />
+                            </button>
+                            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-6 sm:mb-10 text-center sm:text-left gap-4">
                                 <div className="p-2 bg-white rounded-[2rem] shadow-xl">
-                                    <div className="w-28 h-28 rounded-[1.5rem] bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
+                                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[1.5rem] bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
                                         {selectedSubmission.photo_url ? (
                                             <img src={selectedSubmission.photo_url} alt="" className="w-full h-full object-cover" />
                                         ) : (
-                                            <Users size={48} className="text-slate-200" />
+                                            <Users size={40} className="text-slate-200" />
                                         )}
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => setShowPreview(false)}
-                                    className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-2xl text-white transition-premium mt-4"
-                                >
-                                    <X size={24} />
-                                </button>
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                                <div className="space-y-8">
-                                    <div>
-                                        <h2 className="text-3xl font-black text-[#0d0e0e] tracking-tight mb-2">{selectedSubmission.expert_name}</h2>
-                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
+                                <div className="space-y-6 sm:space-y-8">
+                                    <div className="text-center sm:text-left">
+                                        <h2 className="text-2xl sm:text-3xl font-black text-[#0d0e0e] tracking-tight mb-2 break-words">{selectedSubmission.expert_name}</h2>
+                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs flex items-center justify-center sm:justify-start gap-2">
                                             <Clock size={14} /> Submitting Pulse from Form Link
                                         </p>
                                     </div>

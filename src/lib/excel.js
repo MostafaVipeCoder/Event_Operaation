@@ -233,7 +233,7 @@ export const parseWorkbook = (workbook) => {
             return {
                 name: get('Company Name', 'Name', 'Startup Name', 'اسم الشركة', 'الشركة'),
                 founder: get('Founder', 'CEO', 'المؤسس'),
-                role: get('Role in the Startup', 'Role', 'الدور'),
+                role: get('Role in the Startup', 'Role in Startup', 'Role', 'الدور'),
                 location: get('Governorate', 'Gov.', 'Location', 'City', 'المحافظة', 'المدينة'),
                 governorate: get('Governorate', 'Gov.', 'Location', 'City', 'المحافظة', 'المدينة'),
                 industry: get('Industry', 'Sector', 'القطاع', 'الفئة'),

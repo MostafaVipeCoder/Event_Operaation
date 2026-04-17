@@ -65,7 +65,7 @@ const CreateFormModal = ({ onClose, onCreate, loading }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md p-8 animate-in fade-in zoom-in-95">
+            <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md p-6 sm:p-8 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h2 className="text-xl font-black text-slate-900">Create New Form</h2>

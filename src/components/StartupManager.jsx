@@ -333,15 +333,15 @@ const StartupManager = () => {
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="relative group">
+                        <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0 w-full xl:w-auto justify-center xl:justify-end">
+                            <div className="relative group w-full sm:w-auto grow">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#059669] transition-colors" size={18} />
                                 <input
                                     type="text"
                                     placeholder="Find ventures..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium w-full md:w-64"
+                                    className="pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium w-full sm:w-64"
                                 />
                             </div>
                             <SyncButton
@@ -372,10 +372,10 @@ const StartupManager = () => {
             {showSettingsModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-[#0d0e0e]/60 backdrop-blur-sm" onClick={() => setShowSettingsModal(false)} />
-                    <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+                        <div className="p-6 md:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
                             <div>
-                                <h2 className="text-2xl font-black text-[#0d0e0e] tracking-tight">Company Card Settings</h2>
+                                <h2 className="text-xl md:text-2xl font-black text-[#0d0e0e] tracking-tight">Company Card Settings</h2>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Configure visibility & constraints</p>
                             </div>
                             <button onClick={() => setShowSettingsModal(false)} className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-all">
@@ -534,16 +534,15 @@ const StartupManager = () => {
                         </div>
                     )
                 ) : (
-                    /* Review Desk View */
                     <div className="space-y-6">
                         {submissions.length > 0 ? (
                             <div className="grid grid-cols-1 gap-4">
                                 {submissions.map((submission) => (
-                                    <div key={submission.submission_id} className="bg-white rounded-[2rem] border border-slate-100 p-8 hover:shadow-xl transition-premium group relative overflow-hidden">
+                                    <div key={submission.submission_id} className="bg-white rounded-[2rem] border border-slate-100 p-6 md:p-8 hover:shadow-xl transition-premium group relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-1.5 h-full bg-[#059669] opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-                                            <div className="flex items-center gap-6 flex-1">
-                                                <div className="relative w-24 h-24 rounded-[1.5rem] overflow-hidden bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform flex-shrink-0">
+                                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-6 flex-1">
+                                                <div className="relative w-24 h-24 rounded-[1.5rem] overflow-hidden bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform flex-shrink-0 self-start sm:self-auto">
                                                     <LazyImage
                                                         src={submission.logo_url ? getGoogleDriveFallbackUrls(submission.logo_url)[0] : null}
                                                         urls={submission.logo_url ? getGoogleDriveFallbackUrls(submission.logo_url) : []}
@@ -571,13 +570,13 @@ const StartupManager = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-wrap items-center gap-3">
+                                            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                                                 <button
                                                     onClick={() => {
                                                         setSelectedSubmission(submission);
                                                         setShowPreview(true);
                                                     }}
-                                                    className="px-6 py-4 bg-slate-50 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-premium flex items-center gap-2 border border-transparent hover:border-slate-200"
+                                                    className="flex-1 lg:flex-none justify-center px-6 py-4 bg-slate-50 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-premium flex items-center gap-2 border border-transparent hover:border-slate-200"
                                                 >
                                                     <Eye size={16} />
                                                     Inspect
@@ -585,7 +584,7 @@ const StartupManager = () => {
                                                 <button
                                                     onClick={() => handleApproveCompany(submission)}
                                                     disabled={actionLoading === submission.submission_id}
-                                                    className="px-6 py-4 bg-[#059669] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0d0e0e] hover:shadow-lg hover:shadow-emerald-200 transition-premium flex items-center gap-2 disabled:opacity-50"
+                                                    className="flex-1 lg:flex-none justify-center px-6 py-4 bg-[#059669] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0d0e0e] hover:shadow-lg hover:shadow-emerald-200 transition-premium flex items-center gap-2 disabled:opacity-50"
                                                 >
                                                     {actionLoading === submission.submission_id ? (
                                                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -597,7 +596,7 @@ const StartupManager = () => {
                                                 <button
                                                     onClick={() => handleRejectCompany(submission)}
                                                     disabled={actionLoading === submission.submission_id}
-                                                    className="px-6 py-4 bg-white text-rose-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 hover:text-rose-600 border border-slate-100 hover:border-rose-100 transition-premium flex items-center gap-2 disabled:opacity-50"
+                                                    className="flex-1 lg:flex-none justify-center px-6 py-4 bg-white text-rose-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 hover:text-rose-600 border border-slate-100 hover:border-rose-100 transition-premium flex items-center gap-2 disabled:opacity-50"
                                                 >
                                                     <XCircle size={16} />
                                                     Reject
@@ -623,7 +622,7 @@ const StartupManager = () => {
             {/* Deploy Startup Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl p-8 lg:p-12 shadow-2xl relative overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-8 lg:p-12 shadow-2xl relative">
                         <button
                             onClick={() => {
                                 setShowAddModal(false);
@@ -1043,10 +1042,16 @@ const StartupManager = () => {
                     <div className="absolute inset-0 bg-[#0d0e0e]/40 backdrop-blur-md" onClick={() => setShowPreview(false)} />
                     <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl relative overflow-hidden animate-in zoom-in duration-300">
                         <div className="h-24 bg-gradient-to-r from-[#059669] to-[#10b981]" />
-                        <div className="p-12 -mt-12">
-                            <div className="flex justify-between items-start mb-10">
+                        <div className="p-8 sm:p-12 -mt-12 relative">
+                            <button
+                                onClick={() => setShowPreview(false)}
+                                className="absolute top-4 right-4 sm:top-12 sm:right-12 p-3 bg-white hover:bg-slate-100 rounded-2xl text-slate-400 transition-premium shadow-sm z-10"
+                            >
+                                <XCircle size={20} />
+                            </button>
+                            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-6 sm:mb-10 text-center sm:text-left gap-4">
                                 <div className="p-2 bg-white rounded-[2rem] shadow-xl">
-                                    <div className="w-24 h-24 rounded-[1.5rem] bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
+                                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
                                         <LazyImage
                                             src={selectedSubmission.logo_url ? getGoogleDriveFallbackUrls(selectedSubmission.logo_url)[0] : null}
                                             urls={selectedSubmission.logo_url ? getGoogleDriveFallbackUrls(selectedSubmission.logo_url) : []}
@@ -1057,16 +1062,10 @@ const StartupManager = () => {
                                         />
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => setShowPreview(false)}
-                                    className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 transition-premium"
-                                >
-                                    <XCircle size={20} />
-                                </button>
                             </div>
 
-                            <div className="mb-8">
-                                <h2 className="text-3xl font-black text-[#0d0e0e] tracking-tight mb-2">{selectedSubmission.startup_name}</h2>
+                            <div className="mb-8 text-center sm:text-left">
+                                <h2 className="text-2xl sm:text-3xl font-black text-[#0d0e0e] tracking-tight mb-2 break-all">{selectedSubmission.startup_name}</h2>
                                 <p className="text-slate-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
                                     <Clock size={14} /> Submitting Pulse from Form Link
                                 </p>
