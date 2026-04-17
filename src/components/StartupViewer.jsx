@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { getEvent, getCompanies } from '../lib/api';
+import { getEvent, getCompanies, getFormConfig } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 import CompanyCard from './CompanyCard';
 
 export default function StartupViewer() {
-    const { eventId } = useParams();
     const [event, setEvent] = useState(null);
     const [companies, setCompanies] = useState([]);
+    const [config, setConfig] = useState(null);
     const [loading, setLoading] = useState(true);
     const [themeColor, setThemeColor] = useState('#1a27c9'); // Default indigo
     const [viewMode] = useState('grid'); // Optimized Grid Layout
     const navigate = useNavigate();
+    const { eventId } = useParams();
 
     // Language Handling
     const [searchParams] = useSearchParams();
@@ -43,13 +44,15 @@ export default function StartupViewer() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [eventData, companiesData] = await Promise.all([
+                const [eventData, companiesData, configData] = await Promise.all([
                     getEvent(eventId),
-                    getCompanies(eventId)
+                    getCompanies(eventId),
+                    getFormConfig(eventId, 'company')
                 ]);
 
                 setEvent(eventData);
                 setCompanies(companiesData || []);
+                setConfig(configData);
 
                 // Load custom theme from Supabase event data
                 if (eventData?.startups_color) {
@@ -136,8 +139,10 @@ export default function StartupViewer() {
                         <CompanyCard
                             key={company.company_id || company.id}
                             company={company}
+                            config={config}
                             customColor={themeColor}
                             viewMode={viewMode}
+                            previewMode={true}
                         />
                     ))}
                 </div>

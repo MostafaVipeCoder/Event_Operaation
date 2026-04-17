@@ -178,19 +178,23 @@ export const deleteEvent = async (eventId) => {
 // ==========================================
 
 export const createExpert = async (expertData) => {
+    // Only include valid columns to prevent 400 Errors
+    const { name, title, company, bio, linkedin_url, photo_url, event_id, sort_order } = expertData;
     const { data, error } = await supabase
         .from('experts')
-        .insert(expertData)
+        .insert({ name, title, company, bio, linkedin_url, photo_url, event_id, sort_order })
         .select()
         .single();
     if (error) throw error;
     return data;
 };
 
-export const updateExpert = async (expertId, updates) => {
+export const updateExpert = async (expertId, expertData) => {
+    // Only include valid columns to prevent 400 Errors
+    const { name, title, company, bio, linkedin_url, photo_url, event_id, sort_order } = expertData;
     const { data, error } = await supabase
         .from('experts')
-        .update(updates)
+        .update({ name, title, company, bio, linkedin_url, photo_url, event_id, sort_order })
         .eq('expert_id', expertId)
         .select()
         .single();
@@ -375,10 +379,11 @@ export const uploadImage = async (file, path = 'covers') => {
 
 /**
  * Bulk imports agenda data (days and slots) for an event.
+ * Supports previewOnly mode to return a diff before applying changes.
  */
-export const importAgendaData = async (eventId, data) => {
+export const importAgendaData = async (eventId, data, previewOnly = false) => {
     const { days: sheetDays, slots: sheetSlots, experts: sheetExperts, companies: sheetCompanies } = data;
-    console.log(`[Supabase] Differential Sync started for event: ${eventId}`);
+    console.log(`[Supabase] Differential Sync ${previewOnly ? 'PREVIEW' : 'START'} for event: ${eventId}`);
 
     const stats = {
         days: { added: 0, updated: 0, skipped: 0 },
@@ -387,127 +392,62 @@ export const importAgendaData = async (eventId, data) => {
         companies: { added: 0, updated: 0, skipped: 0 }
     };
 
+    const changes = {
+        experts: { toAdd: [], toUpdate: [] },
+        companies: { toAdd: [], toUpdate: [] },
+        slots: { toAdd: [], toUpdate: [] }
+    };
+
+    // Helper to normalize strings for comparison
+    const normalize = (str) => (str || '').toString().trim().toLowerCase();
+
     try {
-        // --- 1. SYNC DAYS ---
-        const { data: existingDays } = await supabase
-            .from('event_days')
-            .select('*')
-            .eq('event_id', eventId);
-
-        const dayIdMap = new Map(); // Maps day_name to day_id
-
-        for (const sDay of sheetDays) {
-            const existing = existingDays?.find(d => d.day_name === sDay.day_name);
-            if (existing) {
-                // Check if update needed
-                if (existing.day_date !== sDay.day_date) {
-                    await supabase.from('event_days').update({ day_date: sDay.day_date }).eq('day_id', existing.day_id);
-                    stats.days.updated++;
-                } else {
-                    stats.days.skipped++;
-                }
-                dayIdMap.set(sDay.day_name, existing.day_id);
-            } else {
-                // Create new
-                const { data: newDay, error: dError } = await supabase
-                    .from('event_days')
-                    .insert([{
-                        event_id: eventId,
-                        day_name: sDay.day_name,
-                        day_date: sDay.day_date,
-                        day_number: (existingDays?.length || 0) + stats.days.added + 1
-                    }])
-                    .select().single();
-                if (dError) {
-                    console.error('[Supabase Error] Failed to insert day. Payload:', { event_id: eventId, day_name: sDay.day_name, day_date: sDay.day_date, day_date_type: typeof sDay.day_date });
-                    throw dError;
-                }
-                dayIdMap.set(sDay.day_name, newDay.day_id);
-                stats.days.added++;
-            }
-        }
-
-        // --- 2. SYNC SLOTS ---
-        const dayIds = Array.from(dayIdMap.values());
-        let existingSlots = [];
-        if (dayIds.length > 0) {
-            const { data } = await supabase.from('agenda_slots').select('*').in('day_id', dayIds);
-            existingSlots = data || [];
-        }
-
-        for (const sSlot of sheetSlots) {
-            const targetDayId = dayIdMap.get(sSlot.day_name);
-            if (!targetDayId) continue;
-
-            const existing = existingSlots.find(s => s.day_id === targetDayId && s.slot_title === sSlot.slot_title);
-            const slotData = {
-                start_time: sSlot.start_time,
-                end_time: sSlot.end_time,
-                presenter_name: sSlot.presenter_name,
-                show_presenter: sSlot.show_presenter
-            };
-
-            if (existing) {
-                const hasChanged = existing.start_time !== slotData.start_time ||
-                    existing.end_time !== slotData.end_time ||
-                    existing.presenter_name !== slotData.presenter_name ||
-                    existing.show_presenter !== slotData.show_presenter;
-
-                if (hasChanged) {
-                    await supabase.from('agenda_slots').update(slotData).eq('slot_id', existing.slot_id);
-                    stats.slots.updated++;
-                } else {
-                    stats.slots.skipped++;
-                }
-            } else {
-                await supabase.from('agenda_slots').insert([{
-                    day_id: targetDayId,
-                    slot_title: sSlot.slot_title,
-                    ...slotData,
-                    sort_order: existingSlots.filter(s => s.day_id === targetDayId).length + stats.slots.added + 1
-                }]);
-                stats.slots.added++;
-            }
-        }
-
-        // --- 3. SYNC EXPERTS ---
+        // --- 1. SYNC EXPERTS ---
         const { data: existingExperts } = await supabase.from('experts').select('*').eq('event_id', eventId);
         if (sheetExperts) {
             for (const sExpert of sheetExperts) {
-                const existing = existingExperts?.find(e => e.name === sExpert.name);
+                const existing = existingExperts?.find(e => normalize(e.name) === normalize(sExpert.name));
                 const expertData = {
-                    title: sExpert.title || '',
-                    bio: sExpert.bio || '',
-                    company: sExpert.company || '',
-                    location: sExpert.location || '',
-                    linkedin_url: sExpert.linkedin_url || ''
+                    title: (sExpert.title || '').trim(),
+                    bio: (sExpert.bio || '').trim(),
+                    company: (sExpert.company || '').trim(),
+                    linkedin_url: (sExpert.linkedin_url || '').trim(),
+                    photo_url: (sExpert.photo_url || '').trim()
                 };
 
                 if (existing) {
                     const hasChanged = 
-                        existing.title !== expertData.title ||
-                        existing.bio !== expertData.bio ||
-                        existing.company !== expertData.company ||
-                        existing.location !== expertData.location ||
-                        existing.linkedin_url !== expertData.linkedin_url ||
-                        existing.photo_url !== sExpert.photo_url;
+                        normalize(existing.title) !== normalize(expertData.title) ||
+                        normalize(existing.bio) !== normalize(expertData.bio) ||
+                        normalize(existing.company) !== normalize(expertData.company) ||
+                        normalize(existing.linkedin_url) !== normalize(expertData.linkedin_url) ||
+                        normalize(existing.photo_url) !== normalize(expertData.photo_url);
+
                     if (hasChanged) {
-                        await supabase.from('experts').update({
-                            ...expertData,
-                            photo_url: sExpert.photo_url || existing.photo_url
-                        }).eq('expert_id', existing.expert_id);
+                        if (previewOnly) {
+                            changes.experts.toUpdate.push({ name: sExpert.name, from: existing, to: expertData });
+                        } else {
+                            await supabase.from('experts').update({
+                                ...expertData,
+                                photo_url: sExpert.photo_url || existing.photo_url
+                            }).eq('expert_id', existing.expert_id);
+                        }
                         stats.experts.updated++;
                     } else {
                         stats.experts.skipped++;
                     }
                 } else {
-                    await supabase.from('experts').insert([{ 
-                        event_id: eventId, 
-                        name: sExpert.name, 
-                        ...expertData,
-                        photo_url: sExpert.photo_url || '',
-                        sort_order: (existingExperts?.length || 0) + stats.experts.added + 1
-                    }]);
+                    if (previewOnly) {
+                        changes.experts.toAdd.push({ name: sExpert.name, ...expertData });
+                    } else {
+                        await supabase.from('experts').insert([{ 
+                            event_id: eventId, 
+                            name: sExpert.name.trim(), 
+                            ...expertData,
+                            photo_url: sExpert.photo_url || '',
+                            sort_order: (existingExperts?.length || 0) + stats.experts.added + 1
+                        }]);
+                    }
                     stats.experts.added++;
                 }
             }
@@ -517,51 +457,58 @@ export const importAgendaData = async (eventId, data) => {
         const { data: existingCompanies } = await supabase.from('companies').select('*').eq('event_id', eventId);
         if (sheetCompanies) {
             for (const sCompany of sheetCompanies) {
-                const existing = existingCompanies?.find(c => c.name === sCompany.name);
+                const existing = existingCompanies?.find(c => normalize(c.name) === normalize(sCompany.name));
                 const companyData = {
-                    founder: sCompany.founder || '',
-                    location: sCompany.location || '',
-                    governorate: sCompany.governorate || sCompany.location || '',
-                    industry: sCompany.industry || '',
-                    description: sCompany.description || '',
-                    website_url: sCompany.website_url || '',
+                    founder: (sCompany.founder || '').trim(),
+                    location: (sCompany.location || '').trim(),
+                    governorate: (sCompany.governorate || sCompany.location || '').trim(),
+                    industry: (sCompany.industry || '').trim(),
+                    description: (sCompany.description || '').trim(),
+                    website_url: (sCompany.website_url || '').trim(),
                     links: Array.isArray(sCompany.links) ? sCompany.links : [],
-                    stage: sCompany.stage || '',
-                    logo_url: sCompany.logo_url || ''
+                    stage: (sCompany.stage || '').trim(),
+                    logo_url: (sCompany.logo_url || '').trim()
                 };
 
                 if (existing) {
                     const hasChanged =
-                        existing.founder !== companyData.founder ||
-                        existing.location !== companyData.location ||
-                        existing.governorate !== companyData.governorate ||
-                        existing.industry !== companyData.industry ||
-                        existing.description !== companyData.description ||
-                        existing.website_url !== companyData.website_url ||
-                        JSON.stringify(existing.links) !== JSON.stringify(companyData.links) ||
-                        existing.stage !== companyData.stage ||
-                        existing.logo_url !== companyData.logo_url;
+                        normalize(existing.founder) !== normalize(companyData.founder) ||
+                        normalize(existing.location) !== normalize(companyData.location) ||
+                        normalize(existing.industry) !== normalize(companyData.industry) ||
+                        normalize(existing.description) !== normalize(companyData.description) ||
+                        normalize(existing.website_url) !== normalize(companyData.website_url) ||
+                        normalize(existing.stage) !== normalize(companyData.stage) ||
+                        normalize(existing.logo_url) !== normalize(companyData.logo_url);
+
                     if (hasChanged) {
-                        await supabase.from('companies').update(companyData).eq('company_id', existing.company_id);
+                        if (previewOnly) {
+                            changes.companies.toUpdate.push({ name: sCompany.name, from: existing, to: companyData });
+                        } else {
+                            await supabase.from('companies').update(companyData).eq('company_id', existing.company_id);
+                        }
                         stats.companies.updated++;
                     } else {
                         stats.companies.skipped++;
                     }
                 } else {
-                    await supabase.from('companies').insert([{ 
-                        event_id: eventId, 
-                        name: sCompany.name, 
-                        ...companyData,
-                        sort_order: (existingCompanies?.length || 0) + stats.companies.added + 1
-                    }]);
+                    if (previewOnly) {
+                        changes.companies.toAdd.push({ name: sCompany.name, ...companyData });
+                    } else {
+                        await supabase.from('companies').insert([{ 
+                            event_id: eventId, 
+                            name: sCompany.name.trim(), 
+                            ...companyData,
+                            sort_order: (existingCompanies?.length || 0) + stats.companies.added + 1
+                        }]);
+                    }
                     stats.companies.added++;
                 }
             }
         }
 
-        return { success: true, stats };
+        return { success: true, stats, changes };
     } catch (error) {
-        console.error('[Supabase Error] Differential Sync:', error);
+        console.error('[Supabase Error] Sync Operation:', error);
         throw error;
     }
 };
@@ -569,7 +516,7 @@ export const importAgendaData = async (eventId, data) => {
 /**
  * Syncs an event's data from its configured Google Sheet.
  */
-export const syncEventFromCloud = async (eventId) => {
+export const syncEventFromCloud = async (eventId, previewOnly = false) => {
     try {
         const event = await getEvent(eventId);
         if (!event.gsheets_url) {
@@ -577,7 +524,7 @@ export const syncEventFromCloud = async (eventId) => {
         }
 
         const data = await fetchAndParseGoogleSheet(event.gsheets_url);
-        return await importAgendaData(eventId, data);
+        return await importAgendaData(eventId, data, previewOnly);
     } catch (error) {
         console.error('[Supabase] syncEventFromCloud failed:', error);
         throw error;
@@ -594,16 +541,32 @@ export const syncEventFromCloud = async (eventId) => {
  * @param {string} entityType - 'company' or 'expert'
  */
 export const getFormConfig = async (eventId, entityType) => {
-    const { data, error } = await supabase
+    // 1. Find the first form for this entity type
+    const { data: forms } = await supabase
+        .from('event_forms')
+        .select('form_id')
+        .eq('event_id', eventId)
+        .eq('target_module', entityType)
+        .order('created_at', { ascending: true })
+        .limit(1);
+
+    const formId = forms?.[0]?.form_id;
+
+    // 2. Fetch fields
+    let query = supabase
         .from('form_field_configs')
         .select('*')
         .eq('event_id', eventId)
-        .eq('entity_type', entityType)
-        .order('display_order', { ascending: true });
+        .eq('entity_type', entityType);
+    
+    if (formId) {
+        query = query.eq('form_id', formId);
+    }
+
+    const { data, error } = await query.order('display_order', { ascending: true });
 
     if (error) throw error;
 
-    // If no config found, return default fields
     if (!data || data.length === 0) {
         return getDefaultFormConfig(entityType);
     }
@@ -618,23 +581,56 @@ export const getFormConfig = async (eventId, entityType) => {
  * @param {Array} fields - Array of field configurations
  */
 export const saveFormConfig = async (eventId, entityType, fields) => {
-    // Delete existing config
-    await supabase
+    // 1. Find or create the "Main" form for this entity type
+    let { data: forms } = await supabase
+        .from('event_forms')
+        .select('form_id')
+        .eq('event_id', eventId)
+        .eq('target_module', entityType)
+        .order('created_at', { ascending: true })
+        .limit(1);
+
+    let formId = forms?.[0]?.form_id;
+
+    if (!formId) {
+        // Create a default form if none exists
+        const { data: newForm } = await supabase
+            .from('event_forms')
+            .insert({ 
+                event_id: eventId, 
+                form_name: `Default ${entityType === 'expert' ? 'Expert' : 'Startup'} Form`, 
+                target_module: entityType 
+            })
+            .select()
+            .single();
+        formId = newForm?.form_id;
+    }
+
+    // 2. Delete existing config for THIS SPECIFIC FORM only
+    const deleteQuery = supabase
         .from('form_field_configs')
         .delete()
         .eq('event_id', eventId)
         .eq('entity_type', entityType);
+    
+    if (formId) {
+        await deleteQuery.eq('form_id', formId);
+    } else {
+        await deleteQuery; // Fallback for legacy
+    }
 
-    // Insert new config
-    const fieldsWithEventId = fields.map(field => ({
+    // 3. Insert new config
+    const fieldsWithMetadata = fields.map((field, idx) => ({
         ...field,
         event_id: eventId,
-        entity_type: entityType
+        entity_type: entityType,
+        form_id: formId,
+        display_order: idx
     }));
 
     const { data, error } = await supabase
         .from('form_field_configs')
-        .insert(fieldsWithEventId)
+        .insert(fieldsWithMetadata)
         .select();
 
     if (error) throw error;

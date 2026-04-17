@@ -5,7 +5,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import LazyImage from './LazyImage';
 
-const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false }) => {
+const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false }) => {
     const {
         attributes,
         listeners,
@@ -35,23 +35,59 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
     const translations = {
         en: {
             organization: "Organization",
-            location: "Location",
-            baseLocation: "Base / Location",
-            notSpecified: "Not Specified",
             fallbackBio: "Architecting the future through strategic visionary leadership and sector-defining disruption."
         },
         ar: {
             organization: "المؤسسة",
-            location: "الموقع",
-            baseLocation: "المقر / الموقع",
-            notSpecified: "غير محدد",
             fallbackBio: "بناء المستقبل من خلال القيادة الاستراتيجية المبتكرة وإحداث تغيير جذري في القطاع."
         }
     };
 
     const t = translations[lang];
 
-    const name = expert.name || 'Unknown Expert';
+    // Data Sanitization
+    const sanitizeName = (str) => {
+        if (!str) return 'Unknown Expert';
+        // Remove tab characters, newlines, and extra spaces
+        let cleaned = str.replace(/[\t\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
+        // If the resulting name looks like a URL (corruption), used as fallback or extract first part
+        if (cleaned.startsWith('http') || cleaned.includes('googledrive')) {
+            return 'Expert';
+        }
+        return cleaned;
+    };
+
+    const name = sanitizeName(expert.name);
+    
+    // Default visibility logic from global config
+    const displayConfig = (() => {
+        if (config && Array.isArray(config)) {
+            return {
+                show_photo: config.find(f => f.field_name === 'photo_url')?.show_in_card !== false,
+                show_title: config.find(f => f.field_name === 'title')?.show_in_card !== false,
+                show_bio: config.find(f => f.field_name === 'bio')?.show_in_card !== false,
+                show_company: config.find(f => f.field_name === 'company')?.show_in_card !== false,
+                show_linkedin: config.find(f => f.field_name === 'linkedin_url')?.show_in_card !== false
+            };
+        }
+        
+        // Legacy/Fallback to local config
+        const local = expert.display_config || {};
+        return {
+            show_photo: local.show_photo !== false,
+            show_title: local.show_title !== false,
+            show_bio: local.show_bio !== false,
+            show_company: local.show_company !== false,
+            show_linkedin: local.show_linkedin !== false
+        };
+    })();
+
+    const showPhoto = displayConfig.show_photo;
+    const showTitle = displayConfig.show_title;
+    const showBio = displayConfig.show_bio;
+    const showCompany = displayConfig.show_company;
+    const showLinkedin = displayConfig.show_linkedin;
+
     const photo = expert.photo_url || expert.photoUrl;
     const linkedin = expert.linkedin_url || expert.linkedin;
     const twitter = expert.twitter_url || expert.twitter;
@@ -86,21 +122,30 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                         style={{ backgroundColor: customColor }}
                     />
                     <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-[3.5rem] md:rounded-[4.5rem] overflow-hidden border-8 border-white shadow-2xl bg-slate-50 transition-all duration-700 group-hover:scale-[1.02]">
-                        <LazyImage
-                            src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
-                            urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
-                            alt={name}
-                            objectFit="cover"
-                            className="grayscale-[0.1] contrast-[1.05] group-hover:grayscale-0 transition-all duration-700"
-                            fallback={
-                                <div
-                                    className="w-full h-full flex items-center justify-center text-8xl font-black"
-                                    style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
-                                >
-                                    {name.charAt(0)}
-                                </div>
-                            }
-                        />
+                        {showPhoto ? (
+                            <LazyImage
+                                src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
+                                urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
+                                alt={name}
+                                objectFit="cover"
+                                className="grayscale-[0.1] contrast-[1.05] group-hover:grayscale-0 transition-all duration-700"
+                                fallback={
+                                    <div
+                                        className={`w-full h-full flex items-center justify-center text-8xl font-black`}
+                                        style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
+                                    >
+                                        {name.charAt(0)}
+                                    </div>
+                                }
+                            />
+                        ) : (
+                            <div
+                                className="w-full h-full flex items-center justify-center text-8xl font-black"
+                                style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
+                            >
+                                {name.charAt(0)}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -111,11 +156,13 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                             <h3 className={`text-4xl md:text-6xl font-black text-[#0d0e0e] tracking-tighter mb-2 leading-[0.85] group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
                                 {name}
                             </h3>
-                            <p className={`text-[#1a27c9] text-sm md:text-base font-black opacity-80 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
-                                {expert.title}
-                            </p>
+                            {showTitle && (
+                                <p className={`text-[#1a27c9] text-sm md:text-base font-black opacity-80 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
+                                    {expert.title}
+                                </p>
+                            )}
                         </div>
-                        {linkedin && (
+                        {linkedin && showLinkedin && (
                             <a
                                 href={linkedin}
                                 target="_blank"
@@ -129,28 +176,23 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
 
                     <div className="h-px w-20 bg-slate-100 mb-6 mx-auto md:mx-0" />
 
-                    <p className="text-slate-500 text-lg md:text-xl leading-relaxed font-medium mb-8 transition-colors group-hover:text-slate-800">
-                        "{expert.bio || t.fallbackBio}"
-                    </p>
+                    {showBio && (
+                        <p className="text-slate-500 text-lg md:text-xl leading-relaxed font-medium mb-8 transition-colors group-hover:text-slate-800">
+                            "{expert.bio || t.fallbackBio}"
+                        </p>
+                    )}
 
-                    <div className="flex flex-wrap justify-center md:justify-start gap-6">
-                        <div className="flex items-center gap-4 bg-slate-50/50 px-8 py-5 rounded-[2rem] border border-slate-100/50 group-hover:bg-white group-hover:border-slate-200 transition-all">
-                            <Briefcase size={20} className="text-slate-400" />
-                            <div className={isRtl ? 'text-right' : 'text-left'}>
-                                <span className="block text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">{t.organization}</span>
-                                <span className="text-sm font-black text-[#0d0e0e] uppercase">{expert.company || t.notSpecified}</span>
+                    {showCompany && (
+                        <div className="flex flex-wrap justify-center md:justify-start gap-6">
+                            <div className="flex items-center gap-4 bg-slate-50/50 px-8 py-5 rounded-[2rem] border border-slate-100/50 group-hover:bg-white group-hover:border-slate-200 transition-all">
+                                <Briefcase size={20} className="text-slate-400" />
+                                <div className={isRtl ? 'text-right' : 'text-left'}>
+                                    <span className="block text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">{t.organization}</span>
+                                    <span className="text-sm font-black text-[#0d0e0e] uppercase">{expert.company || 'Not Specified'}</span>
+                                </div>
                             </div>
                         </div>
-
-                        <div className="flex items-center gap-4 bg-slate-50/50 px-8 py-5 rounded-[2rem] border border-slate-100/50 group-hover:bg-white group-hover:border-slate-200 transition-all">
-                            <MapPin size={20} className="text-slate-400" />
-                            <div className={isRtl ? 'text-right' : 'text-left'}>
-                                <span className="block text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">{t.baseLocation}</span>
-                                <span className="text-sm font-black text-[#0d0e0e] uppercase">{expert.location || t.notSpecified}</span>
-                            </div>
-                        </div>
-
-                    </div>
+                    )}
                 </div>
 
                 {/* Side Accent */}
@@ -249,7 +291,7 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
             <div className="flex flex-col items-center mb-2 z-10 w-full relative">
                 <div className="relative w-44 h-44 mb-3">
                     {/* LinkedIn Pin next to Image */}
-                    {linkedin && (
+                    {linkedin && showLinkedin && (
                         <a
                             href={linkedin}
                             target="_blank"
@@ -266,21 +308,30 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                     />
                     {/* Image Container */}
                     <div className="relative w-full h-full rounded-[3.5rem] overflow-hidden border-4 border-white shadow-2xl bg-slate-50 transition-transform duration-1000 group-hover:scale-[1.05]">
-                        <LazyImage
-                            src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
-                            urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
-                            alt={name}
-                            objectFit="cover"
-                            className="grayscale-[0.2] contrast-[1.1] group-hover:grayscale-0 transition-all duration-1000"
-                            fallback={
-                                <div
-                                    className="w-full h-full flex items-center justify-center text-6xl font-black"
-                                    style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
-                                >
-                                    {name.charAt(0)}
-                                </div>
-                            }
-                        />
+                        {showPhoto ? (
+                            <LazyImage
+                                src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
+                                urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
+                                alt={name}
+                                objectFit="cover"
+                                className="grayscale-[0.2] contrast-[1.1] group-hover:grayscale-0 transition-all duration-1000"
+                                fallback={
+                                    <div
+                                        className="w-full h-full flex items-center justify-center text-6xl font-black"
+                                        style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
+                                    >
+                                        {name.charAt(0)}
+                                    </div>
+                                }
+                            />
+                        ) : (
+                            <div
+                                className="w-full h-full flex items-center justify-center text-6xl font-black"
+                                style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
+                            >
+                                {name.charAt(0)}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -288,34 +339,33 @@ const ExpertCard = ({ expert, customColor = '#1a27c9', viewMode = 'grid', onEdit
                     <h3 className={`text-2xl font-black text-[#0d0e0e] tracking-tight mb-1 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
                         {name}
                     </h3>
-                    <p className={`text-[#1a27c9] text-[10px] font-black opacity-80 mb-2 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
-                        {expert.title}
-                    </p>
+                    {showTitle && (
+                        <p className={`text-[#1a27c9] text-[10px] font-black opacity-80 mb-2 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
+                            {expert.title}
+                        </p>
+                    )}
                 </div>
             </div>
 
             {/* Content Section */}
             <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
-                <p className="text-slate-500 text-[0.95rem] leading-relaxed font-medium mb-2 transition-colors group-hover:text-slate-800 line-clamp-4">
-                    "{expert.bio || t.fallbackBio}"
-                </p>
+                {showBio && (
+                    <p className="text-slate-500 text-[0.95rem] leading-relaxed font-medium mb-2 transition-colors group-hover:text-slate-800 line-clamp-4">
+                        "{expert.bio || t.fallbackBio}"
+                    </p>
+                )}
 
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
-                        <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
-                            <Briefcase size={14} />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.organization}</span>
+                {showCompany && (
+                    <div className="flex justify-center">
+                        <div className="bg-slate-50 p-4 px-8 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200 min-w-[200px]">
+                            <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
+                                <Briefcase size={14} />
+                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.organization}</span>
+                            </div>
+                            <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.company || 'Not Specified'}</p>
                         </div>
-                        <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.company || t.notSpecified}</p>
                     </div>
-                    <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
-                        <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
-                            <MapPin size={14} />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.location}</span>
-                        </div>
-                        <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.location || t.notSpecified}</p>
-                    </div>
-                </div>
+                )}
             </div>
 
             {/* Bottom Accent Line */}

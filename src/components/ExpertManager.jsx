@@ -6,7 +6,7 @@ import SyncButton from './SyncButton';
 import { 
     getExperts, createExpert, updateExpert, deleteExpert, 
     uploadImage, getSubmissions, approveSubmission, rejectSubmission,
-    bulkUpdateExperts 
+    bulkUpdateExperts, getFormConfig, saveFormConfig
 } from '../lib/api';
 import {
     DndContext,
@@ -44,16 +44,25 @@ const ExpertManager = () => {
     const [showPreview, setShowPreview] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
     const [activeId, setActiveId] = useState(null);
+    const [formConfig, setFormConfig] = useState([]);
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [settingsSaving, setSettingsSaving] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
         name: '',
         title: '',
         company: '',
-        location: '',
         bio: '',
         linkedin_url: '',
-        photo_url: ''
+        photo_url: '',
+        display_config: {
+            show_title: true,
+            show_company: true,
+            show_bio: true,
+            show_linkedin: true,
+            show_photo: true
+        }
     });
 
     // DnD Sensors
@@ -71,13 +80,17 @@ const ExpertManager = () => {
     const loadData = async () => {
         try {
             setLoading(true);
+            const [expertsData, configData] = await Promise.all([
+                activeTab === 'curated' ? getExperts(eventId) : getSubmissions(eventId, 'expert', 'pending'),
+                getFormConfig(eventId, 'expert')
+            ]);
+            
             if (activeTab === 'curated') {
-                const data = await getExperts(eventId);
-                setExperts(data || []);
+                setExperts(expertsData || []);
             } else {
-                const data = await getSubmissions(eventId, 'expert', 'pending');
-                setSubmissions(data || []);
+                setSubmissions(expertsData || []);
             }
+            setFormConfig(configData || []);
             setError(null);
         } catch (err) {
             console.error('Error loading data:', err);
@@ -97,14 +110,19 @@ const ExpertManager = () => {
             name: expert.name || '',
             title: expert.title || '',
             company: expert.company || '',
-            location: expert.location || '',
             bio: expert.bio || '',
             linkedin_url: expert.linkedin_url || '',
-            photo_url: expert.photo_url || ''
+            photo_url: expert.photo_url || '',
+            display_config: (typeof expert.display_config === 'string' ? JSON.parse(expert.display_config) : expert.display_config) || {
+                show_title: true,
+                show_company: true,
+                show_bio: true,
+                show_linkedin: true,
+                show_photo: true
+            }
         });
         setShowAddModal(true);
     };
-
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -119,6 +137,10 @@ const ExpertManager = () => {
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const isFieldRequired = (fieldName) => {
+        return formConfig.find(f => f.field_name === fieldName)?.is_required;
     };
 
     const handleDeleteExpert = async (expertId) => {
@@ -180,7 +202,21 @@ const ExpertManager = () => {
             }
             setShowAddModal(false);
             setEditingExpert(null);
-            setFormData({ name: '', title: '', company: '', location: '', bio: '', linkedin_url: '', photo_url: '' });
+            setFormData({ 
+                name: '', 
+                title: '', 
+                company: '', 
+                bio: '', 
+                linkedin_url: '', 
+                photo_url: '',
+                display_config: {
+                    show_title: true,
+                    show_company: true,
+                    show_bio: true,
+                    show_linkedin: true,
+                    show_photo: true
+                }
+            });
             loadData();
         } catch (err) {
             console.error('Error saving expert:', err);
@@ -192,8 +228,7 @@ const ExpertManager = () => {
 
     const filteredExperts = experts.filter(expert =>
         expert.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        expert.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        expert.location?.toLowerCase().includes(searchTerm.toLowerCase())
+        expert.company?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleDragStart = (event) => {
@@ -214,7 +249,7 @@ const ExpertManager = () => {
 
         // Persist to database
         const updates = newExperts.map((expert, index) => ({
-            expert_id: expert.expert_id || expert.id,
+            ...expert,
             sort_order: index + 1
         }));
 
@@ -294,10 +329,110 @@ const ExpertManager = () => {
                                 <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
                                 <span>Add Expert</span>
                             </button>
+                            <button
+                                onClick={() => setShowSettingsModal(true)}
+                                className="w-[54px] h-[54px] bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-slate-50 transition-premium shadow-sm"
+                                title="Card Settings"
+                            >
+                                <Layout size={20} />
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Card Settings Modal */}
+            {showSettingsModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-[#0d0e0e]/60 backdrop-blur-sm" onClick={() => setShowSettingsModal(false)} />
+                    <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300">
+                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div>
+                                <h2 className="text-2xl font-black text-[#0d0e0e] tracking-tight">Expert Card Settings</h2>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Configure visibility & constraints</p>
+                            </div>
+                            <button onClick={() => setShowSettingsModal(false)} className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-all">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-8 max-h-[60vh] overflow-y-auto">
+                            <div className="space-y-4">
+                                {formConfig.map((field, idx) => (
+                                    <div key={field.field_name} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-[#1a27c9]/30 transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-white rounded-2xl border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-[#1a27c9] transition-colors">
+                                                <Database size={20} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-[#0d0e0e]">{field.field_label}</h4>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{field.field_name}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-8">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Card View</span>
+                                                <button
+                                                    onClick={() => {
+                                                        const newConfig = [...formConfig];
+                                                        newConfig[idx].show_in_card = !newConfig[idx].show_in_card;
+                                                        setFormConfig(newConfig);
+                                                    }}
+                                                    className={`w-12 h-6 rounded-full transition-all relative ${field.show_in_card ? 'bg-[#1a27c9]' : 'bg-slate-200'}`}
+                                                >
+                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${field.show_in_card ? 'right-1' : 'left-1'}`} />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-2">
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Required</span>
+                                                <button
+                                                    onClick={() => {
+                                                        const newConfig = [...formConfig];
+                                                        newConfig[idx].is_required = !newConfig[idx].is_required;
+                                                        setFormConfig(newConfig);
+                                                    }}
+                                                    className={`w-12 h-6 rounded-full transition-all relative ${field.is_required ? 'bg-[#1a27c9]' : 'bg-slate-200'}`}
+                                                >
+                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${field.is_required ? 'right-1' : 'left-1'}`} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-4">
+                            <button
+                                onClick={() => setShowSettingsModal(false)}
+                                className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-all font-manrope"
+                            >
+                                Discard
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        setSettingsSaving(true);
+                                        await saveFormConfig(eventId, 'expert', formConfig);
+                                        alert('Card settings synchronized! 🚀');
+                                        setShowSettingsModal(false);
+                                    } catch (err) {
+                                        console.error('Error saving config:', err);
+                                        alert('Failed to sync settings.');
+                                    } finally {
+                                        setSettingsSaving(false);
+                                    }
+                                }}
+                                disabled={settingsSaving}
+                                className="px-8 py-3 bg-[#0d0e0e] text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {settingsSaving && <Loader2 size={14} className="animate-spin" />}
+                                Sync Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Main Content Area */}
             <div className="max-w-7xl mx-auto px-6 py-12">
@@ -332,6 +467,7 @@ const ExpertManager = () => {
                                     <ExpertCard
                                         key={expert.expert_id || expert.id}
                                         expert={expert}
+                                        config={formConfig}
                                         onEdit={handleEdit}
                                         onDelete={handleDeleteExpert}
                                     />
@@ -339,12 +475,13 @@ const ExpertManager = () => {
                             </div>
                         </SortableContext>
                         <DragOverlay adjustScale={true}>
-                            {activeId ? (
+                            {activeId && (
                                 <ExpertCard
                                     expert={experts.find(e => (e.expert_id || e.id) === activeId)}
+                                    config={formConfig}
                                     previewMode={true}
                                 />
-                            ) : null}
+                            )}
                         </DragOverlay>
                     </DndContext>
                 ) : activeTab === 'review' ? (
@@ -377,8 +514,6 @@ const ExpertManager = () => {
                                                         <span>{submission.title}</span>
                                                         <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
                                                         <span>{submission.company}</span>
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-                                                        <span>{submission.location || 'No Location'}</span>
                                                         <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
                                                         <span className="text-[#1a27c9]">{new Date(submission.submitted_at).toLocaleDateString()}</span>
                                                     </div>
@@ -454,7 +589,21 @@ const ExpertManager = () => {
                             onClick={() => {
                                 setShowAddModal(false);
                                 setEditingExpert(null);
-                                setFormData({ name: '', title: '', company: '', location: '', bio: '', linkedin_url: '', photo_url: '' });
+                                setFormData({ 
+                                    name: '', 
+                                    title: '', 
+                                    company: '', 
+                                    bio: '', 
+                                    linkedin_url: '', 
+                                    photo_url: '',
+                                    display_config: {
+                                        show_title: true,
+                                        show_company: true,
+                                        show_bio: true,
+                                        show_linkedin: true,
+                                        show_photo: true
+                                    }
+                                });
                             }}
                             className="absolute top-8 right-8 text-slate-400 hover:text-rose-500 transition-colors"
                         >
@@ -476,9 +625,9 @@ const ExpertManager = () => {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Expert Name {isFieldRequired('name') && '*'}</label>
                                     <input
-                                        required
+                                        required={isFieldRequired('name')}
                                         type="text"
                                         placeholder="Name of visionary"
                                         className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
@@ -486,91 +635,175 @@ const ExpertManager = () => {
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Title / Role</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        placeholder="e.g. CEO of Growth"
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
-                                        value={formData.title}
-                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company / Organization</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Entity representing"
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
-                                        value={formData.company}
-                                        onChange={e => setFormData({ ...formData, company: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Location / City</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Base (e.g. Cairo, Egypt)"
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
-                                        value={formData.location}
-                                        onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Biography</label>
-                                <textarea
-                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium min-h-[120px]"
-                                    placeholder="Write a brief brief pulse on their history..."
-                                    value={formData.bio}
-                                    onChange={e => setFormData({ ...formData, bio: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">LinkedIn URL</label>
-                                    <input
-                                        type="url"
-                                        placeholder="https://linkedin.com/in/..."
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
-                                        value={formData.linkedin_url}
-                                        onChange={e => setFormData({ ...formData, linkedin_url: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Profile Photograph</label>
-                                    <div className="flex gap-3">
-                                        <div className="relative flex-1">
-                                            <input
-                                                type="text"
-                                                placeholder="Upload photo or paste URL"
-                                                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium pr-12"
-                                                value={formData.photo_url}
-                                                onChange={e => setFormData({ ...formData, photo_url: e.target.value })}
-                                            />
-                                            {formData.photo_url && (
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-                                                    <Check size={12} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <label className="shrink-0 flex items-center justify-center w-14 h-14 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] cursor-pointer transition-premium">
-                                            <input
-                                                type="file"
-                                                className="hidden"
-                                                accept="image/*"
-                                                onChange={handleFileChange}
-                                                disabled={isUploading}
-                                            />
-                                            {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
-                                        </label>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Title / Role {isFieldRequired('title') && '*'}</label>
+                                        <input
+                                            required={isFieldRequired('title')}
+                                            type="text"
+                                            placeholder="e.g. CEO of Growth"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
+                                            value={formData.title}
+                                            onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                        />
                                     </div>
+                                    <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.display_config?.show_title !== false}
+                                                onChange={e => setFormData({ 
+                                                    ...formData, 
+                                                    display_config: { ...formData.display_config, show_title: e.target.checked } 
+                                                })}
+                                            />
+                                            <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#1a27c9] transition-all duration-300"></div>
+                                            <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#1a27c9] transition-colors">Show on Card / عرض على الكارت</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-6">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company {isFieldRequired('company') && '*'}</label>
+                                        <input
+                                            required={isFieldRequired('company')}
+                                            type="text"
+                                            placeholder="e.g. Moonshot Inc."
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
+                                            value={formData.company}
+                                            onChange={e => setFormData({ ...formData, company: e.target.value })}
+                                        />
+                                    </div>
+                                    <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.display_config?.show_company !== false}
+                                                onChange={e => setFormData({ 
+                                                    ...formData, 
+                                                    display_config: { ...formData.display_config, show_company: e.target.checked } 
+                                                })}
+                                            />
+                                            <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#1a27c9] transition-all duration-300"></div>
+                                            <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#1a27c9] transition-colors">Show on Card / عرض على الكارت</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Biography {isFieldRequired('bio') && '*'}</label>
+                                    <textarea
+                                        required={isFieldRequired('bio')}
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium min-h-[120px]"
+                                        placeholder="Write a brief brief pulse on their history..."
+                                        value={formData.bio}
+                                        onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                                    />
+                                </div>
+                                <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={formData.display_config?.show_bio !== false}
+                                            onChange={e => setFormData({ 
+                                                ...formData, 
+                                                display_config: { ...formData.display_config, show_bio: e.target.checked } 
+                                            })}
+                                        />
+                                        <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#1a27c9] transition-all duration-300"></div>
+                                        <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#1a27c9] transition-colors">Show on Card / عرض على الكارت</span>
+                                </label>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">LinkedIn URL {isFieldRequired('linkedin_url') && '*'}</label>
+                                        <input
+                                            required={isFieldRequired('linkedin_url')}
+                                            type="url"
+                                            placeholder="https://linkedin.com/in/..."
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
+                                            value={formData.linkedin_url}
+                                            onChange={e => setFormData({ ...formData, linkedin_url: e.target.value })}
+                                        />
+                                    </div>
+                                    <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.display_config?.show_linkedin !== false}
+                                                onChange={e => setFormData({ 
+                                                    ...formData, 
+                                                    display_config: { ...formData.display_config, show_linkedin: e.target.checked } 
+                                                })}
+                                            />
+                                            <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#1a27c9] transition-all duration-300"></div>
+                                            <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#1a27c9] transition-colors">Show on Card / عرض على الكارت</span>
+                                    </label>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Profile Photograph {isFieldRequired('photo_url') && '*'}</label>
+                                        <div className="flex gap-3">
+                                            <div className="relative flex-1">
+                                                <input
+                                                    required={isFieldRequired('photo_url')}
+                                                    type="text"
+                                                    placeholder="Upload photo or paste URL"
+                                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium pr-12"
+                                                    value={formData.photo_url}
+                                                    onChange={e => setFormData({ ...formData, photo_url: e.target.value })}
+                                                />
+                                                {formData.photo_url && (
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                                                        <Check size={12} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <label className="shrink-0 flex items-center justify-center w-14 h-14 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] cursor-pointer transition-premium">
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="image/*"
+                                                    onChange={handleFileChange}
+                                                    disabled={isUploading}
+                                                />
+                                                {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.display_config?.show_photo !== false}
+                                                onChange={e => setFormData({ 
+                                                    ...formData, 
+                                                    display_config: { ...formData.display_config, show_photo: e.target.checked } 
+                                                })}
+                                            />
+                                            <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#1a27c9] transition-all duration-300"></div>
+                                            <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#1a27c9] transition-colors">Show on Card / عرض على الكارت</span>
+                                    </label>
                                 </div>
                             </div>
 
@@ -645,10 +878,6 @@ const ExpertManager = () => {
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Company</p>
                                                 <p className="font-bold text-[#0d0e0e]">{selectedSubmission.company || 'Not Specified'}</p>
                                             </div>
-                                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Location</p>
-                                                <p className="font-bold text-[#0d0e0e]">{selectedSubmission.location || 'Not Specified'}</p>
-                                            </div>
                                         </div>
 
 
@@ -686,7 +915,6 @@ const ExpertManager = () => {
                                                 name: selectedSubmission.expert_name,
                                                 title: selectedSubmission.title,
                                                 company: selectedSubmission.company,
-                                                location: selectedSubmission.location,
                                                 bio: selectedSubmission.bio,
                                                 photo_url: selectedSubmission.photo_url
                                             }}

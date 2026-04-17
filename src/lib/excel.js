@@ -89,14 +89,14 @@ export const generateAgendaTemplate = () => {
 
     // 3. Experts Sheet Data
     const expertsData = [
-        ['Name', 'Title', 'Working at', 'Bio', 'LinkedIn URL', 'photo'],
-        ['Example Expert', 'CEO @ Example', 'Athar', 'A short bio about the expert', 'https://linkedin.com/in/example', 'https://example.com/photo.jpg']
+        ['Name', 'Title', 'Company', 'Bio', 'LinkedIn URL', 'photo'],
+        ['Example Expert', 'CEO', 'Athar', 'A short bio about the expert', 'https://linkedin.com/in/example', 'https://example.com/photo.jpg']
     ];
 
     // 4. Companies Sheet Data
     const companiesData = [
-        ['Company Name', 'Gov.', 'Describtion', 'Industry', 'Stage', 'Link'],
-        ['Example Company', 'القاهرة', 'A short description about the company', 'Tech', 'Seed', 'https://example.com']
+        ['Company Name', 'Founder', 'Role in the Startup', 'Governorate', 'Industry', 'Logo'],
+        ['Example Company', 'Founder Name', 'CEO', 'القاهرة', 'Tech', 'https://example.com/logo.jpg']
     ];
 
     const wb = XLSX.utils.book_new();
@@ -143,29 +143,37 @@ export const parseWorkbook = (workbook) => {
 
     // Parse Days
     const daysSheet = findSheet('Days');
-    if (!daysSheet) throw new Error(`Sheet "Days" is missing. Available sheets: ${sheetNames.join(', ')}`);
-    validateColumns(daysSheet, 'Days', ['Day Name', 'Date']);
-    const daysRaw = XLSX.utils.sheet_to_json(daysSheet);
+    const days = [];
+    if (daysSheet) {
+        validateColumns(daysSheet, 'Days', ['Day Name', 'Date']);
+        const daysRaw = XLSX.utils.sheet_to_json(daysSheet);
 
-    const days = daysRaw.map(row => ({
-        day_name: row['Day Name'] || row['Name'] || row['day'],
-        day_date: formatDateToISO(row['Date (YYYY-MM-DD)'] || row['Date'] || row['date'])
-    })).filter(d => d.day_name && d.day_date);
+        const parsedDays = daysRaw.map(row => ({
+            day_name: row['Day Name'] || row['Name'] || row['day'],
+            day_date: formatDateToISO(row['Date (YYYY-MM-DD)'] || row['Date'] || row['date'])
+        })).filter(d => d.day_name && d.day_date);
+        
+        days.push(...parsedDays);
+    }
 
     // Parse Slots
     const slotsSheet = findSheet('Agenda Slots') || findSheet('Slots') || findSheet('Agenda');
-    if (!slotsSheet) throw new Error(`Sheet "Agenda Slots" is missing. Available sheets: ${sheetNames.join(', ')}`);
-    validateColumns(slotsSheet, 'Agenda Slots', ['Day Name', 'Slot Title', 'Start Time', 'End Time']);
-    const slotsRaw = XLSX.utils.sheet_to_json(slotsSheet);
+    const slots = [];
+    if (slotsSheet) {
+        validateColumns(slotsSheet, 'Agenda Slots', ['Day Name', 'Slot Title', 'Start Time', 'End Time']);
+        const slotsRaw = XLSX.utils.sheet_to_json(slotsSheet);
 
-    const slots = slotsRaw.map(row => ({
-        day_name: row['Day Name'],
-        slot_title: row['Slot Title'] || row['Title'],
-        start_time: row['Start Time (HH:mm)'] || row['Start Time'] || row['Start'],
-        end_time: row['End Time (HH:mm)'] || row['End Time'] || row['End'],
-        presenter_name: row['Presenter Name'] || row['Presenter'] || '',
-        show_presenter: String(row['Show Presenter (TRUE/FALSE)'] || row['Show Presenter'] || 'TRUE').toUpperCase() === 'TRUE'
-    })).filter(s => s.day_name && s.slot_title);
+        const parsedSlots = slotsRaw.map(row => ({
+            day_name: row['Day Name'],
+            slot_title: row['Slot Title'] || row['Title'],
+            start_time: row['Start Time (HH:mm)'] || row['Start Time'] || row['Start'],
+            end_time: row['End Time (HH:mm)'] || row['End Time'] || row['End'],
+            presenter_name: row['Presenter Name'] || row['Presenter'] || '',
+            show_presenter: String(row['Show Presenter (TRUE/FALSE)'] || row['Show Presenter'] || 'TRUE').toUpperCase() === 'TRUE'
+        })).filter(s => s.day_name && s.slot_title);
+        
+        slots.push(...parsedSlots);
+    }
 
     // Parse Experts
     const expertsSheet = findSheet('Experts');
@@ -191,7 +199,7 @@ export const parseWorkbook = (workbook) => {
             return {
                 name: get('Name', 'Full Name', 'الاسم', 'اسم الخبير'),
                 title: get('Title', 'Position', 'المسمى الوظيفي', 'التخصص'),
-                company: get('Working at', 'Organization', 'Company', 'Work', 'المؤسسة', 'الجهة'),
+                company: get('Company', 'Working at', 'Organization', 'Work', 'المؤسسة', 'الجهة'),
                 location: get('Location', 'City', 'Gov.', 'المقر', 'المدينة', 'المحافظة'),
                 bio: get('Bio', 'Description', 'About', 'الوصف', 'نبذة'),
                 linkedin_url: get('LinkedIn URL', 'LinkedIn', 'لينكد إن'),
@@ -225,8 +233,9 @@ export const parseWorkbook = (workbook) => {
             return {
                 name: get('Company Name', 'Name', 'Startup Name', 'اسم الشركة', 'الشركة'),
                 founder: get('Founder', 'CEO', 'المؤسس'),
-                location: get('Gov.', 'Governorate', 'Location', 'City', 'المحافظة', 'المدينة'),
-                governorate: get('Gov.', 'Governorate', 'Location', 'City', 'المحافظة', 'المدينة'),
+                role: get('Role in the Startup', 'Role', 'الدور'),
+                location: get('Governorate', 'Gov.', 'Location', 'City', 'المحافظة', 'المدينة'),
+                governorate: get('Governorate', 'Gov.', 'Location', 'City', 'المحافظة', 'المدينة'),
                 industry: get('Industry', 'Sector', 'القطاع', 'الفئة'),
                 description: get('Describtion', 'Description', 'Bio', 'About', 'الوصف', 'وصف الشركة', 'نبذة', 'عن الشركة'),
                 website_url: get('Link', 'Links', 'Website', 'URL', 'Website URL', 'الموقع', 'رابط', 'روابط')?.toString() || '',
@@ -258,7 +267,7 @@ export const parseWorkbook = (workbook) => {
                     });
                 })(),
                 stage: get('Stage', 'Growth Stage', 'المرحلة').toLowerCase().replace(/\s+/g, '_'),
-                logo_url: get('Logo URL', 'Logo', 'لوجو')
+                logo_url: get('Logo', 'Logo URL', 'لوجو')
             };
         }).filter(c => c.name);
     }

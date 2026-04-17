@@ -18,7 +18,7 @@ const LinkIcon = ({ type, ...props }) => {
   }
 };
 
-const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false }) => {
+const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false }) => {
   const {
     attributes,
     listeners,
@@ -77,6 +77,8 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
   const industry = company.industry || company.sector || 'Ecosystem';
   const location = company.location || company.governorate || 'Global';
   const governorate = company.governorate || company.location || '';
+  const founder = company.founder || '';
+  const role = company.role || '';
   const description = company.description || company.bio || '';
   const stage = company.stage ? company.stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
   // Normalize links: support new links[] array and legacy website_url
@@ -89,6 +91,43 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
     if (company.website_url) return [{ label: 'Website', url: company.website_url, icon: 'globe' }];
     return [];
   })();
+
+  const displayConfig = (() => {
+    // If global config is provided, use it
+    if (config && Array.isArray(config)) {
+        return {
+            show_logo: config.find(f => f.field_name === 'logo_url')?.show_in_card !== false,
+            show_name: config.find(f => f.field_name === 'startup_name')?.show_in_card !== false,
+            show_industry: config.find(f => f.field_name === 'industry')?.show_in_card !== false,
+            show_location: config.find(f => f.field_name === 'location')?.show_in_card !== false,
+            show_description: config.find(f => f.field_name === 'description')?.show_in_card !== false,
+            show_founder: config.find(f => f.field_name === 'founder_name')?.show_in_card !== false,
+            show_role: config.find(f => f.field_name === 'founder_role')?.show_in_card !== false,
+            show_stage: config.find(f => f.field_name === 'startup_stage')?.show_in_card !== false,
+            show_links: config.find(f => f.field_name === 'website_url')?.show_in_card !== false
+        };
+    }
+
+    // Fallback to legacy local config
+    let legacyConfig = company.display_config;
+    if (typeof legacyConfig === 'string') {
+        try { legacyConfig = JSON.parse(legacyConfig); } catch(e) { legacyConfig = {}; }
+    }
+    return {
+        show_logo: legacyConfig?.show_photo !== false,
+        show_name: true,
+        show_founder: legacyConfig?.show_founder !== false,
+        show_role: legacyConfig?.show_role !== false,
+        show_stage: legacyConfig?.show_stage !== false,
+        show_governorate: legacyConfig?.show_governorate !== false,
+        show_industry: legacyConfig?.show_industry !== false,
+        show_description: legacyConfig?.show_description !== false,
+        show_links: legacyConfig?.show_links !== false
+    };
+  })();
+
+  // Sync stage/location visibility with the consolidated displayConfig
+  const showLocation = displayConfig.show_location || displayConfig.show_governorate;
 
   if (viewMode === 'list') {
     return (
@@ -112,15 +151,19 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
             style={{ backgroundColor: customColor }}
           />
           <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-[3.5rem] md:rounded-[4.5rem] overflow-hidden border-8 border-white shadow-2xl bg-white flex items-center justify-center transition-all duration-700 group-hover:scale-105">
-            <LazyImage
-              src={logo ? getGoogleDriveFallbackUrls(logo)[0] : null}
-              urls={logo ? getGoogleDriveFallbackUrls(logo) : []}
-              alt={name}
-              objectFit="contain"
-              padding={true}
-              className="grayscale-[0.2] group-hover:grayscale-0 transition-all"
-              fallback={<span className="text-8xl font-black opacity-20" style={{ color: customColor }}>{name.charAt(0)}</span>}
-            />
+            {displayConfig.show_logo ? (
+              <LazyImage
+                src={logo ? getGoogleDriveFallbackUrls(logo)[0] : null}
+                urls={logo ? getGoogleDriveFallbackUrls(logo) : []}
+                alt={name}
+                objectFit="contain"
+                padding={true}
+                className="grayscale-[0.2] group-hover:grayscale-0 transition-all"
+                fallback={<span className="text-8xl font-black opacity-20" style={{ color: customColor }}>{name.charAt(0)}</span>}
+              />
+            ) : (
+                <span className="text-8xl font-black opacity-20" style={{ color: customColor }}>{name.charAt(0)}</span>
+            )}
           </div>
         </div>
 
@@ -132,13 +175,21 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
                 {name}
               </h3>
               <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start">
-                {/* Removed redundant industry badge */}
-                {stage && (
+                {displayConfig.show_founder && founder && (
+                  <div className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-slate-50 border border-slate-100/50">
+                    <Users size={12} className="text-slate-400" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">{founder}</span>
+                    {displayConfig.show_role && role && (
+                      <span className="text-[10px] font-medium text-slate-400 border-l border-slate-200 ps-2 ms-1">{role}</span>
+                    )}
+                  </div>
+                )}
+                {displayConfig.show_stage && stage && (
                   <span className="px-5 py-2.5 rounded-2xl bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-100/50">
                     {stage}
                   </span>
                 )}
-                {governorate && (
+                {displayConfig.show_governorate && governorate && (
                   <span className="flex items-center gap-1.5 px-5 py-2.5 rounded-2xl bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-100/50">
                     <MapPin size={12} /> {governorate}
                   </span>
@@ -149,20 +200,23 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
 
           <div className="h-px w-20 bg-slate-100 mb-10 mx-auto md:mx-0" />
 
-          <div className="mb-12">
-            <div className={`flex items-center gap-4 text-slate-400 mb-4 justify-center md:justify-start ${isRtl ? 'flex-row-reverse' : ''}`}>
-              <Briefcase size={24} />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em]">{t.sector}</span>
-            </div>
-            <p className="text-2xl md:text-3xl font-black text-slate-800 leading-tight uppercase tracking-tight mb-8">
-              {industry}
-            </p>
-            {description && (
+            {displayConfig.show_industry && (
+              <>
+                <div className={`flex items-center gap-4 text-slate-400 mb-4 justify-center md:justify-start ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <Briefcase size={24} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em]">{t.sector}</span>
+                </div>
+                <p className="text-2xl md:text-3xl font-black text-slate-800 leading-tight uppercase tracking-tight mb-8">
+                  {industry}
+                </p>
+              </>
+            )}
+            {displayConfig.show_description && description && (
               <p className="text-lg md:text-xl font-medium text-slate-500 leading-relaxed max-w-2xl mt-6">{description}</p>
             )}
 
             {/* Links */}
-            {links.length > 0 && (
+            {displayConfig.show_links && links.length > 0 && (
               <div className="flex flex-wrap gap-3 mt-6 justify-center md:justify-start">
                 {links.filter(l => l.url).map((link, i) => (
                   <a
@@ -179,7 +233,6 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
               </div>
             )}
           </div>
-        </div>
 
         {/* Side Accent */}
         <div
@@ -249,9 +302,11 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
             {company.status}
           </div>
         )}
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-2xl bg-white border border-slate-100 shadow-sm text-slate-500 max-w-full truncate">
-          {t.stage}: {stage || t.growth}
-        </span>
+        {displayConfig.show_stage && (
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-2xl bg-white border border-slate-100 shadow-sm text-slate-500 max-w-full truncate">
+            {t.stage}: {stage || t.growth}
+          </span>
+        )}
       </div>
 
       {/* Actions Overlay */}
@@ -292,22 +347,31 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
           />
           {/* Image Container */}
           <div className="relative w-full h-full rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center transition-transform duration-1000 group-hover:scale-[1.05]">
-            <LazyImage
-              src={logo ? getGoogleDriveFallbackUrls(logo)[0] : null}
-              urls={logo ? getGoogleDriveFallbackUrls(logo) : []}
-              alt={name}
-              objectFit="contain"
-              padding={true}
-              className="grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000"
-              fallback={
+            {displayConfig.show_logo ? (
+              <LazyImage
+                src={logo ? getGoogleDriveFallbackUrls(logo)[0] : null}
+                urls={logo ? getGoogleDriveFallbackUrls(logo) : []}
+                alt={name}
+                objectFit="contain"
+                padding={true}
+                className="grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000"
+                fallback={
+                  <div
+                    className="w-full h-full flex items-center justify-center text-6xl font-black"
+                    style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
+                  >
+                    {name.charAt(0)}
+                  </div>
+                }
+              />
+            ) : (
                 <div
-                  className="w-full h-full flex items-center justify-center text-6xl font-black"
-                  style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
+                    className="w-full h-full flex items-center justify-center text-6xl font-black"
+                    style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
                 >
-                  {name.charAt(0)}
+                    {name.charAt(0)}
                 </div>
-              }
-            />
+            )}
           </div>
         </div>
 
@@ -315,36 +379,51 @@ const CompanyCard = ({ company, customColor = '#1a27c9', viewMode = 'grid', onEd
           <h3 className="text-3xl font-black text-[#0d0e0e] tracking-tight mb-2 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
             {name}
           </h3>
+          {displayConfig.show_founder && founder && (
+             <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-xs font-black text-slate-600 uppercase tracking-tighter">{founder}</span>
+                {displayConfig.show_role && role && (
+                  <>
+                    <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                    <span className="text-[10px] font-medium text-slate-400 uppercase">{role}</span>
+                  </>
+                )}
+             </div>
+          )}
         </div>
       </div>
 
       {/* Content Section */}
       <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
-        {description && (
+        {displayConfig.show_description && description && (
           <p className="text-slate-500 text-base leading-relaxed font-medium mb-4 transition-colors group-hover:text-slate-800 line-clamp-4 italic">
             "{description}"
           </p>
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
-            <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
-              <MapPin size={14} />
-              <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.location}</span>
+          {showLocation && (
+            <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
+              <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
+                <MapPin size={14} />
+                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.location}</span>
+              </div>
+              <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{governorate || location || t.notSpecified}</p>
             </div>
-            <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{governorate || location || t.notSpecified}</p>
-          </div>
-          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
-            <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
-              <Briefcase size={14} />
-              <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.sector}</span>
+          )}
+          {displayConfig.show_industry && (
+            <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
+              <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
+                <Briefcase size={14} />
+                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.sector}</span>
+              </div>
+              <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{industry || t.notSpecified}</p>
             </div>
-            <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{industry || t.notSpecified}</p>
-          </div>
+          )}
         </div>
 
         {/* Links */}
-        {links.length > 0 && (
+        {displayConfig.show_links && links.length > 0 && (
           <div className="mt-4 border-t border-slate-50 pt-4 w-full">
             <div className="flex items-center justify-center gap-2 text-slate-400 mb-2 opacity-60">
                 <span className="h-px w-8 bg-slate-200" />

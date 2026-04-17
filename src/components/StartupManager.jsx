@@ -3,7 +3,7 @@ import { X as CloseIcon, ArrowLeft, Plus, Search, Trash2, Edit2, Layout, Databas
 import { useNavigate, useParams } from 'react-router-dom';
 import CompanyCard from './CompanyCard';
 import SyncButton from './SyncButton';
-import { getCompanies, createCompany, updateCompany, deleteCompany, uploadImage, getSubmissions, approveSubmission, rejectSubmission, bulkUpdateCompanies } from '../lib/api';
+import { getCompanies, createCompany, updateCompany, deleteCompany, uploadImage, getSubmissions, approveSubmission, rejectSubmission, bulkUpdateCompanies, getFormConfig, saveFormConfig } from '../lib/api';
 import { 
     DndContext, 
     closestCenter,
@@ -40,6 +40,9 @@ const StartupManager = () => {
     const [showPreview, setShowPreview] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
     const [activeId, setActiveId] = useState(null);
+    const [formConfig, setFormConfig] = useState([]);
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [settingsSaving, setSettingsSaving] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -55,24 +58,39 @@ const StartupManager = () => {
     // Form State
     const [formData, setFormData] = useState({
         name: '',
+        founder: '',
+        role: '',
         industry: '',
         stage: '',
         governorate: '',
         description: '',
         links: [],
-        logo_url: ''
+        logo_url: '',
+        display_config: {
+            show_founder: true,
+            show_role: true,
+            show_stage: true,
+            show_governorate: true,
+            show_industry: true,
+            show_description: true,
+            show_links: true
+        }
     });
 
     const loadData = async () => {
         try {
             setLoading(true);
+            const [companiesData, configData] = await Promise.all([
+                activeTab === 'curated' ? getCompanies(eventId) : getSubmissions(eventId, 'company', 'pending'),
+                getFormConfig(eventId, 'company')
+            ]);
+
             if (activeTab === 'curated') {
-                const data = await getCompanies(eventId);
-                setCompanies(data || []);
+                setCompanies(companiesData || []);
             } else {
-                const data = await getSubmissions(eventId, 'company', 'pending');
-                setSubmissions(data || []);
+                setSubmissions(companiesData || []);
             }
+            setFormConfig(configData || []);
             setError(null);
         } catch (err) {
             console.error('Error loading data:', err);
@@ -104,12 +122,23 @@ const StartupManager = () => {
 
         setFormData({
             name: company.name || '',
+            founder: company.founder || '',
+            role: company.role || '',
             industry: company.industry || '',
             stage: company.stage || '',
             governorate: company.governorate || '',
             description: company.description || '',
             links,
-            logo_url: company.logo_url || ''
+            logo_url: company.logo_url || '',
+            display_config: company.display_config || {
+                show_founder: true,
+                show_role: true,
+                show_stage: true,
+                show_governorate: true,
+                show_industry: true,
+                show_description: true,
+                show_links: true
+            }
         });
         setShowAddModal(true);
     };
@@ -120,14 +149,18 @@ const StartupManager = () => {
 
         try {
             setIsUploading(true);
-            const publicUrl = await uploadImage(file, `companies/${eventId}`);
-            setFormData(prev => ({ ...prev, logo_url: publicUrl }));
+            const url = await uploadImage(file, 'startup-logos');
+            setFormData(prev => ({ ...prev, logo_url: url }));
         } catch (err) {
             console.error('Error uploading logo:', err);
-            alert('Failed to upload logo. Signal lost.');
+            alert('Failed to upload logo.');
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const isFieldRequired = (fieldName) => {
+        return formConfig.find(f => f.field_name === fieldName)?.is_required;
     };
 
     const handleApproveCompany = async (submission) => {
@@ -190,7 +223,26 @@ const StartupManager = () => {
             }
             setShowAddModal(false);
             setEditingCompany(null);
-            setFormData({ name: '', industry: '', stage: '', governorate: '', description: '', links: [], logo_url: '' });
+            setFormData({ 
+                name: '', 
+                founder: '', 
+                role: '', 
+                industry: '', 
+                stage: '', 
+                governorate: '', 
+                description: '', 
+                links: [], 
+                logo_url: '',
+                display_config: {
+                    show_founder: true,
+                    show_role: true,
+                    show_stage: true,
+                    show_governorate: true,
+                    show_industry: true,
+                    show_description: true,
+                    show_links: true
+                }
+            });
             loadData();
         } catch (err) {
             console.error('Error saving startup:', err);
@@ -217,7 +269,7 @@ const StartupManager = () => {
 
             try {
                 const updates = newCompanies.map((c, index) => ({
-                    company_id: c.company_id || c.id,
+                    ...c,
                     sort_order: index + 1
                 }));
                 await bulkUpdateCompanies(updates);
@@ -302,10 +354,110 @@ const StartupManager = () => {
                                 <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
                                 <span>Add Company</span>
                             </button>
+                            <button
+                                onClick={() => setShowSettingsModal(true)}
+                                className="w-[54px] h-[54px] bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#059669] hover:border-[#059669] hover:bg-slate-50 transition-premium shadow-sm"
+                                title="Card Settings"
+                            >
+                                <Layout size={20} />
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Card Settings Modal */}
+            {showSettingsModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-[#0d0e0e]/60 backdrop-blur-sm" onClick={() => setShowSettingsModal(false)} />
+                    <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300">
+                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div>
+                                <h2 className="text-2xl font-black text-[#0d0e0e] tracking-tight">Company Card Settings</h2>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Configure visibility & constraints</p>
+                            </div>
+                            <button onClick={() => setShowSettingsModal(false)} className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-all">
+                                <CloseIcon size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-8 max-h-[60vh] overflow-y-auto">
+                            <div className="space-y-4">
+                                {formConfig.map((field, idx) => (
+                                    <div key={field.field_name} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-[#059669]/30 transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-white rounded-2xl border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-[#059669] transition-colors">
+                                                <Database size={20} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-[#0d0e0e]">{field.field_label}</h4>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{field.field_name}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-8">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Card View</span>
+                                                <button
+                                                    onClick={() => {
+                                                        const newConfig = [...formConfig];
+                                                        newConfig[idx].show_in_card = !newConfig[idx].show_in_card;
+                                                        setFormConfig(newConfig);
+                                                    }}
+                                                    className={`w-12 h-6 rounded-full transition-all relative ${field.show_in_card ? 'bg-[#059669]' : 'bg-slate-200'}`}
+                                                >
+                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${field.show_in_card ? 'right-1' : 'left-1'}`} />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-2">
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Required</span>
+                                                <button
+                                                    onClick={() => {
+                                                        const newConfig = [...formConfig];
+                                                        newConfig[idx].is_required = !newConfig[idx].is_required;
+                                                        setFormConfig(newConfig);
+                                                    }}
+                                                    className={`w-12 h-6 rounded-full transition-all relative ${field.is_required ? 'bg-[#059669]' : 'bg-slate-200'}`}
+                                                >
+                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${field.is_required ? 'right-1' : 'left-1'}`} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-4">
+                            <button
+                                onClick={() => setShowSettingsModal(false)}
+                                className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-all font-manrope"
+                            >
+                                Discard
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        setSettingsSaving(true);
+                                        await saveFormConfig(eventId, 'company', formConfig);
+                                        alert('Card settings synchronized! 🚀');
+                                        setShowSettingsModal(false);
+                                    } catch (err) {
+                                        console.error('Error saving config:', err);
+                                        alert('Failed to sync settings.');
+                                    } finally {
+                                        setSettingsSaving(false);
+                                    }
+                                }}
+                                disabled={settingsSaving}
+                                className="px-8 py-3 bg-[#0d0e0e] text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {settingsSaving && <Loader2 size={14} className="animate-spin" />}
+                                Sync Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Main Content Area */}
             <div className="max-w-7xl mx-auto px-6 py-12">
@@ -342,6 +494,7 @@ const StartupManager = () => {
                                         <CompanyCard
                                             key={company.company_id || company.id}
                                             company={company}
+                                            config={formConfig}
                                             onEdit={handleEdit}
                                             onDelete={handleDeleteCompany}
                                         />
@@ -362,6 +515,7 @@ const StartupManager = () => {
                                     <div className="w-full max-w-sm opacity-80 pointer-events-none scale-105 transition-transform duration-300">
                                         <CompanyCard 
                                             company={companies.find(c => (c.company_id || c.id) === activeId)} 
+                                            config={formConfig}
                                             previewMode={true}
                                         />
                                     </div>
@@ -471,7 +625,26 @@ const StartupManager = () => {
                             onClick={() => {
                                 setShowAddModal(false);
                                 setEditingCompany(null);
-                                setFormData({ name: '', industry: '', stage: '', governorate: '', description: '', website_url: '', logo_url: '' });
+                                setFormData({ 
+                                    name: '', 
+                                    founder: '', 
+                                    role: '', 
+                                    industry: '', 
+                                    stage: '', 
+                                    governorate: '', 
+                                    description: '', 
+                                    links: [], 
+                                    logo_url: '',
+                                    display_config: {
+                                        show_founder: true,
+                                        show_role: true,
+                                        show_stage: true,
+                                        show_governorate: true,
+                                        show_industry: true,
+                                        show_description: true,
+                                        show_links: true
+                                    }
+                                });
                             }}
                             className="absolute top-8 right-8 text-slate-400 hover:text-rose-500 transition-colors"
                         >
@@ -493,9 +666,9 @@ const StartupManager = () => {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Startup Name</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Startup Name {isFieldRequired('name') && '*'}</label>
                                     <input
-                                        required
+                                        required={isFieldRequired('name')}
                                         type="text"
                                         placeholder="Name of venture"
                                         className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium"
@@ -503,90 +676,243 @@ const StartupManager = () => {
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Industry / Sector</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        placeholder="e.g. Fintech, AI"
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium"
-                                        value={formData.industry}
-                                        onChange={e => setFormData({ ...formData, industry: e.target.value })}
-                                    />
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Industry / Sector {isFieldRequired('industry') && '*'}</label>
+                                        <input
+                                            required={isFieldRequired('industry')}
+                                            type="text"
+                                            placeholder="e.g. Fintech, AI"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium"
+                                            value={formData.industry}
+                                            onChange={e => setFormData({ ...formData, industry: e.target.value })}
+                                        />
+                                    </div>
+                                    <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.display_config?.show_industry !== false}
+                                                onChange={e => setFormData({ 
+                                                    ...formData, 
+                                                    display_config: { ...formData.display_config, show_industry: e.target.checked } 
+                                                })}
+                                            />
+                                            <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
+                                            <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#059669] transition-colors">Show on Card / عرض على الكارت</span>
+                                    </label>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">مرحلة النمو (Stage)</label>
-                                    <select
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium appearance-none"
-                                        value={formData.stage}
-                                        onChange={e => setFormData({ ...formData, stage: e.target.value })}
-                                    >
-                                        <option value="">اختر المرحلة...</option>
-                                        <option value="idea">Idea Stage — فكرة</option>
-                                        <option value="mvp">MVP — نموذج أولي</option>
-                                        <option value="seed">Seed — بذرة</option>
-                                        <option value="growth">Growth — نمو</option>
-                                        <option value="series_a">Series A</option>
-                                        <option value="expansion">Expansion — توسع</option>
-                                        <option value="profitable">Profitable — رابحة</option>
-                                    </select>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Founder Name {isFieldRequired('founder') && '*'}</label>
+                                        <input
+                                            required={isFieldRequired('founder')}
+                                            type="text"
+                                            placeholder="Founder Full Name"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium"
+                                            value={formData.founder}
+                                            onChange={e => setFormData({ ...formData, founder: e.target.value })}
+                                        />
+                                    </div>
+                                    <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.display_config?.show_founder !== false}
+                                                onChange={e => setFormData({ 
+                                                    ...formData, 
+                                                    display_config: { ...formData.display_config, show_founder: e.target.checked } 
+                                                })}
+                                            />
+                                            <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
+                                            <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#059669] transition-colors">Show on Card / عرض على الكارت</span>
+                                    </label>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">المحافظة (Governorate)</label>
-                                    <select
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium appearance-none"
-                                        value={formData.governorate}
-                                        onChange={e => setFormData({ ...formData, governorate: e.target.value })}
-                                    >
-                                        <option value="">اختر المحافظة...</option>
-                                        <option value="القاهرة">القاهرة</option>
-                                        <option value="الجيزة">الجيزة</option>
-                                        <option value="الإسكندرية">الإسكندرية</option>
-                                        <option value="المنوفية">المنوفية</option>
-                                        <option value="الشرقية">الشرقية</option>
-                                        <option value="القليوبية">القليوبية</option>
-                                        <option value="الغربية">الغربية</option>
-                                        <option value="كفر الشيخ">كفر الشيخ</option>
-                                        <option value="الدقهلية">الدقهلية</option>
-                                        <option value="البحيرة">البحيرة</option>
-                                        <option value="دمياط">دمياط</option>
-                                        <option value="بورسعيد">بورسعيد</option>
-                                        <option value="الإسماعيلية">الإسماعيلية</option>
-                                        <option value="السويس">السويس</option>
-                                        <option value="الفيوم">الفيوم</option>
-                                        <option value="بني سويف">بني سويف</option>
-                                        <option value="المنيا">المنيا</option>
-                                        <option value="أسيوط">أسيوط</option>
-                                        <option value="سوهاج">سوهاج</option>
-                                        <option value="قنا">قنا</option>
-                                        <option value="الأقصر">الأقصر</option>
-                                        <option value="أسوان">أسوان</option>
-                                        <option value="البحر الأحمر">البحر الأحمر</option>
-                                        <option value="الوادي الجديد">الوادي الجديد</option>
-                                        <option value="مطروح">مطروح</option>
-                                        <option value="شمال سيناء">شمال سيناء</option>
-                                        <option value="جنوب سيناء">جنوب سيناء</option>
-                                    </select>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Role in Startup {isFieldRequired('role') && '*'}</label>
+                                        <input
+                                            required={isFieldRequired('role')}
+                                            type="text"
+                                            placeholder="e.g. CEO, Founder"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium"
+                                            value={formData.role}
+                                            onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                        />
+                                    </div>
+                                    <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.display_config?.show_role !== false}
+                                                onChange={e => setFormData({ 
+                                                    ...formData, 
+                                                    display_config: { ...formData.display_config, show_role: e.target.checked } 
+                                                })}
+                                            />
+                                            <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
+                                            <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#059669] transition-colors">Show on Card / عرض على الكارت</span>
+                                    </label>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Description</label>
-                                <textarea
-                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium min-h-[120px]"
-                                    placeholder="Describe the disruptive potential..."
-                                    value={formData.description}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">مرحلة النمو (Stage) {isFieldRequired('stage') && '*'}</label>
+                                        <select
+                                            required={isFieldRequired('stage')}
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium"
+                                            value={formData.stage}
+                                            onChange={e => setFormData({ ...formData, stage: e.target.value })}
+                                        >
+                                            <option value="">Select Stage...</option>
+                                            <option value="ideation">Ideation / Discovery (فكرة)</option>
+                                            <option value="mvp">Validation / MVP (النموذج الأولي)</option>
+                                            <option value="early_traction">Early Traction (بداية الانطلاق)</option>
+                                            <option value="scaling">Scaling / Growth (النمو والتوسع)</option>
+                                            <option value="mature">Mature / Established (مستقر)</option>
+                                            <option value="other">Other / غير ذلك</option>
+                                        </select>
+                                    </div>
+                                    <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.display_config?.show_stage !== false}
+                                                onChange={e => setFormData({ 
+                                                    ...formData, 
+                                                    display_config: { ...formData.display_config, show_stage: e.target.checked } 
+                                                })}
+                                            />
+                                            <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
+                                            <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#059669] transition-colors">Show on Card / عرض على الكارت</span>
+                                    </label>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">المحافظة (Governorate) {isFieldRequired('governorate') && '*'}</label>
+                                        <select
+                                            required={isFieldRequired('governorate')}
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium appearance-none"
+                                            value={formData.governorate}
+                                            onChange={e => setFormData({ ...formData, governorate: e.target.value })}
+                                        >
+                                            <option value="">اختر المحافظة...</option>
+                                            <option value="القاهرة">القاهرة</option>
+                                            <option value="الجيزة">الجيزة</option>
+                                            <option value="الإسكندرية">الإسكندرية</option>
+                                            <option value="المنوفية">المنوفية</option>
+                                            <option value="الشرقية">الشرقية</option>
+                                            <option value="القليوبية">القليوبية</option>
+                                            <option value="الغربية">الغربية</option>
+                                            <option value="كفر الشيخ">كفر الشيخ</option>
+                                            <option value="الدقهلية">الدقهلية</option>
+                                            <option value="البحيرة">البحيرة</option>
+                                            <option value="دمياط">دمياط</option>
+                                            <option value="بورسعيد">بورسعيد</option>
+                                            <option value="الإسماعيلية">الإسماعيلية</option>
+                                            <option value="السويس">السويس</option>
+                                            <option value="الفيوم">الفيوم</option>
+                                            <option value="بني سويف">بني سويف</option>
+                                            <option value="المنيا">المنيا</option>
+                                            <option value="أسيوط">أسيوط</option>
+                                            <option value="سوهاج">سوهاج</option>
+                                            <option value="قنا">قنا</option>
+                                            <option value="الأقصر">الأقصر</option>
+                                            <option value="أسوان">أسوان</option>
+                                            <option value="البحر الأحمر">البحر الأحمر</option>
+                                            <option value="الوادي الجديد">الوادي الجديد</option>
+                                            <option value="مطروح">مطروح</option>
+                                            <option value="شمال سيناء">شمال سيناء</option>
+                                            <option value="جنوب سيناء">جنوب سيناء</option>
+                                        </select>
+                                    </div>
+                                    <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.display_config?.show_governorate !== false}
+                                                onChange={e => setFormData({ 
+                                                    ...formData, 
+                                                    display_config: { ...formData.display_config, show_governorate: e.target.checked } 
+                                                })}
+                                            />
+                                            <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
+                                            <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#059669] transition-colors">Show on Card / عرض على الكارت</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Description / Bio {isFieldRequired('description') && '*'}</label>
+                                    <textarea
+                                        required={isFieldRequired('description')}
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium min-h-[120px]"
+                                        placeholder="Describe the disruptive potential..."
+                                        value={formData.description}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                    />
+                                </div>
+                                <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={formData.display_config?.show_description !== false}
+                                            onChange={e => setFormData({ 
+                                                ...formData, 
+                                                display_config: { ...formData.display_config, show_description: e.target.checked } 
+                                            })}
+                                        />
+                                        <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
+                                        <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-[#059669] transition-colors">Show on Card / عرض على الكارت</span>
+                                </label>
                             </div>
 
                             {/* Dynamic Links */}
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Links / روابط</label>
+                                    <div className="flex items-center gap-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Links / روابط</label>
+                                        <label className="flex items-center gap-2 cursor-pointer group/toggle opacity-60 hover:opacity-100 transition-opacity">
+                                            <div className="relative scale-75 origin-left">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only peer"
+                                                    checked={formData.display_config?.show_links !== false}
+                                                    onChange={e => setFormData({ 
+                                                        ...formData, 
+                                                        display_config: { ...formData.display_config, show_links: e.target.checked } 
+                                                    })}
+                                                />
+                                                <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
+                                                <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
+                                            </div>
+                                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover/toggle:text-[#059669] transition-colors">Visible</span>
+                                        </label>
+                                    </div>
                                     <button
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, links: [...(prev.links || []), { label: '', url: '', icon: 'globe' }] }))}
@@ -650,16 +976,17 @@ const StartupManager = () => {
                                 )}
                             </div>
                             <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company Logo</label>
-                                    <div className="flex gap-3">
-                                        <div className="relative flex-1">
-                                            <input
-                                                type="text"
-                                                placeholder="Upload logo or paste URL"
-                                                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium pr-12"
-                                                value={formData.logo_url}
-                                                onChange={e => setFormData({ ...formData, logo_url: e.target.value })}
-                                            />
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company Logo {isFieldRequired('logo_url') && '*'}</label>
+                                <div className="flex gap-3">
+                                    <div className="relative flex-1">
+                                        <input
+                                            required={isFieldRequired('logo_url')}
+                                            type="text"
+                                            placeholder="Upload logo or paste URL"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium pr-12"
+                                            value={formData.logo_url}
+                                            onChange={e => setFormData({ ...formData, logo_url: e.target.value })}
+                                        />
                                             {formData.logo_url && (
                                                 <div className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
                                                     <Check size={12} />

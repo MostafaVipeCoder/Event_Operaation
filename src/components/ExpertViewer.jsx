@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { getEvent, getExperts } from '../lib/api';
+import { getEvent, getExperts, getFormConfig } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 import ExpertCard from './ExpertCard';
 
 export default function ExpertViewer() {
-    const { eventId } = useParams();
     const [event, setEvent] = useState(null);
     const [experts, setExperts] = useState([]);
+    const [config, setConfig] = useState(null);
     const [loading, setLoading] = useState(true);
     const [themeColor, setThemeColor] = useState('#1a27c9'); // Default indigo
     const [viewMode] = useState('grid'); // Optimized Grid Layout
     const navigate = useNavigate();
+    const { eventId } = useParams();
 
     // Language Handling
     const [searchParams] = useSearchParams();
@@ -43,13 +44,15 @@ export default function ExpertViewer() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [eventData, expertsData] = await Promise.all([
+                const [eventData, expertsData, configData] = await Promise.all([
                     getEvent(eventId),
-                    getExperts(eventId)
+                    getExperts(eventId),
+                    getFormConfig(eventId, 'expert')
                 ]);
 
                 setEvent(eventData);
                 setExperts(expertsData || []);
+                setConfig(configData);
 
                 // Load custom theme from Supabase event data
                 if (eventData?.experts_color) {
@@ -134,8 +137,10 @@ export default function ExpertViewer() {
                         <ExpertCard
                             key={expert.expert_id || expert.id}
                             expert={expert}
+                            config={config}
                             customColor={themeColor}
                             viewMode={viewMode}
+                            previewMode={true}
                         />
                     ))}
                 </div>

@@ -57,63 +57,63 @@ export const formatTime = (input, lang = 'en') => {
  */
 export const extractGoogleDriveId = (url) => {
     if (!url) return null;
-    if (!url.includes('drive.google.com') && !url.includes('docs.google.com')) return null;
+    
+    // If it's just an ID-like string (e.g. 1-XyZb_...)
+    if (url.match(/^[-\w]{25,50}$/)) return url;
 
-    // Patterns:
-    // 1. /file/d/ID/view
-    // 2. /d/ID/
-    // 3. ?id=ID or &id=ID
-    // 4. /open?id=ID
+    // Standard patterns
     const patterns = [
-        /\/file\/d\/([-\w]{10,})/,
-        /\/d\/([-\w]{10,})/,
-        /[?&]id=([-\w]{10,})/,
+        /\/file\/d\/([-\w]{25,})/,
+        /\/d\/([-\w]{25,})/,
+        /[?&]id=([-\w]{25,})/,
+        /uc\?id=([-\w]{25,})/,
+        /open\?id=([-\w]{25,})/,
+        /drive\.google\.com\/uc\?export=view&id=([-\w]{25,})/
     ];
 
     for (const pattern of patterns) {
         const match = url.match(pattern);
         if (match?.[1]) return match[1];
     }
+
+    // Try a more aggressive search for anything looking like a Drive ID if it's a Drive URL
+    if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
+        const parts = url.split(/[\/\?&=]/);
+        const likelyId = parts.find(part => part.match(/^[-\w]{25,50}$/));
+        if (likelyId) return likelyId;
+    }
+
     return null;
 };
 
 /**
- * Converts a Google Drive sharing URL to a direct image URL.
- * Uses lh3.googleusercontent.com/d/ID as primary (most reliable - no consent page).
- * Falls back to thumbnail endpoint if image is not accessible via lh3.
- */
-export const getGoogleDriveDirectLink = (url) => {
-    if (!url) return '';
-
-    const id = extractGoogleDriveId(url);
-
-    if (id) {
-        // lh3.googleusercontent.com/d/ID is the most reliable:
-        // - No virus scan / consent page for any file size
-        // - No cookies required
-        // - Works for publicly shared files
-        return `https://lh3.googleusercontent.com/d/${id}`;
-    }
-
-    // Not a Drive link — return as-is (Supabase Storage, Cloudinary, etc.)
-    return url;
-};
-
-/**
- * Returns an ordered list of URLs to try for a Google Drive image.
- * LazyImage uses this for automatic fallback.
+ * Returns an array of potential direct link formats for a Google Drive ID.
+ * Ordered by reliability (lh3 is best for no-consent/large files).
  */
 export const getGoogleDriveFallbackUrls = (url) => {
     if (!url) return [];
+    
+    // If it's already a Supabase URL or similar, just return it
+    if (!url.includes('drive.google.com') && !url.includes('docs.google.com') && !url.match(/^[-\w]{25,50}$/)) {
+        return [url];
+    }
 
     const id = extractGoogleDriveId(url);
-    if (!id) return [url]; // Non-Drive URL: no fallback needed
+    if (!id) return [url];
 
     return [
-        `https://lh3.googleusercontent.com/d/${id}`,           // Primary: most reliable
-        `https://drive.google.com/thumbnail?id=${id}&sz=w1500`, // Secondary: thumbnail API
-        `https://drive.google.com/uc?export=view&id=${id}`,    // Tertiary: direct download (may show consent)
+        `https://lh3.googleusercontent.com/d/${id}`, // Newest direct link format (bypass consent)
+        `https://drive.google.com/uc?export=view&id=${id}`, // Classic UC export
+        `https://drive.google.com/thumbnail?id=${id}&sz=w1000` // Thumbnail fallback (smaller but high success)
     ];
+};
+
+/**
+ * Converts a Google Drive sharing URL to a direct image URL.
+ */
+export const getGoogleDriveDirectLink = (url) => {
+    const fallbacks = getGoogleDriveFallbackUrls(url);
+    return fallbacks.length > 0 ? fallbacks[0] : url;
 };
 
 export const exportToCSV = (data, filename = 'export.csv') => {
