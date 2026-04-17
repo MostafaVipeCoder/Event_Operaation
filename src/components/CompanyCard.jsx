@@ -401,7 +401,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
           </p>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className={`grid gap-3 transition-all duration-500 ${(showLocation && displayConfig.show_industry) ? 'grid-cols-2 w-full' : 'grid-cols-1 w-full max-w-[240px] mx-auto'}`}>
           {showLocation && (
             <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200">
               <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
