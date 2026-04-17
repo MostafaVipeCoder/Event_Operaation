@@ -3,6 +3,8 @@ import { X as CloseIcon, ArrowLeft, Plus, Search, Trash2, Edit2, Layout, Databas
 import { useNavigate, useParams } from 'react-router-dom';
 import CompanyCard from './CompanyCard';
 import SyncButton from './SyncButton';
+import LazyImage from './LazyImage';
+import { getGoogleDriveFallbackUrls } from '../lib/utils';
 import { getCompanies, createCompany, updateCompany, deleteCompany, uploadImage, getSubmissions, approveSubmission, rejectSubmission, bulkUpdateCompanies, getFormConfig, saveFormConfig } from '../lib/api';
 import { 
     DndContext, 
@@ -542,13 +544,14 @@ const StartupManager = () => {
                                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                                             <div className="flex items-center gap-6 flex-1">
                                                 <div className="relative w-24 h-24 rounded-[1.5rem] overflow-hidden bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform flex-shrink-0">
-                                                    {submission.logo_url ? (
-                                                        <img src={submission.logo_url} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-slate-200">
-                                                            <Database size={40} />
-                                                        </div>
-                                                    )}
+                                                    <LazyImage
+                                                        src={submission.logo_url ? getGoogleDriveFallbackUrls(submission.logo_url)[0] : null}
+                                                        urls={submission.logo_url ? getGoogleDriveFallbackUrls(submission.logo_url) : []}
+                                                        alt={submission.startup_name || ''}
+                                                        objectFit="contain"
+                                                        padding={true}
+                                                        fallback={<Database size={40} className="text-slate-200" />}
+                                                    />
                                                 </div>
                                                 <div>
                                                     <div className="flex flex-wrap items-center gap-3 mb-2">
@@ -1044,11 +1047,14 @@ const StartupManager = () => {
                             <div className="flex justify-between items-start mb-10">
                                 <div className="p-2 bg-white rounded-[2rem] shadow-xl">
                                     <div className="w-24 h-24 rounded-[1.5rem] bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
-                                        {selectedSubmission.logo_url ? (
-                                            <img src={selectedSubmission.logo_url} alt="" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <Database size={40} className="text-slate-200" />
-                                        )}
+                                        <LazyImage
+                                            src={selectedSubmission.logo_url ? getGoogleDriveFallbackUrls(selectedSubmission.logo_url)[0] : null}
+                                            urls={selectedSubmission.logo_url ? getGoogleDriveFallbackUrls(selectedSubmission.logo_url) : []}
+                                            alt={selectedSubmission.startup_name || ''}
+                                            objectFit="contain"
+                                            padding={true}
+                                            fallback={<Database size={40} className="text-slate-200" />}
+                                        />
                                     </div>
                                 </div>
                                 <button

@@ -4,6 +4,7 @@ import { getGoogleDriveFallbackUrls } from '../lib/utils';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import LazyImage from './LazyImage';
+import ExpandableText from './ExpandableText';
 
 const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false }) => {
     const {
@@ -177,9 +178,13 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                     <div className="h-px w-20 bg-slate-100 mb-6 mx-auto md:mx-0" />
 
                     {showBio && (
-                        <p className="text-slate-500 text-lg md:text-xl leading-relaxed font-medium mb-8 transition-colors group-hover:text-slate-800">
-                            "{expert.bio || t.fallbackBio}"
-                        </p>
+                        <ExpandableText 
+                            text={expert.bio || t.fallbackBio}
+                            lines={4}
+                            lang={lang}
+                            color={customColor}
+                            className="text-slate-500 text-lg md:text-xl font-medium mb-8"
+                        />
                     )}
 
                     {showCompany && (
@@ -350,9 +355,13 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
             {/* Content Section */}
             <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
                 {showBio && (
-                    <p className="text-slate-500 text-[0.95rem] leading-relaxed font-medium mb-2 transition-colors group-hover:text-slate-800 line-clamp-4">
-                        "{expert.bio || t.fallbackBio}"
-                    </p>
+                    <ExpandableText 
+                        text={expert.bio || t.fallbackBio}
+                        lines={4}
+                        lang={lang}
+                        color={customColor}
+                        className="text-slate-500 text-[0.95rem] font-medium mb-2"
+                    />
                 )}
 
                 {showCompany && (

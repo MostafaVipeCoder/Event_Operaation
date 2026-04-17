@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useSearchParams } from 'react-router-dom';
 import { getGoogleDriveFallbackUrls } from '../lib/utils';
 import LazyImage from './LazyImage';
+import ExpandableText from './ExpandableText';
 
 const LinkIcon = ({ type, ...props }) => {
   switch (type) {
@@ -51,7 +52,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
       location: "Location",
       identity: "Identity",
       stage: "Stage",
-      connection: "Connection",
+      Links: "Links",
       growth: "Growth",
       strategic: "Strategic Builder",
       link: "Link",
@@ -62,7 +63,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
       location: "الموقع",
       identity: "الهوية",
       stage: "المرحلة",
-      connection: "روابط التواصل",
+      Links: "روابط",
       growth: "نمو",
       strategic: "بناء استراتيجي",
       link: "رابط",
@@ -212,7 +213,13 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
               </>
             )}
             {displayConfig.show_description && description && (
-              <p className="text-lg md:text-xl font-medium text-slate-500 leading-relaxed max-w-2xl mt-6">{description}</p>
+              <ExpandableText 
+                text={description}
+                lines={4}
+                lang={lang}
+                color={customColor}
+                className="text-lg md:text-xl font-medium text-slate-500 max-w-2xl mt-6"
+              />
             )}
 
             {/* Links */}
@@ -396,9 +403,13 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
       {/* Content Section */}
       <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
         {displayConfig.show_description && description && (
-          <p className="text-slate-500 text-base leading-relaxed font-medium mb-4 transition-colors group-hover:text-slate-800 line-clamp-4 italic">
-            "{description}"
-          </p>
+          <ExpandableText 
+            text={description}
+            lines={4}
+            lang={lang}
+            color={customColor}
+            className="text-slate-500 text-base font-medium mb-4 italic"
+          />
         )}
 
         <div className={`grid gap-3 transition-all duration-500 ${(showLocation && displayConfig.show_industry) ? 'grid-cols-2 w-full' : 'grid-cols-1 w-full max-w-[240px] mx-auto'}`}>
@@ -427,7 +438,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
           <div className="mt-4 border-t border-slate-50 pt-4 w-full">
             <div className="flex items-center justify-center gap-2 text-slate-400 mb-2 opacity-60">
                 <span className="h-px w-8 bg-slate-200" />
-                <span className="text-[9px] font-black uppercase tracking-[0.3em]">{t.connection}</span>
+                <span className="text-[9px] font-black uppercase tracking-[0.3em]">{t.Links}</span>
                 <span className="h-px w-8 bg-slate-200" />
             </div>
             <div className="flex flex-wrap justify-center gap-3">
@@ -437,10 +448,11 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-lg transition-all"
+                className="px-4 py-2 bg-white border border-slate-100 rounded-xl flex items-center gap-2 text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-lg transition-all group/link"
                 title={link.label}
               >
-                <LinkIcon type={link.icon} size={18} />
+                <LinkIcon type={link.icon} size={14} className="group-hover/link:scale-110 transition-transform" />
+                <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{link.label || t.link}</span>
               </a>
             ))}
           </div>

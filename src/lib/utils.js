@@ -93,7 +93,7 @@ export const extractGoogleDriveId = (url) => {
 export const getGoogleDriveFallbackUrls = (url) => {
     if (!url) return [];
     
-    // If it's already a Supabase URL or similar, just return it
+    // If it's already a Supabase URL or similar direct URL, just return it
     if (!url.includes('drive.google.com') && !url.includes('docs.google.com') && !url.match(/^[-\w]{25,50}$/)) {
         return [url];
     }
@@ -102,17 +102,44 @@ export const getGoogleDriveFallbackUrls = (url) => {
     if (!id) return [url];
 
     return [
-        `https://lh3.googleusercontent.com/d/${id}`, // Newest direct link format (bypass consent)
-        `https://drive.google.com/uc?export=view&id=${id}`, // Classic UC export
-        `https://drive.google.com/thumbnail?id=${id}&sz=w1000` // Thumbnail fallback (smaller but high success)
+        `https://drive.google.com/thumbnail?id=${id}&sz=w150`,         // Exact 124px width as requested for logos
+        `https://drive.google.com/thumbnail?id=${id}&sz=w100`,         // 200px fallback for retina displays
+        `https://lh3.googleusercontent.com/d/${id}=w150`,              // Google CDN exact 124 size
+        `https://lh3.googleusercontent.com/d/${id}`,                   // Google CDN (no size)
+        `https://drive.google.com/uc?export=view&id=${id}`,            // Classic (may show consent for large files)
     ];
 };
 
 /**
+ * Returns a high-quality direct URL for full-size images (backgrounds, headers, covers).
+ * Separate from getGoogleDriveFallbackUrls which is optimized for small logos.
+ */
+export const getGoogleDriveFullSizeUrls = (url) => {
+    if (!url) return [];
+    
+    // If it's already a Supabase URL or similar direct URL, just return it
+    if (!url.includes('drive.google.com') && !url.includes('docs.google.com') && !url.match(/^[-\w]{25,50}$/)) {
+        return [url];
+    }
+
+    const id = extractGoogleDriveId(url);
+    if (!id) return [url];
+
+    return [
+        `https://drive.google.com/thumbnail?id=${id}&sz=w1600`,        // Large thumbnail - no consent page
+        `https://lh3.googleusercontent.com/d/${id}=w1600`,             // CDN large
+        `https://lh3.googleusercontent.com/d/${id}`,                   // CDN original
+        `https://drive.google.com/uc?export=view&id=${id}`,            // Classic full export
+    ];
+};
+
+
+/**
  * Converts a Google Drive sharing URL to a direct image URL.
+ * Uses full-size format suitable for backgrounds, headers, and cover images.
  */
 export const getGoogleDriveDirectLink = (url) => {
-    const fallbacks = getGoogleDriveFallbackUrls(url);
+    const fallbacks = getGoogleDriveFullSizeUrls(url);
     return fallbacks.length > 0 ? fallbacks[0] : url;
 };
 
