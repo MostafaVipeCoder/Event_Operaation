@@ -6,10 +6,39 @@
 
 
 @layer base {
-    body {
-        @apply font-manrope bg-white text-[#0d0e0e] antialiased selection:bg-[#1a27c9]/10 selection:text-[#1a27c9];
-        transition: background-color 0.3s ease;
-    }
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 180 4% 5%;
+    --primary: 234 77% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 54 100% 63%;
+    --secondary-foreground: 180 4% 5%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 214.3 31.8% 91.4%;
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 180 4% 5%;
+    --foreground: 0 0% 100%;
+    --primary: 54 100% 63%;
+    --primary-foreground: 180 4% 5%;
+    --secondary: 234 77% 44%;
+    --secondary-foreground: 0 0% 100%;
+    --border: 180 4% 15%;
+    --input: 180 4% 15%;
+    --ring: 54 100% 63%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-manrope bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
 @layer utilities {
