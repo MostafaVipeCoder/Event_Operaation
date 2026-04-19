@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -6,9 +6,12 @@ export function usePresence(roomId = 'global') {
   const { user } = useAuth();
   const [activeUsers, setActiveUsers] = useState([]);
   const [profile, setProfile] = useState(null);
+  // Use a ref to hold the channel so cleanup can always access the latest value
+  const channelRef = useRef(null);
 
   useEffect(() => {
-    let channel;
+    // Guard flag: prevents state updates and channel tracking after unmount
+    let isMounted = true;
 
     const setupPresence = async () => {
       if (!user) return;
@@ -19,6 +22,9 @@ export function usePresence(roomId = 'global') {
         .select('full_name, avatar_color')
         .eq('id', user.id)
         .single();
+
+      // Bail out if component unmounted while we were fetching
+      if (!isMounted) return;
 
       if (userProfile) {
         setProfile(userProfile);
@@ -33,11 +39,14 @@ export function usePresence(roomId = 'global') {
       // Clean up existing channels with the same name (React Strict Mode fix)
       const existing = supabase.getChannels().filter(c => c.topic === `realtime:${topic}`);
       for (const c of existing) {
-        supabase.removeChannel(c);
+        await supabase.removeChannel(c);
       }
 
+      // Bail out again in case unmount happened during channel cleanup
+      if (!isMounted) return;
+
       // 2. Setup Supabase Channel
-      channel = supabase.channel(topic, {
+      const channel = supabase.channel(topic, {
         config: {
           presence: {
             key: user.id,
@@ -45,8 +54,12 @@ export function usePresence(roomId = 'global') {
         },
       });
 
+      // Store in ref immediately so cleanup can access it
+      channelRef.current = channel;
+
       channel
         .on('presence', { event: 'sync' }, () => {
+          if (!isMounted) return;
           const state = channel.presenceState();
           const usersOnline = [];
           for (const id in state) {
@@ -55,7 +68,7 @@ export function usePresence(roomId = 'global') {
           setActiveUsers(usersOnline);
         })
         .subscribe(async (status) => {
-          if (status === 'SUBSCRIBED') {
+          if (status === 'SUBSCRIBED' && isMounted) {
             await channel.track({
               user_id: user.id,
               full_name: finalName,
@@ -69,8 +82,13 @@ export function usePresence(roomId = 'global') {
     setupPresence();
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
+      // Mark as unmounted to stop any in-flight async operations
+      isMounted = false;
+
+      // Safely remove the channel if it was created
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
     };
   }, [user, roomId]);

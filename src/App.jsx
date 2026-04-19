@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { HashRouter as Router, Routes, Route, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
-// Lazy Loaded Components
+// ─── Lazy Loaded Components ─────────────────────────────────────────────────
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const AgendaViewer = lazy(() => import('./components/AgendaViewer'));
 const EventBuilder = lazy(() => import('./components/EventBuilder'));
@@ -20,7 +20,20 @@ const EventVisualManager = lazy(() => import('./components/EventVisualManager'))
 const SelectionProcessManager = lazy(() => import('./components/SelectionProcessManager'));
 const GenericFormPortal = lazy(() => import('./components/GenericFormPortal'));
 const MarketingAnalytics = lazy(() => import('./components/MarketingAnalytics'));
-// EventSettings module removed intentionally
+
+// ─── Prefetch helpers (call on hover to warm up JS chunks) ──────────────────
+// Each function triggers a dynamic import which caches the chunk immediately.
+export const prefetch = {
+  dashboard: () => import('./components/Dashboard'),
+  eventDashboard: () => import('./components/EventDashboard'),
+  agenda: () => import('./components/EventBuilder'),
+  experts: () => import('./components/ExpertManager'),
+  startups: () => import('./components/StartupManager'),
+  forms: () => import('./components/FormEditor'),
+  visuals: () => import('./components/EventVisualManager'),
+  selection: () => import('./components/SelectionProcessManager'),
+  analytics: () => import('./components/MarketingAnalytics'),
+};
 
 import PublicLayout from './components/PublicLayout';
 import { AuthProvider } from './contexts/AuthContext';

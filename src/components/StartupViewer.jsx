@@ -26,8 +26,8 @@ export default function StartupViewer() {
             errorTitle: "Engine Offline",
             errorDesc: "The startup data stream for this event could not be found.",
             retry: "Return to Base",
-            startup: "Startup",
-            list: "List"
+            startup: "STARTUPS",
+            list: "LIST"
         },
         ar: {
             loading: "جاري فحص الشركات...",
@@ -135,7 +135,7 @@ export default function StartupViewer() {
                     ? 'grid-cols-1 max-w-6xl mx-auto'
                     : 'grid-cols-1 md:grid-cols-2'
                     }`}>
-                    {companies.map(company => (
+                    {companies.map((company, index) => (
                         <CompanyCard
                             key={company.company_id || company.id}
                             company={company}
@@ -143,6 +143,7 @@ export default function StartupViewer() {
                             customColor={themeColor}
                             viewMode={viewMode}
                             previewMode={true}
+                            priority={index < 2}
                         />
                     ))}
                 </div>

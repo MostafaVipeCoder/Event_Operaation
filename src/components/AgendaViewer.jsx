@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, User, Calendar as CalendarIcon } from 'lucide-react';
+import { Clock, User, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { getFullAgenda } from '../lib/api';
 import { formatDate, formatTime, getGoogleDriveDirectLink } from '../lib/utils';
@@ -195,7 +195,7 @@ export default function AgendaViewer({ eventId }) {
         >
             {isHeaderVisible && (
                 <div
-                    className="relative w-full z-10 shadow-sm flex items-center justify-center transition-all duration-700 overflow-hidden"
+                    className="relative w-full z-10 shadow-sm flex items-center justify-center transition-all duration-700 overflow-hidden print:hidden"
                     style={{
                         height: headerSettings?.type === 'color' || (!event.header_image_url && headerSettings?.type !== 'image') ? headerHeight : undefined,
                         backgroundColor: headerSettings?.type === 'color' ? (headerSettings.color || '#ffffff') : '#f8fafc'
@@ -250,7 +250,7 @@ export default function AgendaViewer({ eventId }) {
 
             {/* Main Content Area */}
             <div
-                className={`max-w-4xl mx-auto px-6 ${!paddingTop.startsWith('calc') ? paddingTop : ''} ${paddingBottom}`}
+                className={`max-w-4xl mx-auto px-6 print:hidden ${!paddingTop.startsWith('calc') ? paddingTop : ''} ${paddingBottom}`}
                 style={{ paddingTop: paddingTop.startsWith('calc') ? paddingTop : undefined }}
             >
                 {/* Day Navigation Tabs */}
@@ -366,7 +366,7 @@ export default function AgendaViewer({ eventId }) {
 
             {/* Footer Image - Fixed Bottom */}
             {event.footer_image_url && (
-                <div className="fixed bottom-0 left-0 w-full h-32 md:h-48 bg-gray-100 overflow-hidden z-20 shadow-inner-lg">
+                <div className="fixed bottom-0 left-0 w-full h-32 md:h-48 bg-gray-100 overflow-hidden z-20 shadow-inner-lg print:hidden">
                     <img
                         src={getGoogleDriveDirectLink(event.footer_image_url)}
                         alt="Footer"
@@ -376,6 +376,107 @@ export default function AgendaViewer({ eventId }) {
                     />
                 </div>
             )}
+
+            {/* ---------------- Print View ---------------- */}
+            <div className="hidden print:block w-full bg-white text-black">
+                {days.map((day, index) => (
+                    <div key={`print-${day.day_id}`} className="print-page w-full bg-white relative">
+                        {/* Print Header for each page */}
+                        {isHeaderVisible && (
+                            <div
+                                className="relative w-full flex items-center justify-center overflow-hidden"
+                                style={{
+                                    height: headerSettings?.type === 'color' || (!event.header_image_url && headerSettings?.type !== 'image') ? headerHeight : undefined,
+                                    backgroundColor: headerSettings?.type === 'color' ? (headerSettings.color || '#ffffff') : '#f8fafc'
+                                }}
+                            >
+                                {(headerSettings?.type === 'image' || (!headerSettings?.type && event.header_image_url)) && event.header_image_url && (
+                                    <div className="w-full relative">
+                                        <img src={getGoogleDriveDirectLink(event.header_image_url)} alt="Cover" className="w-full h-auto block" referrerPolicy="no-referrer" />
+                                        <div className="absolute inset-0" style={{ backgroundColor: headerSettings.overlayColor || '#000000', opacity: headerSettings.overlayOpacity || 0 }} />
+                                    </div>
+                                )}
+                                {headerSettings?.showTitle && (
+                                    <div className="absolute inset-0 z-10 text-center px-6 mx-auto flex flex-col items-center justify-center">
+                                        <h1 className="font-black pt-4 mb-2 drop-shadow-sm" style={{ color: headerSettings.titleColor || '#0d0e0e', fontSize: headerSettings.titleSize || '3rem', fontWeight: headerSettings.titleWeight || '900' }}>
+                                            {event.event_name}
+                                        </h1>
+                                        {headerSettings.titleDescription && (
+                                            <p className="text-xl opacity-90 font-bold" style={{ color: headerSettings.titleColor || '#0d0e0e' }}>
+                                                {headerSettings.titleDescription}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Print Content for the Day */}
+                        <div className="max-w-4xl mx-auto px-8 pt-8 pb-12 print-content-scale">
+                            <div className="mb-8 border-b-2 border-slate-100 pb-4">
+                                <h2 className="text-4xl font-black text-[#0d0e0e] tracking-tight mb-2">
+                                    {event.show_day_names !== false ? day.day_name : `${t.day} ${index + 1}`}
+                                </h2>
+                                {day.day_date && (
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">
+                                        {formatDate(day.day_date, lang === 'ar' ? { locale: 'ar-EG' } : {})}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="space-y-6">
+                                {day.slots?.map((slot) => (
+                                    <div key={`print-slot-${slot.slot_id}`} className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-row items-center gap-6" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                                        <div className="flex items-center gap-2 text-[#1a27c9] w-48 flex-shrink-0">
+                                            <Clock size={16} />
+                                            <div className="font-black text-sm tracking-tighter uppercase whitespace-nowrap">
+                                                <span>{formatTime(slot.start_time, lang)}</span>
+                                                <span className="opacity-30 mx-1">—</span>
+                                                <span>{formatTime(slot.end_time, lang)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="text-xl text-[#0d0e0e] font-black tracking-tight mb-1">{slot.slot_title}</h3>
+                                            {slot.bullet_points?.length > 0 && (
+                                                <ul className="space-y-1 mt-2">
+                                                    {slot.bullet_points.map((point, i) => (
+                                                        <li key={`p-${i}`} className="flex flex-row items-start gap-2">
+                                                            <div className="mt-2 h-1 w-1 rounded-full bg-slate-400 shrink-0" />
+                                                            <span className="text-slate-600 font-medium text-sm">{point}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {slot.presenter_name && slot.show_presenter && (
+                                                <div className="flex items-center gap-2 mt-3 text-slate-500 text-xs font-black uppercase tracking-widest">
+                                                    <User size={14} />
+                                                    {slot.presenter_name}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Optional Print Footer */}
+                        {event.footer_image_url && (
+                            <div className="absolute bottom-0 left-0 w-full h-24 bg-gray-100 overflow-hidden">
+                                <img src={getGoogleDriveDirectLink(event.footer_image_url)} alt="Footer" className="w-full h-full object-cover" />
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {/* Download PDF Button */}
+            <button
+                onClick={() => window.print()}
+                className={`fixed bottom-8 ${isRtl ? 'left-8' : 'right-8'} z-50 bg-[#1a27c9] text-white p-4 rounded-full shadow-2xl hover:bg-[#121c99] hover:scale-105 active:scale-95 transition-premium print:hidden flex items-center justify-center`}
+                title="Download PDF"
+            >
+                <Download size={24} />
+            </button>
         </div>
     );
 }

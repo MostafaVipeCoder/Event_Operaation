@@ -9,35 +9,73 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 180 4% 5%;
-    --primary: 234 77% 44%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 180 4% 5%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 180 4% 5%;
+    
+    --primary: 234 77% 44%; /* Athar Blue */
     --primary-foreground: 0 0% 100%;
-    --secondary: 54 100% 63%;
-    --secondary-foreground: 180 4% 5%;
+    
+    --secondary: 54 100% 63%; /* Athar Yellow */
+    --secondary-foreground: 234 77% 44%;
+    
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 214.3 31.8% 91.4%;
+    --ring: 214.3 31.8% 91.4%; /* Pale grey */
+    
     --radius: 0.5rem;
   }
- 
+
   .dark {
     --background: 180 4% 5%;
     --foreground: 0 0% 100%;
-    --primary: 54 100% 63%;
+    
+    --card: 180 4% 5%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 180 4% 5%;
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: 54 100% 63%; /* Athar Yellow */
     --primary-foreground: 180 4% 5%;
-    --secondary: 234 77% 44%;
+    
+    --secondary: 234 77% 44%; /* Athar Blue */
     --secondary-foreground: 0 0% 100%;
-    --border: 180 4% 15%;
-    --input: 180 4% 15%;
-    --ring: 54 100% 63%;
+    
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 54 100% 63%; /* Athar yellow for focus rings in dark mode */
   }
+}
 
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply font-manrope bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
-    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    @apply font-manrope bg-background text-foreground antialiased selection:bg-athar-yellow/30 selection:text-athar-black;
+    transition: background-color 0.3s ease;
   }
 }
 
@@ -118,4 +156,44 @@
 @keyframes shimmer {
     0%   { background-position: -200% 0; }
     100% { background-position:  200% 0; }
-}
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+    
+    body, html {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .print-page {
+        page-break-after: always;
+        break-after: page;
+        min-height: 100vh;
+        width: 100%;
+        position: relative;
+        background-color: white;
+    }
+
+    .print-content-scale {
+        zoom: 0.8;
+    }
+
+    /* Important: Remove last page break to avoid blank page */
+    .print-page:last-of-type {
+        page-break-after: auto;
+        break-after: auto;
+    }
+
+    /* Hide unnecessary UI elements */
+    .no-print, .print\:hidden {
+        display: none !important;
+    }
+}

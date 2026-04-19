@@ -39,7 +39,7 @@ export default function PublicLayout() {
         >
             {/* Desktop Header */}
             {!isAgendaOnly && (
-                <header className="hidden md:block sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-6 py-4">
+                <header className="hidden md:block sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-6 py-4 print:hidden">
                     <div className="max-w-7xl mx-auto flex items-center justify-center">
                         
                         <nav className="flex items-center gap-1 bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50">
@@ -70,7 +70,7 @@ export default function PublicLayout() {
 
             {/* Mobile Bottom Nav */}
             {!isAgendaOnly && (
-                <nav className="md:hidden fixed bottom-6 inset-x-6 z-50 bg-white/95 backdrop-blur-2xl border border-slate-200 shadow-[0_20px_50px_rgba(26,39,201,0.15)] rounded-[2.5rem] p-2 flex items-center justify-around">
+                <nav className="md:hidden fixed bottom-6 inset-x-6 z-50 bg-white/95 backdrop-blur-2xl border border-slate-200 shadow-[0_20px_50px_rgba(26,39,201,0.15)] rounded-[2.5rem] p-2 flex items-center justify-around print:hidden">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}

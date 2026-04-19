@@ -19,7 +19,7 @@ const LinkIcon = ({ type, ...props }) => {
   }
 };
 
-const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false }) => {
+const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false, priority = false }) => {
   const {
     attributes,
     listeners,
@@ -89,7 +89,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
         try { parsedLinks = JSON.parse(parsedLinks); } catch(e) { parsedLinks = []; }
     }
     if (Array.isArray(parsedLinks) && parsedLinks.length > 0) return parsedLinks;
-    if (company.website_url) return [{ label: 'Website', url: company.website_url, icon: 'globe' }];
+    if (company.website_url) return [{ label: 'Pitch Deck', url: company.website_url, icon: 'globe' }];
     return [];
   })();
 
@@ -159,6 +159,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
                 alt={name}
                 objectFit="contain"
                 padding={true}
+                priority={priority}
                 className="grayscale-[0.2] group-hover:grayscale-0 transition-all"
                 fallback={<span className="text-8xl font-black opacity-20" style={{ color: customColor }}>{name.charAt(0)}</span>}
               />
@@ -361,6 +362,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
                 alt={name}
                 objectFit="contain"
                 padding={true}
+                priority={priority}
                 className="grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000"
                 fallback={
                   <div

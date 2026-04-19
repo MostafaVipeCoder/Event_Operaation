@@ -16,6 +16,7 @@ const LazyImage = ({
     fallback = null,
     padding = false,
     rootMargin = '200px',
+    priority = false, // If true, load instantly and set high priority
 }) => {
     const containerRef = useRef(null);
     
@@ -39,7 +40,7 @@ const LazyImage = ({
 
     const itemsRef = useRef(urlsToTry);
     
-    const [isInView, setIsInView] = useState(false);
+    const [isInView, setIsInView] = useState(priority);
     const [urlIndex, setUrlIndex] = useState(0);
     const [loaded, setLoaded] = useState(false);
 
@@ -58,6 +59,9 @@ const LazyImage = ({
 
     // IntersectionObserver — start loading when card is near viewport
     useEffect(() => {
+        // If priority is true, we don't need the observer
+        if (priority) return;
+
         const node = containerRef.current;
         if (!node) return;
 
@@ -73,7 +77,7 @@ const LazyImage = ({
 
         observer.observe(node);
         return () => observer.disconnect();
-    }, [rootMargin]);
+    }, [rootMargin, priority]);
 
     const handleError = () => {
         console.warn(`❌ Image Load Failed [${alt || 'Unknown'}]:`, currentSrc);
@@ -119,9 +123,10 @@ const LazyImage = ({
                     src={currentSrc}
                     alt={alt}
                     decoding="async"
+                    fetchPriority={priority ? "high" : "auto"}
                     onLoad={handleSuccess}
                     onError={handleError}
-                    style={{ transition: 'opacity 0.5s ease' }}
+                    style={{ transition: 'opacity 0.2s ease' }} // Faster fade-in for less layout shift delay
                     className={[
                         'w-full h-full',
                         loaded ? 'opacity-100' : 'opacity-0',

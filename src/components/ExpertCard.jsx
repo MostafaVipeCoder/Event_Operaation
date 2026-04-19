@@ -6,7 +6,7 @@ import { CSS } from '@dnd-kit/utilities';
 import LazyImage from './LazyImage';
 import ExpandableText from './ExpandableText';
 
-const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false }) => {
+const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false, priority = false }) => {
     const {
         attributes,
         listeners,
@@ -129,6 +129,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                                 urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
                                 alt={name}
                                 objectFit="cover"
+                                priority={priority}
                                 className="grayscale-[0.1] contrast-[1.05] group-hover:grayscale-0 transition-all duration-700"
                                 fallback={
                                     <div
@@ -319,6 +320,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                                 urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
                                 alt={name}
                                 objectFit="cover"
+                                priority={priority}
                                 className="grayscale-[0.2] contrast-[1.1] group-hover:grayscale-0 transition-all duration-1000"
                                 fallback={
                                     <div

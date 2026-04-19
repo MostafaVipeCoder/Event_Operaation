@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 
 /**
  * ExpandableText Component
@@ -13,6 +13,7 @@ const ExpandableText = ({
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [hasMore, setHasMore] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
     const textRef = useRef(null);
 
     const labels = {
@@ -28,19 +29,26 @@ const ExpandableText = ({
     const lineHeightEm = 1.625;
     const collapsedMaxHeight = `${lines * lineHeightEm}em`;
 
+    // Initial mount flag to skip transitions
     useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    // Layout effect handles truncation calculation before browser paint to avoid shifts
+    useLayoutEffect(() => {
         const checkTruncation = () => {
             if (textRef.current) {
+                // clientHeight includes padding, scrollHeight is total content height
                 const truncated = textRef.current.scrollHeight > textRef.current.clientHeight + 2;
                 setHasMore(truncated);
             }
         };
 
-        // Small delay to ensure layout is complete
-        const timer = setTimeout(checkTruncation, 50);
+        checkTruncation();
+
+        // Still need a resize listener
         window.addEventListener('resize', checkTruncation);
         return () => {
-            clearTimeout(timer);
             window.removeEventListener('resize', checkTruncation);
         };
     }, [text, lines, isExpanded]);
@@ -51,13 +59,13 @@ const ExpandableText = ({
         <div className={`flex flex-col items-start ${className}`} dir={isRtl ? 'rtl' : 'ltr'}>
             <p
                 ref={textRef}
-                className="transition-all duration-500 overflow-hidden leading-relaxed w-full"
+                className={`overflow-hidden leading-relaxed w-full ${isMounted ? 'transition-[max-height,opacity] duration-500' : ''}`}
                 style={{
                     maxHeight: isExpanded ? '1000px' : collapsedMaxHeight,
                     WebkitLineClamp: isExpanded ? 'unset' : lines,
                     display: '-webkit-box',
                     WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
+                    opacity: 1 // Explicitly set to avoid any default fade-ins during transition check
                 }}
             >
                 {text}

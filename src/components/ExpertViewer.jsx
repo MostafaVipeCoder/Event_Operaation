@@ -133,7 +133,7 @@ export default function ExpertViewer() {
                     ? 'grid-cols-1 max-w-6xl mx-auto'
                     : 'grid-cols-1 md:grid-cols-2'
                     }`}>
-                    {experts.map(expert => (
+                    {experts.map((expert, index) => (
                         <ExpertCard
                             key={expert.expert_id || expert.id}
                             expert={expert}
@@ -141,6 +141,7 @@ export default function ExpertViewer() {
                             customColor={themeColor}
                             viewMode={viewMode}
                             previewMode={true}
+                            priority={index < 2}
                         />
                     ))}
                 </div>

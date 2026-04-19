@@ -44,20 +44,25 @@ export const getEvent = async (eventId) => {
 export const getFullAgenda = async (eventId) => {
     console.log(`[Supabase] Fetching full agenda for event: ${eventId}`);
 
-    const { data: event, error: eventError } = await supabase
-        .from('events')
-        .select('*')
-        .eq('event_id', eventId)
-        .single();
-    if (eventError) throw eventError;
+    // Fetch event, experts, companies, and days ALL IN PARALLEL — eliminates waterfall
+    const [
+        { data: event, error: eventError },
+        { data: experts, error: expertsError },
+        { data: companies, error: companiesError },
+        { data: days, error: daysError },
+    ] = await Promise.all([
+        supabase.from('events').select('*').eq('event_id', eventId).single(),
+        supabase.from('experts').select('*').eq('event_id', eventId).order('sort_order', { ascending: true }),
+        supabase.from('companies').select('*').eq('event_id', eventId),
+        supabase.from('event_days').select('*').eq('event_id', eventId).order('day_number', { ascending: true }),
+    ]);
 
-    const { data: days, error: daysError } = await supabase
-        .from('event_days')
-        .select('*')
-        .eq('event_id', eventId)
-        .order('day_number', { ascending: true });
+    if (eventError) throw eventError;
+    if (expertsError) throw expertsError;
+    if (companiesError) throw companiesError;
     if (daysError) throw daysError;
 
+    // Slots depend on day IDs — only these wait for days to resolve
     const dayIds = days.map(d => d.day_id);
     let slots = [];
     if (dayIds.length > 0) {
@@ -69,19 +74,6 @@ export const getFullAgenda = async (eventId) => {
         if (slotsError) throw slotsError;
         slots = slotsData;
     }
-
-    const { data: experts, error: expertsError } = await supabase
-        .from('experts')
-        .select('*')
-        .eq('event_id', eventId)
-        .order('sort_order', { ascending: true });
-    if (expertsError) throw expertsError;
-
-    const { data: companies, error: companiesError } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('event_id', eventId);
-    if (companiesError) throw companiesError;
 
     return {
         event,
