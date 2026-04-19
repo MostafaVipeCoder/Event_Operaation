@@ -263,7 +263,7 @@ export default function EventDashboard() {
                             {/* English Links */}
                             <div className="flex flex-col gap-2">
                                 <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] text-center">English Version</span>
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2 justify-center">
                                     <button 
                                         onClick={(e) => {
                                             const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`;
@@ -274,6 +274,17 @@ export default function EventDashboard() {
                                         className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2"
                                     >
                                         <ClipboardList size={16} /> Full Link
+                                    </button>
+                                    <button 
+                                        onClick={(e) => {
+                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en&mode=agenda_experts`;
+                                            navigator.clipboard.writeText(link);
+                                            e.currentTarget.innerHTML = 'Copied!';
+                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> Agenda & Experts'; }, 2000);
+                                        }}
+                                        className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2"
+                                    >
+                                        <ClipboardList size={16} /> Agenda & Experts
                                     </button>
                                     <button 
                                         onClick={(e) => {
@@ -301,7 +312,7 @@ export default function EventDashboard() {
                             {/* Arabic Links */}
                             <div className="flex flex-col gap-2">
                                 <span className="text-[10px] font-bold text-athar-yellow uppercase tracking-[0.2em] text-center">Arabic Version (RTL)</span>
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2 justify-center">
                                     <button 
                                         onClick={(e) => {
                                             const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`;
@@ -312,6 +323,17 @@ export default function EventDashboard() {
                                         className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2 font-arabic"
                                     >
                                         <ClipboardList size={16} /> المنصة كاملة
+                                    </button>
+                                    <button 
+                                        onClick={(e) => {
+                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar&mode=agenda_experts`;
+                                            navigator.clipboard.writeText(link);
+                                            e.currentTarget.innerHTML = 'تم النسخ!';
+                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> الأجندة والخبراء'; }, 2000);
+                                        }}
+                                        className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2 font-arabic"
+                                    >
+                                        <ClipboardList size={16} /> الأجندة والخبراء
                                     </button>
                                     <button 
                                         onClick={(e) => {

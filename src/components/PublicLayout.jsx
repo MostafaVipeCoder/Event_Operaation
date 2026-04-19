@@ -25,12 +25,18 @@ export default function PublicLayout() {
     const t = translations[lang];
     const queryStr = searchParams.toString() ? `?${searchParams.toString()}` : '';
     const isAgendaOnly = searchParams.get('mode') === 'agenda_only';
+    const isAgendaExperts = searchParams.get('mode') === 'agenda_experts';
 
-    const navItems = [
-        { path: `/agenda/${eventId}${queryStr}`, label: t.agenda, icon: <Calendar size={20} /> },
-        { path: `/view/${eventId}/experts${queryStr}`, label: t.experts, icon: <Users size={20} /> },
-        { path: `/view/${eventId}/startups${queryStr}`, label: t.companies, icon: <Briefcase size={20} /> },
+    const allNavItems = [
+        { id: 'agenda', path: `/agenda/${eventId}${queryStr}`, label: t.agenda, icon: <Calendar size={20} /> },
+        { id: 'experts', path: `/view/${eventId}/experts${queryStr}`, label: t.experts, icon: <Users size={20} /> },
+        { id: 'companies', path: `/view/${eventId}/startups${queryStr}`, label: t.companies, icon: <Briefcase size={20} /> },
     ];
+
+    const navItems = allNavItems.filter(item => {
+        if (isAgendaExperts && item.id === 'companies') return false;
+        return true;
+    });
 
     return (
         <div 
