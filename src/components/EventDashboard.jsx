@@ -99,8 +99,11 @@ export default function EventDashboard() {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground font-manrope relative overflow-hidden animate-in fade-in">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-50 mix-blend-soft-light pointer-events-none z-0 dark:opacity-10"></div>
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary z-10"></div>
+                <div 
+                    className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none z-0 dark:opacity-10"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+                ></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-athar-blue z-10"></div>
                 <p className="mt-4 text-muted-foreground font-bold tracking-tight z-10">Loading Pulse Dashboard...</p>
             </div>
         );
@@ -109,7 +112,10 @@ export default function EventDashboard() {
     if (!event || event.error) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-background font-manrope relative overflow-hidden animate-in fade-in">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-50 mix-blend-soft-light pointer-events-none z-0 dark:opacity-10"></div>
+                <div 
+                    className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none z-0 dark:opacity-10"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+                ></div>
                 <div className="absolute top-0 right-0 w-full h-[500px] bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-athar-blue/20 via-background to-background pointer-events-none z-0"></div>
                 <div className="bg-card p-10 rounded-lg shadow-xl border border-border text-center max-w-sm relative z-10 animate-in zoom-in-95">
                     <h2 className="text-3xl font-extrabold text-foreground mb-2 tracking-tight">Event Offline</h2>
@@ -187,7 +193,10 @@ export default function EventDashboard() {
     return (
         <div className="min-h-screen bg-background font-manrope text-foreground pb-24 relative overflow-hidden">
             {/* Background Grain & Glow */}
-            <div className="absolute inset-0 z-0 pointer-events-none mix-blend-soft-light opacity-50 dark:opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+            <div 
+                className="absolute inset-0 z-0 pointer-events-none mix-blend-soft-light opacity-20 dark:opacity-10"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+            ></div>
             <div className="absolute top-0 right-0 w-full h-[500px] bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-athar-blue/10 via-background to-background pointer-events-none -z-10"></div>
 
             {/* Header */}
@@ -252,7 +261,10 @@ export default function EventDashboard() {
 
             {/* Public Access Hub - NEW SECTION (Solid Branding) */}
             <div className="bg-gradient-to-br from-athar-blue to-athar-black text-white py-10 relative overflow-hidden animate-in fade-in slide-in-from-top-2">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light pointer-events-none" />
+                <div 
+                    className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none" 
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+                />
                 <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         <div>

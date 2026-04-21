@@ -20,6 +20,7 @@ const EventVisualManager = lazy(() => import('./components/EventVisualManager'))
 const SelectionProcessManager = lazy(() => import('./components/SelectionProcessManager'));
 const GenericFormPortal = lazy(() => import('./components/GenericFormPortal'));
 const MarketingAnalytics = lazy(() => import('./components/MarketingAnalytics'));
+const MasterExpertsList = lazy(() => import('./components/MasterExpertsList'));
 
 // ─── Prefetch helpers (call on hover to warm up JS chunks) ──────────────────
 // Each function triggers a dynamic import which caches the chunk immediately.
@@ -33,6 +34,7 @@ export const prefetch = {
   visuals: () => import('./components/EventVisualManager'),
   selection: () => import('./components/SelectionProcessManager'),
   analytics: () => import('./components/MarketingAnalytics'),
+  masterExperts: () => import('./components/MasterExpertsList'),
 };
 
 import PublicLayout from './components/PublicLayout';
@@ -89,6 +91,12 @@ function App() {
             <Route path="/companies" element={
               <ProtectedRoute>
                 <CompaniesPage />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/experts" element={
+              <ProtectedRoute>
+                <MasterExpertsList />
               </ProtectedRoute>
             } />
 

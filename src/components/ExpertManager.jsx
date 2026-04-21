@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Search, Trash2, Edit2, Layout, Database, AlertCircle, ExternalLink, Users, Inbox, Clock, Eye, CheckCircle, XCircle, Loader2, Pencil, Upload, Check, X } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Trash2, Edit2, Layout, Database, AlertCircle, ExternalLink, Users, Inbox, Clock, Eye, CheckCircle, XCircle, Loader2, Pencil, Upload, Check, X, Briefcase } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ExpertCard from './ExpertCard';
 import SyncButton from './SyncButton';
 import { 
     getExperts, createExpert, updateExpert, deleteExpert, 
     uploadImage, getSubmissions, approveSubmission, rejectSubmission,
-    bulkUpdateExperts, getFormConfig, saveFormConfig
+    bulkUpdateExperts, getFormConfig, saveFormConfig, getMasterExperts
 } from '../lib/api';
+import { getGoogleDriveFallbackUrls } from '../lib/utils';
+import LazyImage from './LazyImage';
 import {
     DndContext,
     closestCenter,
@@ -47,6 +49,9 @@ const ExpertManager = () => {
     const [formConfig, setFormConfig] = useState([]);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [settingsSaving, setSettingsSaving] = useState(false);
+    const [showLibraryModal, setShowLibraryModal] = useState(false);
+    const [libraryExperts, setLibraryExperts] = useState([]);
+    const [libraryLoading, setLibraryLoading] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -158,7 +163,7 @@ const ExpertManager = () => {
             setActionLoading(submission.submission_id);
             await approveSubmission(submission.submission_id, 'expert');
             setSubmissions(prev => prev.filter(s => s.submission_id !== submission.submission_id));
-            alert('Expert approved and added to roster! ✅');
+            alert('Expert approved and added to event! ✅');
         } catch (error) {
             console.error('Error approving expert:', error);
             alert('Failed to approve registration pulse.');
@@ -179,6 +184,38 @@ const ExpertManager = () => {
         } catch (error) {
             console.error('Error rejecting expert:', error);
             alert('Failed to block registration signal.');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleImportFromLibrary = async (masterExpert) => {
+        try {
+            setActionLoading(masterExpert.id);
+            // Check if already in experts
+            const exists = experts.some(e => e.master_id === masterExpert.id);
+            if (exists) {
+                alert('Expert already present in event.');
+                return;
+            }
+
+            await createExpert({
+                name: masterExpert.name,
+                title: masterExpert.title,
+                company: masterExpert.company,
+                bio: masterExpert.bio,
+                photo_url: masterExpert.photo_url,
+                linkedin_url: masterExpert.linkedin_url,
+                event_id: eventId,
+                master_id: masterExpert.id,
+                sort_order: experts.length + 1
+            });
+
+            loadData();
+            alert(`Sourced ${masterExpert.name} from hub! 🚀`);
+        } catch (error) {
+            console.error('Error importing from hub:', error);
+            alert('Failed to establish hub connection.');
         } finally {
             setActionLoading(null);
         }
@@ -289,7 +326,7 @@ const ExpertManager = () => {
                                     }`}
                             >
                                 <Users size={16} />
-                                Expert Roster
+                                Expert Grid
                             </button>
                             <button
                                 onClick={() => setActiveTab('review')}
@@ -322,6 +359,22 @@ const ExpertManager = () => {
                                 onSyncComplete={loadData}
                                 className="md:w-auto h-[54px]"
                             />
+                            <button
+                                onClick={() => {
+                                    setShowLibraryModal(true);
+                                    if (libraryExperts.length === 0) {
+                                        setLibraryLoading(true);
+                                        getMasterExperts().then(data => {
+                                            setLibraryExperts(data || []);
+                                            setLibraryLoading(false);
+                                        });
+                                    }
+                                }}
+                                className="flex items-center gap-3 bg-white text-athar-blue border border-athar-blue/20 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-athar-blue/5 transition-premium group active:scale-95 shadow-sm"
+                            >
+                                <Users size={18} className="group-hover:scale-110 transition-transform" />
+                                <span>Import from Hub</span>
+                            </button>
                             <button
                                 onClick={() => setShowAddModal(true)}
                                 className="flex items-center gap-3 bg-[#1a27c9] text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-indigo-200 transition-premium group active:scale-95"
@@ -575,7 +628,7 @@ const ExpertManager = () => {
                             {activeTab === 'curated' ? 'No Visionaries Detected' : 'Clear Workspace'}
                         </h2>
                         <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">
-                            {activeTab === 'curated' ? 'The signal is clear but your roster is empty.' : 'All incoming expert signals have been processed.'}
+                            {activeTab === 'curated' ? 'The signal is clear but your grid is empty.' : 'All incoming expert signals have been processed.'}
                         </p>
                     </div>
                 )}
@@ -614,7 +667,7 @@ const ExpertManager = () => {
                             <div className="flex items-center gap-3 mb-2">
                                 {editingExpert ? <Pencil size={16} className="text-[#1a27c9]" /> : <Plus size={16} className="text-[#1a27c9]" />}
                                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                                    {editingExpert ? 'Roster Modification' : 'Roster Expansion'}
+                                    {editingExpert ? 'Expert Modification' : 'Expert Entry'}
                                 </span>
                             </div>
                             <h2 className="text-4xl font-black text-[#0d0e0e] tracking-tight leading-none">
@@ -807,11 +860,14 @@ const ExpertManager = () => {
                                 </div>
                             </div>
 
-                            <div className="pt-6 flex gap-4">
+                            <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3 font-manrope">
                                 <button
                                     type="button"
-                                    onClick={() => setShowAddModal(false)}
-                                    className="flex-1 px-8 py-5 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-premium"
+                                    onClick={() => {
+                                        setShowAddModal(false);
+                                        setEditingExpert(null);
+                                    }}
+                                    className="px-8 py-4 bg-white border border-slate-100 text-slate-400 hover:text-slate-600 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-premium"
                                 >
                                     Cancel
                                 </button>
@@ -826,7 +882,7 @@ const ExpertManager = () => {
                                             <span>{editingExpert ? 'Synchronizing...' : 'Establishing Link...'}</span>
                                         </>
                                     ) : (
-                                        <span>{editingExpert ? 'Update Expert' : 'Deploy to Roster'}</span>
+                                        <span>{editingExpert ? 'Update Expert' : 'Add to Event'}</span>
                                     )}
                                 </button>
                             </div>
@@ -908,7 +964,7 @@ const ExpertManager = () => {
                                 </div>
 
                                 <div className="hidden lg:flex flex-col items-center justify-center bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 p-8">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Roster Component Preview</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Expert Card Preview</p>
                                     <div className="scale-110 pointer-events-none">
                                         <ExpertCard
                                             expert={{
@@ -948,6 +1004,131 @@ const ExpertManager = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Library / Hub Modal */}
+            {showLibraryModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-[#0d0e0e]/60 backdrop-blur-xl" onClick={() => setShowLibraryModal(false)} />
+                    <div className="bg-white w-full max-w-4xl max-h-[85vh] rounded-[3.5rem] shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in duration-500">
+                        {/* Header Section */}
+                        <div className="p-8 sm:p-12 border-b border-slate-100 shrink-0">
+                            <div className="flex justify-between items-start mb-8">
+                                <div>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-10 h-10 bg-athar-blue/10 rounded-2xl flex items-center justify-center text-athar-blue">
+                                            <Database size={20} />
+                                        </div>
+                                        <h2 className="text-3xl font-black text-[#0d0e0e] tracking-tight uppercase">Mentor Hub</h2>
+                                    </div>
+                                    <p className="text-slate-500 font-bold tracking-widest text-[10px] uppercase">Source vetted experts from the global Pulse network</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowLibraryModal(false)}
+                                    className="p-4 hover:bg-slate-50 rounded-2xl text-slate-400 transition-premium"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            {/* Internal Modal Search */}
+                            <div className="relative">
+                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name, title or sector..."
+                                    className="w-full pl-16 pr-8 py-5 bg-slate-50 border-2 border-slate-50 focus:border-athar-blue/20 rounded-3xl font-bold text-slate-600 transition-all placeholder:text-slate-300"
+                                    onChange={(e) => {
+                                        const term = e.target.value.toLowerCase();
+                                        setLibraryExperts(prev => prev.map(exp => ({
+                                            ...exp,
+                                            _visible: exp.name.toLowerCase().includes(term) || 
+                                                     exp.title?.toLowerCase().includes(term) ||
+                                                     exp.company?.toLowerCase().includes(term)
+                                        })));
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Content Section */}
+                        <div className="flex-1 overflow-y-auto p-8 sm:p-12 custom-scrollbar">
+                            {libraryLoading ? (
+                                <div className="h-64 flex flex-col items-center justify-center gap-4">
+                                    <Loader2 className="animate-spin text-athar-blue" size={40} />
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Accessing Hub Database...</p>
+                                </div>
+                            ) : libraryExperts.length === 0 ? (
+                                <div className="h-64 flex flex-col items-center justify-center gap-4 grayscale opacity-40">
+                                    <Database size={64} />
+                                    <p className="font-black text-slate-400 uppercase tracking-widest">Hub is currently offline</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {libraryExperts.filter(exp => exp._visible !== false).map((expert) => {
+                                        const isAlreadyInEvent = experts.some(e => e.master_id === expert.id);
+                                        return (
+                                            <div 
+                                                key={expert.id}
+                                                className="group/item relative bg-slate-50 rounded-[2.5rem] border border-slate-100 p-6 hover:shadow-xl hover:bg-white transition-premium cursor-default"
+                                            >
+                                                <div className="flex items-center gap-6">
+                                                    <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-lg border-2 border-white shrink-0 bg-white">
+                                                        <LazyImage
+                                                            src={expert.photo_url ? getGoogleDriveFallbackUrls(expert.photo_url)[0] : null}
+                                                            urls={expert.photo_url ? getGoogleDriveFallbackUrls(expert.photo_url) : []}
+                                                            alt={expert.name}
+                                                            objectFit="cover"
+                                                            className="group-hover/item:scale-110 transition-transform duration-700"
+                                                            fallback={
+                                                                <div className="w-full h-full flex items-center justify-center bg-athar-blue/5 text-athar-blue font-black text-3xl">
+                                                                    {expert.name.charAt(0)}
+                                                                </div>
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="font-black text-lg text-[#0d0e0e] uppercase leading-tight truncate mb-1">{expert.name}</h4>
+                                                        <p className="text-[10px] font-bold text-athar-blue uppercase tracking-wider truncate mb-2">{expert.title}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <Briefcase size={12} className="text-slate-300" />
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase truncate">{expert.company || 'Vetted Pulse'}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    disabled={isAlreadyInEvent || actionLoading === expert.id}
+                                                    onClick={() => handleImportFromLibrary(expert)}
+                                                    className={`mt-6 w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-premium flex items-center justify-center gap-2 ${
+                                                        isAlreadyInEvent 
+                                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                        : 'bg-white border-2 border-slate-100 text-[#0d0e0e] hover:border-athar-blue hover:text-athar-blue hover:shadow-lg active:scale-95'
+                                                    }`}
+                                                >
+                                                    {actionLoading === expert.id ? (
+                                                        <Loader2 size={16} className="animate-spin" />
+                                                    ) : isAlreadyInEvent ? (
+                                                        <>
+                                                            <CheckCircle size={14} />
+                                                            Already Added
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Plus size={14} />
+                                                            Add to Event
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                      
                     </div>
                 </div>
             )}

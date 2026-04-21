@@ -101,12 +101,20 @@ export const getGoogleDriveFallbackUrls = (url) => {
     const id = extractGoogleDriveId(url);
     if (!id) return [url];
 
+    // Priority order: 
+    // 1. lh3.googleusercontent.com (Google CDN) - fastest and most reliable, supports =sNNN
+    // 2. thumbnail (Good fallback, proxy-based)
+    // 3. uc (Direct link - restricted but good final try)
     return [
-        `https://drive.google.com/thumbnail?id=${id}&sz=w150`,         // Exact 124px width as requested for logos
-        `https://drive.google.com/thumbnail?id=${id}&sz=w100`,         // 200px fallback for retina displays
-        `https://lh3.googleusercontent.com/d/${id}=w150`,              // Google CDN exact 124 size
-        `https://lh3.googleusercontent.com/d/${id}`,                   // Google CDN (no size)
-        `https://drive.google.com/uc?export=view&id=${id}`,            // Classic (may show consent for large files)
+        `https://lh3.googleusercontent.com/d/${id}=s400`,              // CDN 400px (retina friendly)
+        `https://lh3.googleusercontent.com/d/${id}=s200`,              // CDN 200px
+        `https://drive.usercontent.com/download?id=${id}`,             // New Google UserContent subdomain
+        `https://drive.google.com/thumbnail?id=${id}&sz=w400`,         // API Thumbnail 400
+        `https://drive.google.com/thumbnail?id=${id}&sz=w200`,         // API Thumbnail 200
+        `https://lh3.googleusercontent.com/u/0/d/${id}=s400`,          // Auth variant CDN
+        `https://lh3.googleusercontent.com/d/${id}`,                   // CDN Original
+        `https://drive.google.com/uc?export=view&id=${id}`,            // Export view
+        `https://drive.google.com/uc?export=download&id=${id}`,        // Export download (last resort)
     ];
 };
 

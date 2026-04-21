@@ -1,4 +1,4 @@
-import { MapPin, Briefcase, Linkedin, Twitter, ExternalLink, Pencil, Trash2, GripVertical } from 'lucide-react';
+import { MapPin, Briefcase, Linkedin, Twitter, ExternalLink, Pencil, Trash2, GripVertical, Globe } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { getGoogleDriveFallbackUrls } from '../lib/utils';
 import { useSortable } from '@dnd-kit/sortable';
@@ -49,9 +49,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
     // Data Sanitization
     const sanitizeName = (str) => {
         if (!str) return 'Unknown Expert';
-        // Remove tab characters, newlines, and extra spaces
         let cleaned = str.replace(/[\t\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
-        // If the resulting name looks like a URL (corruption), used as fallback or extract first part
         if (cleaned.startsWith('http') || cleaned.includes('googledrive')) {
             return 'Expert';
         }
@@ -72,7 +70,6 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
             };
         }
         
-        // Legacy/Fallback to local config
         const local = expert.display_config || {};
         return {
             show_photo: local.show_photo !== false,
@@ -83,15 +80,10 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
         };
     })();
 
-    const showPhoto = displayConfig.show_photo;
-    const showTitle = displayConfig.show_title;
-    const showBio = displayConfig.show_bio;
-    const showCompany = displayConfig.show_company;
-    const showLinkedin = displayConfig.show_linkedin;
+    const { show_photo, show_title, show_bio, show_company, show_linkedin } = displayConfig;
 
     const photo = expert.photo_url || expert.photoUrl;
     const linkedin = expert.linkedin_url || expert.linkedin;
-    const twitter = expert.twitter_url || expert.twitter;
 
     if (viewMode === 'list') {
         return (
@@ -100,7 +92,6 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                 style={style}
                 className={`group relative w-full bg-slate-50 rounded-[4rem] border border-slate-100 p-8 md:p-12 hover:shadow-2xl transition-all duration-700 flex flex-col md:flex-row gap-8 md:gap-16 overflow-hidden ring-1 ring-slate-100/50 items-center md:items-start text-center md:text-start ${isRtl ? 'font-arabic' : 'font-manrope'}`} dir={isRtl ? 'rtl' : 'ltr'}
             >
-                {/* Drag Handle */}
                 {!previewMode && (
                     <div 
                         {...attributes} 
@@ -110,20 +101,19 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                         <GripVertical size={24} />
                     </div>
                 )}
-                {/* Immersive Background Accent */}
                 <div
                     className="absolute top-0 end-0 w-[500px] h-[500px] rounded-full opacity-[0.04] blur-[100px] -me-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
                     style={{ backgroundColor: customColor }}
                 />
 
-                {/* Large Profile Section */}
                 <div className="relative shrink-0">
                     <div
                         className="absolute inset-6 rounded-[4rem] blur-3xl opacity-30 transition-opacity group-hover:opacity-50"
                         style={{ backgroundColor: customColor }}
                     />
-                    <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-[3.5rem] md:rounded-[4.5rem] overflow-hidden border-8 border-white shadow-2xl bg-slate-50 transition-all duration-700 group-hover:scale-[1.02]">
-                        {showPhoto ? (
+                    <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-[3.5rem] overflow-hidden border-8 border-white shadow-2xl bg-white transition-transform duration-1000 group-hover:scale-105">
+                       
+                        {show_photo ? (
                             <LazyImage
                                 src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
                                 urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
@@ -151,34 +141,33 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                     </div>
                 </div>
 
-                {/* Info Container */}
-                <div className="flex-1 z-10 py-2">
+                <div className="flex-1 z-10 py-2 w-full">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                         <div>
                             <h3 className={`text-4xl md:text-6xl font-black text-[#0d0e0e] tracking-tighter mb-2 leading-[0.85] group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
                                 {name}
                             </h3>
-                            {showTitle && (
+                            {show_title && (
                                 <p className={`text-[#1a27c9] text-sm md:text-base font-black opacity-80 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
                                     {expert.title}
                                 </p>
                             )}
                         </div>
-                        {linkedin && showLinkedin && (
+                        {linkedin && show_linkedin && (
                             <a
                                 href={linkedin}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-24 h-24 bg-slate-50 border border-slate-100 rounded-3xl flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:border-[#0077b5] hover:shadow-2xl transition-all group/link"
+                                className="w-16 h-16 md:w-24 md:h-24 bg-white border border-slate-100 rounded-3xl flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:border-[#0077b5] hover:shadow-2xl transition-all group/link self-center md:self-start"
                             >
-                                <Linkedin size={40} className="group-hover/link:scale-110 transition-transform" />
+                                <Linkedin size={32} className="group-hover/link:scale-110 transition-transform" />
                             </a>
                         )}
                     </div>
 
                     <div className="h-px w-20 bg-slate-100 mb-6 mx-auto md:mx-0" />
 
-                    {showBio && (
+                    {show_bio && (
                         <ExpandableText 
                             text={expert.bio || t.fallbackBio}
                             lines={4}
@@ -188,7 +177,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                         />
                     )}
 
-                    {showCompany && (
+                    {show_company && (
                         <div className="flex flex-wrap justify-center md:justify-start gap-6">
                             <div className="flex items-center gap-4 bg-slate-50/50 px-8 py-5 rounded-[2rem] border border-slate-100/50 group-hover:bg-white group-hover:border-slate-200 transition-all">
                                 <Briefcase size={20} className="text-slate-400" />
@@ -201,13 +190,11 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                     )}
                 </div>
 
-                {/* Side Accent */}
                 <div
                     className="absolute bottom-0 left-0 w-2 h-0 group-hover:h-full transition-all duration-1000 opacity-60"
                     style={{ backgroundColor: customColor }}
                 />
 
-                {/* Action Buttons */}
                 <div className="absolute top-8 right-8 flex gap-2 z-20">
                     {onEdit && (
                         <button
@@ -238,14 +225,12 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
         );
     }
 
-    // Default Grid/Compact View (Enhanced for 2-column)
     return (
         <div 
             ref={setNodeRef}
             style={style}
             className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-10 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}
         >
-            {/* Drag Handle */}
             {!previewMode && (
                 <div 
                     {...attributes} 
@@ -255,7 +240,6 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                     <GripVertical size={20} />
                 </div>
             )}
-            {/* Professional Background Accents */}
             <div
                 className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full opacity-[0.05] blur-[80px] -mr-32 -mt-32 pointer-events-none transition-transform duration-1000 group-hover:scale-110"
                 style={{ backgroundColor: customColor }}
@@ -265,7 +249,6 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                 style={{ backgroundColor: customColor }}
             />
 
-            {/* Actions & Social Overlay (Repositioned to Photo) */}
             <div className={`absolute top-6 ${isRtl ? 'left-6' : 'right-6'} z-20 flex flex-col gap-2`}>
                 {onEdit && (
                     <button
@@ -293,11 +276,9 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                 )}
             </div>
 
-            {/* Profile Section */}
             <div className="flex flex-col items-center mb-2 z-10 w-full relative">
                 <div className="relative w-44 h-44 mb-3">
-                    {/* LinkedIn Pin next to Image */}
-                    {linkedin && showLinkedin && (
+                    {linkedin && show_linkedin && (
                         <a
                             href={linkedin}
                             target="_blank"
@@ -307,14 +288,13 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                             <Linkedin size={24} />
                         </a>
                     )}
-                    {/* Shadow Layer */}
+                   
                     <div
                         className="absolute inset-4 rounded-[3.5rem] blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
                         style={{ backgroundColor: customColor }}
                     />
-                    {/* Image Container */}
                     <div className="relative w-full h-full rounded-[3.5rem] overflow-hidden border-4 border-white shadow-2xl bg-slate-50 transition-transform duration-1000 group-hover:scale-[1.05]">
-                        {showPhoto ? (
+                        {show_photo ? (
                             <LazyImage
                                 src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
                                 urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
@@ -346,7 +326,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                     <h3 className={`text-2xl font-black text-[#0d0e0e] tracking-tight mb-1 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
                         {name}
                     </h3>
-                    {showTitle && (
+                    {show_title && (
                         <p className={`text-[#1a27c9] text-[10px] font-black opacity-80 mb-2 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
                             {expert.title}
                         </p>
@@ -354,9 +334,8 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                 </div>
             </div>
 
-            {/* Content Section */}
             <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
-                {showBio && (
+                {show_bio && (
                     <ExpandableText 
                         text={expert.bio || t.fallbackBio}
                         lines={4}
@@ -366,7 +345,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                     />
                 )}
 
-                {showCompany && (
+                {show_company && (
                     <div className="flex justify-center">
                         <div className="bg-slate-50 p-4 px-8 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200 min-w-[200px]">
                             <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
@@ -379,7 +358,6 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                 )}
             </div>
 
-            {/* Bottom Accent Line */}
             <div
                 className="absolute bottom-0 left-0 h-1.5 transition-all duration-1000 w-0 group-hover:w-full opacity-60"
                 style={{ backgroundColor: customColor }}
@@ -387,6 +365,5 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
         </div>
     );
 };
-
 
 export default ExpertCard;

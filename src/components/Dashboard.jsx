@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, ChevronRight, Layout, Trash2, X, AlertCircle, Edit2, ExternalLink, Check, Copy, LogOut } from 'lucide-react';
+import { Plus, Calendar, ChevronRight, Layout, Trash2, X, AlertCircle, Edit2, ExternalLink, Check, Copy, LogOut, Users as UsersIcon } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getEvents, createEvent, deleteEvent } from '../lib/api';
 import { formatDate } from '../lib/utils';
@@ -98,34 +98,46 @@ export default function Dashboard() {
     return (
         <div className="min-h-screen bg-background font-manrope relative overflow-x-hidden text-foreground">
             {/* Page Background Gradients and Noise */}
-            <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-background to-background" />
-            <div className="pointer-events-none fixed inset-0 z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-soft-light" />
+            <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-athar-blue/5 via-background to-background" />
+            <div 
+                className="pointer-events-none fixed inset-0 z-0 opacity-10 mix-blend-soft-light" 
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+            />
 
             {/* Premium Header */}
             <div className="relative z-10 bg-background/70 backdrop-blur-xl border-b border-border/50 sticky top-0 shadow-sm animate-in fade-in duration-500">
                 <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
-                                <Layout className="text-primary" size={24} />
+                            <div className="bg-athar-blue p-2.5 rounded-xl shadow-lg shadow-athar-blue/20">
+                                <Layout className="text-white" size={24} />
                             </div>
                             <div>
-                                <h1 className="text-xl font-extrabold text-primary tracking-tight">Athar Planner</h1>
-                                <p className="text-[11px] text-primary/60 font-bold uppercase tracking-widest mt-0.5">Professional Event Ecosystem</p>
+                                <h1 className="text-xl font-extrabold text-athar-black tracking-tight flex items-center gap-2">
+                                    Athar <span className="text-athar-blue">Planner</span>
+                                </h1>
+                                <p className="text-[10px] text-athar-black/40 font-bold uppercase tracking-widest mt-0.5">Professional Event Ecosystem</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-6">
                             <ActiveUsers users={activeUsers} />
                             
                             <div className="flex items-center gap-3 border-l border-border/50 pl-6">
+                                <Link
+                                    to="/experts"
+                                    className="flex items-center gap-2 text-muted-foreground hover:text-athar-blue px-4 py-2 rounded-lg font-bold transition-all hover:bg-athar-blue/5"
+                                >
+                                    <UsersIcon size={18} />
+                                    <span>Experts Hub</span>
+                                </Link>
+
                                 <button
                                     onClick={() => setShowCreateModal(true)}
-                                    className="group relative overflow-hidden flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-semibold transition-premium shadow-lg shadow-primary/20 hover:-translate-y-0.5 active:scale-95 border border-primary/20"
+                                    className="group relative overflow-hidden flex items-center gap-2 bg-gradient-to-r from-athar-blue to-athar-black text-white px-5 py-2.5 rounded-lg font-bold transition-all duration-300 shadow-lg shadow-athar-blue/20 hover:-translate-y-0.5 active:scale-95"
                                 >
-                                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                <Plus size={18} className="relative z-10" />
-                                <span className="relative z-10">Create Event</span>
-                            </button>
+                                    <Plus size={18} className="relative z-10" />
+                                    <span className="relative z-10">Create Event</span>
+                                </button>
 
                             <button
                                 onClick={handleSignOut}
@@ -206,10 +218,10 @@ export default function Dashboard() {
                                 <div className="absolute inset-x-0 bottom-0 h-1.5 bg-gradient-to-r from-primary/50 to-primary opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
                                 <div className="flex justify-between items-start mb-6 relative z-10">
-                                    <div className="bg-background p-3.5 rounded-2xl group-hover:bg-primary transition-colors border border-border/50 shadow-sm">
-                                        <Calendar className="text-primary group-hover:text-primary-foreground" size={24} />
+                                    <div className="bg-white p-3.5 rounded-lg group-hover:bg-athar-blue group-hover:text-white transition-all duration-300 border border-border shadow-sm">
+                                        <Calendar size={22} />
                                     </div>
-                                    <span className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border backdrop-blur-md ${event.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-muted/50 text-muted-foreground border-border/50'
+                                    <span className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border backdrop-blur-md ${event.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-muted/50 text-muted-foreground border-border/50'
                                         }`}>
                                         {event.status || 'Active'}
                                     </span>
@@ -271,8 +283,11 @@ export default function Dashboard() {
                     <div className="fixed inset-0 bg-background/80 backdrop-blur-xl flex items-center justify-center z-50 p-4">
                         <div className="bg-card text-card-foreground border border-white/10 rounded-3xl w-full max-w-lg p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden animate-in fade-in zoom-in-95 flex flex-col">
                             {/* Glassmorphism accents */}
-                            <div className="absolute -top-32 -right-32 w-64 h-64 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
-                            <div className="pointer-events-none absolute inset-0 z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-soft-light" />
+                            <div className="absolute -top-32 -right-32 w-64 h-64 bg-athar-blue/20 rounded-full blur-3xl pointer-events-none"></div>
+                            <div 
+                                className="pointer-events-none absolute inset-0 z-0 opacity-10 mix-blend-soft-light" 
+                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+                            />
                             
                             <div className="relative z-10 w-full">
                                 {createStatus === 'idle' ? (

@@ -12,7 +12,48 @@ export const getShareUrl = (eventId) => {
     return `${SHARING_BASE_URL}?id=${eventId}`;
 };
 
-export const getEvents = async () => {
+// ==========================================
+// IN-MEMORY CACHE FOR FAST NAVIGATION
+// ==========================================
+const apiCache = new Map();
+export const clearApiCache = () => apiCache.clear();
+
+// Monkey-patch Supabase to automatically clear cache on any mutation
+const originalFrom = supabase.from.bind(supabase);
+supabase.from = (table) => {
+    const queryBuilder = originalFrom(table);
+    ['insert', 'update', 'delete', 'upsert'].forEach(method => {
+        if (typeof queryBuilder[method] === 'function') {
+            const originalMethod = queryBuilder[method].bind(queryBuilder);
+            queryBuilder[method] = (...args) => {
+                clearApiCache();
+                return originalMethod(...args);
+            };
+        }
+    });
+    return queryBuilder;
+};
+
+const withCache = (key, fetcher, ttl = 60000) => {
+    const cached = apiCache.get(key);
+    if (cached && (Date.now() - cached.timestamp < ttl)) {
+        return Promise.resolve(cached.data);
+    }
+    if (cached && cached.promise) return cached.promise;
+    
+    const promise = fetcher().then(data => {
+        apiCache.set(key, { data, timestamp: Date.now(), promise: null });
+        return data;
+    }).catch(e => {
+        apiCache.delete(key);
+        throw e;
+    });
+    
+    apiCache.set(key, { promise, timestamp: 0 });
+    return promise;
+};
+
+export const getEvents = () => withCache('events', async () => {
     console.log('[Supabase] Fetching all events');
     const { data, error } = await supabase
         .from('events')
@@ -24,9 +65,9 @@ export const getEvents = async () => {
         throw error;
     }
     return data;
-};
+});
 
-export const getEvent = async (eventId) => {
+export const getEvent = (eventId) => withCache(`event_${eventId}`, async () => {
     console.log(`[Supabase] Fetching event: ${eventId}`);
     const { data, error } = await supabase
         .from('events')
@@ -39,9 +80,9 @@ export const getEvent = async (eventId) => {
         throw error;
     }
     return data;
-};
+});
 
-export const getFullAgenda = async (eventId) => {
+export const getFullAgenda = (eventId) => withCache(`fullAgenda_${eventId}`, async () => {
     console.log(`[Supabase] Fetching full agenda for event: ${eventId}`);
 
     // Fetch event, experts, companies, and days ALL IN PARALLEL — eliminates waterfall
@@ -84,36 +125,33 @@ export const getFullAgenda = async (eventId) => {
         experts,
         companies
     };
-};
+});
 
-export const getExperts = async (eventId) => {
+export const getExperts = (eventId) => withCache(`experts_${eventId}`, async () => {
     const { data, error } = await supabase
         .from('experts')
         .select('*')
         .eq('event_id', eventId)
         .order('sort_order', { ascending: true });
-    if (error) throw error;
-    return data;
-};
+    if (error) throw error; return data;
+});
 
-export const getCompanies = async (eventId) => {
+export const getCompanies = (eventId) => withCache(`companies_${eventId}`, async () => {
     const { data, error } = await supabase
         .from('companies')
         .select('*')
         .eq('event_id', eventId)
         .order('name', { ascending: true });
-    if (error) throw error;
-    return data;
-};
+    if (error) throw error; return data;
+});
 
-export const getStartups = async () => {
+export const getStartups = () => withCache('startups', async () => {
     const { data, error } = await supabase
         .from('companies')
         .select('*')
         .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data;
-};
+    if (error) throw error; return data;
+});
 
 export const createEvent = async (eventData) => {
     console.log('[Supabase] Creating event:', eventData.event_name);
@@ -152,8 +190,7 @@ export const updateEvent = async (eventId, updates) => {
         .eq('event_id', eventId)
         .select()
         .single();
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 export const deleteEvent = async (eventId) => {
@@ -161,36 +198,85 @@ export const deleteEvent = async (eventId) => {
         .from('events')
         .delete()
         .eq('event_id', eventId);
-    if (error) throw error;
-    return { success: true };
+    if (error) throw error; return { success: true };
 };
 
 // ==========================================
 // EXPERTS & COMPANIES
 // ==========================================
 
-export const createExpert = async (expertData) => {
-    // Only include valid columns to prevent 400 Errors
-    const { name, title, company, bio, linkedin_url, photo_url, event_id, sort_order } = expertData;
+export const getMasterExperts = () => withCache('master_experts', async () => {
     const { data, error } = await supabase
-        .from('experts')
-        .insert({ name, title, company, bio, linkedin_url, photo_url, event_id, sort_order })
+        .from('master_experts')
+        .select('*')
+        .order('name', { ascending: true });
+    if (error) throw error; return data;
+});
+
+export const updateMasterExpert = async (id, data) => {
+    const { data: updated, error } = await supabase
+        .from('master_experts')
+        .update(data)
+        .eq('id', id)
         .select()
         .single();
-    if (error) throw error;
-    return data;
+    if (error) throw error; return updated;
+};
+
+export const deleteMasterExpert = async (id) => {
+    const { error } = await supabase
+        .from('master_experts')
+        .delete()
+        .eq('id', id);
+    if (error) throw error; return { success: true };
+};
+
+export const createExpert = async (expertData) => {
+    const { name, title, company, bio, linkedin_url, photo_url, event_id, sort_order } = expertData;
+    let { master_id } = expertData;
+
+    // 1. If no master_id, create or find in hub
+    if (!master_id) {
+        const { data: hubExpert, error: hubError } = await supabase
+            .from('master_experts')
+            .upsert({ name, title, company, bio, linkedin_url, photo_url }, { onConflict: 'name,linkedin_url' })
+            .select()
+            .single();
+        
+        if (!hubError && hubExpert) {
+            master_id = hubExpert.id;
+        }
+    }
+
+    // 2. Insert local expert
+    const { data, error } = await supabase
+        .from('experts')
+        .insert({ name, title, company, bio, linkedin_url, photo_url, event_id, sort_order, master_id })
+        .select()
+        .single();
+    if (error) throw error; return data;
 };
 
 export const updateExpert = async (expertId, expertData) => {
-    // Only include valid columns to prevent 400 Errors
-    const { name, title, company, bio, linkedin_url, photo_url, event_id, sort_order } = expertData;
+    const { name, title, company, bio, linkedin_url, photo_url, event_id, sort_order, master_id } = expertData;
+    
+    // 1. Update local expert
     const { data, error } = await supabase
         .from('experts')
-        .update({ name, title, company, bio, linkedin_url, photo_url, event_id, sort_order })
+        .update({ name, title, company, bio, linkedin_url, photo_url, event_id, sort_order, master_id })
         .eq('expert_id', expertId)
         .select()
         .single();
     if (error) throw error;
+
+    // 2. If linked to hub, update hub as well
+    if (master_id) {
+        await supabase
+            .from('master_experts')
+            .update({ name, title, company, bio, linkedin_url, photo_url })
+            .eq('id', master_id);
+    }
+
     return data;
 };
 
@@ -199,8 +285,7 @@ export const deleteExpert = async (expertId) => {
         .from('experts')
         .delete()
         .eq('expert_id', expertId);
-    if (error) throw error;
-    return { success: true };
+    if (error) throw error; return { success: true };
 };
 
 export const createCompany = async (companyData) => {
@@ -209,8 +294,7 @@ export const createCompany = async (companyData) => {
         .insert(companyData)
         .select()
         .single();
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 export const updateCompany = async (companyId, updates) => {
@@ -220,8 +304,7 @@ export const updateCompany = async (companyId, updates) => {
         .eq('company_id', companyId)
         .select()
         .single();
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 export const deleteCompany = async (companyId) => {
@@ -229,8 +312,7 @@ export const deleteCompany = async (companyId) => {
         .from('companies')
         .delete()
         .eq('company_id', companyId);
-    if (error) throw error;
-    return { success: true };
+    if (error) throw error; return { success: true };
 };
 
 // ==========================================
@@ -243,8 +325,7 @@ export const getEventDays = async (eventId) => {
         .select('*')
         .eq('event_id', eventId)
         .order('day_number', { ascending: true });
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 export const createDay = async (dayData) => {
@@ -258,8 +339,7 @@ export const createDay = async (dayData) => {
         })
         .select()
         .single();
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 export const updateDay = async (dayId, updates) => {
@@ -288,8 +368,7 @@ export const deleteDay = async (dayId) => {
         .from('event_days')
         .delete()
         .eq('day_id', dayId);
-    if (error) throw error;
-    return { success: true };
+    if (error) throw error; return { success: true };
 };
 
 // ==========================================
@@ -302,8 +381,7 @@ export const getAgendaSlots = async (dayId) => {
         .select('*')
         .eq('day_id', dayId)
         .order('sort_order', { ascending: true });
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 export const createSlot = async (slotData) => {
@@ -319,8 +397,7 @@ export const createSlot = async (slotData) => {
         })
         .select()
         .single();
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 export const updateSlot = async (slotId, updates) => {
@@ -330,8 +407,7 @@ export const updateSlot = async (slotId, updates) => {
         .eq('slot_id', slotId)
         .select()
         .single();
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 export const deleteSlot = async (slotId) => {
@@ -339,8 +415,7 @@ export const deleteSlot = async (slotId) => {
         .from('agenda_slots')
         .delete()
         .eq('slot_id', slotId);
-    if (error) throw error;
-    return { success: true };
+    if (error) throw error; return { success: true };
 };
 // ==========================================
 // STORAGE APIs
@@ -627,8 +702,7 @@ export const saveFormConfig = async (eventId, entityType, fields) => {
         .insert(fieldsWithMetadata)
         .select();
 
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 /**
@@ -656,8 +730,7 @@ export const submitCompanyRegistration = async (eventId, formData) => {
         .select()
         .single();
 
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 /**
@@ -686,8 +759,7 @@ export const submitExpertRegistration = async (eventId, formData) => {
         .select()
         .single();
 
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 /**
@@ -710,8 +782,7 @@ export const getSubmissions = async (eventId, entityType, status = 'all') => {
     }
 
     const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 /**
@@ -797,8 +868,7 @@ export const rejectSubmission = async (submissionId, entityType, reason) => {
         .select()
         .single();
 
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 /**
@@ -957,8 +1027,7 @@ export const updateEventForm = async (formId, updates) => {
         .eq('form_id', formId)
         .select()
         .single();
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 /**
@@ -969,8 +1038,7 @@ export const deleteEventForm = async (formId) => {
         .from('event_forms')
         .delete()
         .eq('form_id', formId);
-    if (error) throw error;
-    return { success: true };
+    if (error) throw error; return { success: true };
 };
 
 /**
@@ -1050,8 +1118,7 @@ export const getEventFormById = async (formId) => {
         .select('*')
         .eq('form_id', formId)
         .single();
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 /**
@@ -1073,8 +1140,7 @@ export const submitToForm = async (formId, eventId, targetModule, formData) => {
                 status: 'screening'
             }])
             .select().single();
-        if (error) throw error;
-        return data;
+        if (error) throw error; return data;
     } else if (targetModule === 'expert') {
         const { expert_name, photo_url, title, company, bio, ...additionalData } = formData;
         const { data, error } = await supabase
@@ -1091,8 +1157,7 @@ export const submitToForm = async (formId, eventId, targetModule, formData) => {
                 status: 'pending'
             }])
             .select().single();
-        if (error) throw error;
-        return data;
+        if (error) throw error; return data;
     } else if (targetModule === 'selection_process') {
         // For selection_process, all fields go into company_submissions additional_data
         const { data, error } = await supabase
@@ -1105,8 +1170,7 @@ export const submitToForm = async (formId, eventId, targetModule, formData) => {
                 status: 'screening'
             }])
             .select().single();
-        if (error) throw error;
-        return data;
+        if (error) throw error; return data;
     }
     throw new Error(`Unknown target_module: ${targetModule}`);
 };
@@ -1230,8 +1294,7 @@ export const updateSubmissionStatus = async (submissionId, newStatus, additional
         .select()
         .single();
 
-    if (error) throw error;
-    return data;
+    if (error) throw error; return data;
 };
 
 export const updateSlotsOrder = async (slots) => {
