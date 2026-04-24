@@ -20,6 +20,8 @@ export default function MasterExpertsList() {
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
 
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+
     useEffect(() => {
         loadExperts();
     }, []);
@@ -76,54 +78,77 @@ export default function MasterExpertsList() {
 
             {/* Header */}
             <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
-                <div className="max-w-[1600px] mx-auto px-6 py-6 font-manrope font-semibold">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="flex items-center gap-4">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6 font-manrope font-semibold">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4">
                             <button 
                                 onClick={() => navigate('/')}
-                                className="p-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-premium"
+                                className="p-2 sm:p-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-premium"
                             >
-                                <ArrowLeft size={20} />
+                                <ArrowLeft size={18} className="sm:size-5" />
                             </button>
                             <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <div className="bg-athar-blue p-1.5 rounded-lg">
-                                        <Users className="text-white" size={18} />
+                                <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
+                                    <div className="bg-athar-blue p-1 rounded-lg sm:p-1.5">
+                                        <Users className="text-white" size={14} className="sm:size-[18px]" />
                                     </div>
-                                    <h1 className="text-2xl font-black tracking-tight">Experts Pulse</h1>
+                                    <h1 className="text-lg sm:text-2xl font-black tracking-tight">Experts Pulse</h1>
                                 </div>
-                                <p className="text-sm text-muted-foreground font-semibold">Global Expert Database & Ecosystem</p>
+                                <p className="text-[10px] sm:text-sm text-muted-foreground font-semibold">Global Expert Library</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="relative group min-w-[300px]">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            {/* Desktop Search */}
+                            <div className="hidden md:relative md:group md:block md:min-w-[300px]">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-athar-blue transition-colors" size={18} />
                                 <input 
                                     type="text"
-                                    placeholder="Search by name, title, or company..."
+                                    placeholder="Search experts..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 bg-muted/50 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-athar-blue/20 focus:border-athar-blue transition-premium font-semibold"
+                                    className="w-full pl-12 pr-4 py-2.5 bg-muted/50 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-athar-blue/20 focus:border-athar-blue transition-premium font-semibold"
                                 />
                             </div>
+
+                            {/* Mobile Search Toggle */}
+                            <button 
+                                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                                className={`md:hidden p-2.5 rounded-xl transition-all ${showMobileSearch ? 'bg-athar-blue text-white shadow-lg shadow-athar-blue/20' : 'bg-muted text-muted-foreground'}`}
+                            >
+                                <Search size={20} />
+                            </button>
                             
-                            <div className="h-10 w-px bg-border/50 mx-2" />
+                            <div className="h-8 w-px bg-border/50 mx-1 sm:mx-2" />
                             
                             <div className="flex bg-muted/50 p-1 rounded-xl border border-border/50">
                                 <button 
                                     onClick={() => setViewMode('grid')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-background text-athar-blue shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                    className={`p-1.5 sm:p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-background text-athar-blue shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                                 >
-                                    <LayoutGrid size={18} />
+                                    <LayoutGrid size={16} className="sm:size-[18px]" />
                                 </button>
                                 <button 
                                     onClick={() => setViewMode('list')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-background text-athar-blue shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                    className={`p-1.5 sm:p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-background text-athar-blue shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                                 >
-                                    <List size={18} />
+                                    <List size={16} className="sm:size-[18px]" />
                                 </button>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Expandable Mobile Search Bar */}
+                    <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${showMobileSearch ? 'max-h-20 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                            <input 
+                                type="text"
+                                placeholder="Search by name, title, or company..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-12 pr-4 py-3 bg-muted/80 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-athar-blue/20 focus:border-athar-blue transition-premium font-semibold text-sm"
+                            />
                         </div>
                     </div>
                 </div>
@@ -156,7 +181,7 @@ export default function MasterExpertsList() {
                         </p>
                     </div>
                 ) : viewMode === 'grid' ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-8">
                         {filteredExperts.map(expert => (
                             <ExpertCard 
                                 key={expert.id} 
@@ -167,8 +192,8 @@ export default function MasterExpertsList() {
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm">
-                        <table className="w-full text-left">
+                    <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm overflow-x-auto">
+                        <table className="w-full text-left min-w-[600px]">
                             <thead className="bg-muted/50 border-b border-border/50">
                                 <tr>
                                     <th className="px-6 py-4 font-black">Expert</th>
@@ -206,65 +231,65 @@ export default function MasterExpertsList() {
 
 function ExpertCard({ expert, onEdit, onDelete }) {
     return (
-        <div className="group bg-card hover:bg-muted/40 border border-border/50 hover:border-athar-blue/30 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-premium relative flex flex-col h-full">
-            <div className="p-6 flex flex-col items-center text-center">
-                <div className="relative mb-4">
+        <div className="group bg-card hover:bg-muted/40 border border-border/50 hover:border-athar-blue/30 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-premium relative flex flex-col h-full">
+            <div className="p-3 sm:p-6 flex flex-col items-center text-center h-full">
+                <div className="relative mb-3 sm:mb-4">
                     <div className="absolute inset-0 bg-athar-blue/20 blur-xl opacity-0 group-hover:opacity-100 rounded-full transition-opacity" />
-                    <div className="h-24 w-24 relative">
+                    <div className="h-16 w-16 sm:h-24 sm:w-24 relative">
                         <LazyImage
                             src={expert.photo_url ? getGoogleDriveFallbackUrls(expert.photo_url)[0] : null}
                             urls={expert.photo_url ? getGoogleDriveFallbackUrls(expert.photo_url) : []}
                             alt={expert.name}
                             objectFit="cover"
-                            className="rounded-2xl border-2 border-background shadow-md group-hover:scale-105 transition-transform"
+                            className="rounded-xl sm:rounded-2xl border-2 border-background shadow-md group-hover:scale-105 transition-transform"
                             fallback={
-                                <div className="h-full w-full rounded-2xl bg-muted border-2 border-background flex items-center justify-center text-muted-foreground shadow-sm">
-                                    <User size={32} />
+                                <div className="h-full w-full rounded-xl sm:rounded-2xl bg-muted border-2 border-background flex items-center justify-center text-muted-foreground shadow-sm">
+                                    <User size={24} className="sm:size-8" />
                                 </div>
                             }
                         />
                     </div>
                 </div>
                 
-                <h3 className="text-xl font-black tracking-tight mb-1">{expert.name}</h3>
-                <p className="text-sm font-bold text-athar-blue mb-3">{expert.title || 'Untitled Role'}</p>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/50 mb-4">
-                    <Briefcase size={12} />
-                    {expert.company || 'Private'}
+                <h3 className="text-sm sm:text-xl font-black tracking-tight mb-0.5 sm:mb-1 line-clamp-1">{expert.name}</h3>
+                <p className="text-[10px] sm:text-sm font-bold text-athar-blue mb-2 sm:mb-3 line-clamp-1">{expert.title || 'Expert'}</p>
+                <div className="flex items-center gap-1 sm:gap-1.5 text-[8px] sm:text-xs font-bold text-muted-foreground bg-muted/50 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-border/50 mb-3 sm:mb-4 max-w-full">
+                    <Briefcase size={10} className="sm:size-3" />
+                    <span className="line-clamp-1">{expert.company || 'Private'}</span>
                 </div>
                 
-                <p className="text-sm text-center text-muted-foreground line-clamp-3 mb-6 flex-grow leading-relaxed font-semibold">
+                <p className="hidden sm:block text-sm text-center text-muted-foreground line-clamp-2 mb-6 flex-grow leading-relaxed font-semibold">
                     {expert.bio || 'No biography available.'}
                 </p>
                 
-                <div className="w-full pt-4 border-t border-border/50 flex items-center justify-between">
-                    <div className="flex gap-2">
+                <div className="w-full pt-3 sm:pt-4 border-t border-border/50 flex items-center justify-between mt-auto">
+                    <div className="flex gap-1 sm:gap-2">
                         {expert.linkedin_url && (
                             <a 
                                 href={expert.linkedin_url} 
                                 target="_blank" 
                                 rel="noreferrer"
-                                className="p-2 text-muted-foreground hover:text-[#0077b5] hover:bg-[#0077b5]/10 rounded-lg transition-colors border border-transparent hover:border-[#0077b5]/20"
+                                className="p-1.5 sm:p-2 text-muted-foreground hover:text-[#0077b5] hover:bg-[#0077b5]/10 rounded-lg transition-colors border border-transparent hover:border-[#0077b5]/20"
                             >
-                                <Linkedin size={18} />
+                                <Linkedin size={14} className="sm:size-[18px]" />
                             </a>
                         )}
-                        <button className="p-2 text-muted-foreground hover:text-athar-blue hover:bg-athar-blue/10 rounded-lg transition-colors border border-transparent hover:border-athar-blue/20">
+                        <button className="hidden sm:block p-2 text-muted-foreground hover:text-athar-blue hover:bg-athar-blue/10 rounded-lg transition-colors border border-transparent hover:border-athar-blue/20">
                             <Info size={18} />
                         </button>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 sm:gap-2">
                         <button 
-                            onClick={onEdit}
-                            className="p-2 text-muted-foreground hover:text-athar-blue hover:bg-athar-blue/10 rounded-lg transition-colors border border-transparent hover:border-athar-blue/20"
+                            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                            className="p-1.5 sm:p-2 text-muted-foreground hover:text-athar-blue hover:bg-athar-blue/10 rounded-lg transition-colors border border-transparent hover:border-athar-blue/20"
                         >
-                            <Edit2 size={18} />
+                            <Edit2 size={14} className="sm:size-[18px]" />
                         </button>
                         <button 
-                            onClick={onDelete}
-                            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors border border-transparent hover:border-destructive/20"
+                            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                            className="p-1.5 sm:p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors border border-transparent hover:border-destructive/20"
                         >
-                            <Trash2 size={18} />
+                            <Trash2 size={14} className="sm:size-[18px]" />
                         </button>
                     </div>
                 </div>

@@ -263,12 +263,12 @@ export default function EventDashboard() {
             </div>
 
             {/* Public Access Hub - NEW SECTION (Solid Branding) */}
-            <div className="bg-gradient-to-br from-athar-blue to-athar-black text-white py-10 relative animate-in fade-in slide-in-from-top-2">
+            <div className="bg-gradient-to-br from-athar-blue to-athar-black text-white py-10 relative z-30 animate-in fade-in slide-in-from-top-2">
                 <div 
                     className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none" 
                     style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
                 />
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 relative">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         <div>
                             <h2 className="text-2xl font-bold text-white tracking-tight mb-1">Public Access Hub</h2>
@@ -285,7 +285,7 @@ export default function EventDashboard() {
                                 </button>
                                 
                                 {openDropdown === 'en' && (
-                                    <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto w-56 bg-card border border-border rounded-xl shadow-xl p-2 flex flex-col gap-1 z-50">
+                                    <div className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 w-56 bg-card border border-border rounded-xl shadow-2xl p-2 flex flex-col gap-1 z-[100]">
                                         <button 
                                             onClick={(e) => {
                                                 const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`;
@@ -350,7 +350,7 @@ export default function EventDashboard() {
                                 </button>
                                 
                                 {openDropdown === 'ar' && (
-                                    <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto w-56 bg-card border border-border rounded-xl shadow-xl p-2 flex flex-col gap-1 z-50 font-arabic" dir="rtl">
+                                    <div className="absolute top-full mt-2 right-0 sm:right-0 sm:left-auto w-56 bg-card border border-border rounded-xl shadow-2xl p-2 flex flex-col gap-1 z-[100] font-arabic" dir="rtl">
                                         <button 
                                             onClick={(e) => {
                                                 const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`;

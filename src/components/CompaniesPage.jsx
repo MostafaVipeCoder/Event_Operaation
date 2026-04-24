@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Search, Loader } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Loader, Layout } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CompanyCard from './CompanyCard';
 import { getStartups } from '../lib/api';
@@ -10,6 +10,7 @@ const CompaniesPage = () => {
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
 
     useEffect(() => {
         loadCompanies();
@@ -35,62 +36,104 @@ const CompaniesPage = () => {
     );
 
     return (
-        <div className="min-h-screen font-['Manrope']" style={{ backgroundColor: '#f5f1f1ff' }}>
-            <div className="border-b border-slate-200" style={{ backgroundColor: '#f5f1f1ff' }}>
-                <div className="max-w-[7xl] mx-auto px-4 sm:px-6 lg:px-8 py-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+    return (
+        <div className="min-h-screen bg-background text-foreground font-manrope font-semibold relative overflow-x-hidden">
+            {/* Page Background Gradients and Noise */}
+            <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-athar-blue/5 via-background to-background" />
+            <div 
+                className="pointer-events-none fixed inset-0 z-0 opacity-10 mix-blend-soft-light" 
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+            />
+
+            {/* Header */}
+            <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4">
                             <button
                                 onClick={() => navigate('/')}
-                                className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+                                className="p-2 sm:p-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-premium"
                             >
-                                <ArrowLeft size={24} />
+                                <ArrowLeft size={18} className="sm:size-5" />
                             </button>
                             <div>
-                                <h1 className="text-2xl font-extrabold text-[#0d0e0e]">Accepted Companies</h1>
-                                <p className="text-sm text-slate-500">Manage and view the startup cohort</p>
+                                <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
+                                    <div className="bg-athar-blue p-1 rounded-lg sm:p-1.5">
+                                        <Layout className="text-white" size={14} className="sm:size-[18px]" />
+                                    </div>
+                                    <h1 className="text-lg sm:text-2xl font-black tracking-tight">Companies Hub</h1>
+                                </div>
+                                <p className="text-[10px] sm:text-sm text-muted-foreground font-semibold">Startup cohort management</p>
                             </div>
                         </div>
-                        <button className="flex items-center gap-2 bg-[#1a27c9] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#1a27c9]/90 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-0.5 duration-300">
-                            <Plus size={18} />
-                            <span>Add Company</span>
-                        </button>
+
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            {/* Desktop Search */}
+                            <div className="hidden md:relative md:group md:block md:min-w-[300px]">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-athar-blue transition-colors" size={18} />
+                                <input 
+                                    type="text"
+                                    placeholder="Search companies..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-2.5 bg-muted/50 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-athar-blue/20 focus:border-athar-blue transition-premium font-semibold"
+                                />
+                            </div>
+
+                            {/* Mobile Search Toggle */}
+                            <button 
+                                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                                className={`md:hidden p-2.5 rounded-xl transition-all ${showMobileSearch ? 'bg-athar-blue text-white shadow-lg shadow-athar-blue/20' : 'bg-muted text-muted-foreground'}`}
+                            >
+                                <Search size={20} />
+                            </button>
+
+                            <button className="flex items-center gap-2 bg-athar-blue text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold hover:bg-athar-blue/90 transition-all shadow-lg shadow-athar-blue/20 hover:-translate-y-0.5 duration-300">
+                                <Plus size={18} />
+                                <span className="hidden sm:inline">Add Company</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Expandable Mobile Search Bar */}
+                    <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${showMobileSearch ? 'max-h-20 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                            <input 
+                                type="text"
+                                placeholder="Search by name or industry..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-12 pr-4 py-3 bg-muted/80 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-athar-blue/20 focus:border-athar-blue transition-premium font-semibold text-sm"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1">
-                {/* Search / Filter Toolbar */}
-                <div className="mb-2">
-                    <div className="relative max-w-md">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-slate-400" />
-                        </div>
-                        <input
-                            type="text"
-                            className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:placeholder-slate-300 focus:ring-2 focus:ring-[#1a27c9] focus:border-transparent sm:text-sm shadow-sm transition-shadow"
-                            placeholder="Search companies by name or industry..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                </div>
-
+            <main className="relative z-10 max-w-[1600px] mx-auto px-6 py-10">
                 {/* Loading State */}
                 {loading && (
-                    <div className="flex justify-center items-center py-20">
-                        <Loader className="h-12 w-12 text-[#1a27c9] animate-spin" />
+                    <div className="flex flex-col items-center justify-center h-96 py-20">
+                        <div className="relative mb-6">
+                            <div className="h-16 w-16 border-4 border-athar-blue/10 border-t-athar-blue rounded-full animate-spin"></div>
+                            <Layout className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-athar-blue animate-pulse" size={24} />
+                        </div>
+                        <p className="text-xl font-bold text-muted-foreground">Loading companies...</p>
                     </div>
                 )}
 
                 {/* Error State */}
                 {error && (
-                    <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center">
-                        <p className="text-rose-600 font-bold">{error}</p>
+                    <div className="bg-destructive/5 border border-destructive/20 rounded-[2.5rem] p-12 text-center backdrop-blur-sm">
+                        <div className="bg-destructive/10 p-6 rounded-3xl w-fit mx-auto mb-6 text-destructive">
+                            <AlertCircle size={48} />
+                        </div>
+                        <p className="text-destructive font-black text-xl mb-6">{error}</p>
                         <button
                             onClick={loadCompanies}
-                            className="mt-4 px-6 py-2 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 transition-colors"
+                            className="px-8 py-3 bg-destructive text-white rounded-2xl font-bold hover:bg-destructive/90 transition-premium shadow-lg shadow-destructive/20"
                         >
                             إعادة المحاولة
                         </button>
@@ -99,23 +142,23 @@ const CompaniesPage = () => {
 
                 {/* Grid */}
                 {!loading && !error && filteredCompanies.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-8">
                         {filteredCompanies.map(company => (
-                            <CompanyCard key={company.startup_id} company={company} />
+                            <CompanyCard key={company.startup_id} company={company} customColor="#1a27c9" />
                         ))}
                     </div>
                 )}
 
                 {!loading && !error && filteredCompanies.length === 0 && (
-                    <div className="text-center py-20">
-                        <div className="bg-slate-100 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                            <Search size={32} />
+                    <div className="text-center py-24 bg-muted/30 rounded-[2.5rem] border-2 border-dashed border-border/50">
+                        <div className="bg-muted p-6 rounded-3xl w-fit mx-auto mb-6">
+                            <Search size={48} className="text-muted-foreground" />
                         </div>
-                        <h3 className="text-lg font-bold text-[#0d0e0e]">No companies found</h3>
-                        <p className="text-slate-500">Try adjusting your search terms.</p>
+                        <h3 className="text-2xl font-black mb-2">No companies found</h3>
+                        <p className="text-muted-foreground font-medium">Try adjusting your search terms.</p>
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 };

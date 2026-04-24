@@ -991,83 +991,85 @@ export default function EventBuilder({ event, onBack }) {
                                 </div>
                             )}
 
-                            {/* Agenda Display Settings Card */}
-                            <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm mb-6">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="bg-indigo-50 p-3 rounded-2xl text-[#1a27c9]">
-                                            <Settings size={22} />
+                            {/* Agenda Layout Controls - Side by Side on Mobile */}
+                            <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-6">
+                                {/* Agenda Display Settings Card */}
+                                <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-8 shadow-sm">
+                                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-6">
+                                        <div className="flex items-center gap-3 sm:gap-4">
+                                            <div className="bg-indigo-50 p-2 sm:p-3 rounded-xl sm:rounded-2xl text-[#1a27c9]">
+                                                <Settings size={18} className="sm:w-[22px] sm:h-[22px]" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm sm:text-lg font-black text-[#0d0e0e] leading-tight">إعدادات العرض</h3>
+                                                <p className="hidden sm:block text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">Settings</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-lg font-black text-[#0d0e0e]">إعدادات عرض الأجندة</h3>
-                                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">Agenda Display Options</p>
+                                        
+                                        <div className="flex items-center gap-3 p-3 sm:p-4 bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-100">
+                                            <div className="flex-1">
+                                                <p className="font-bold text-[10px] sm:text-sm text-[#0d0e0e] whitespace-nowrap">إظهار أسماء الأيام</p>
+                                                <p className="hidden sm:block text-[10px] text-slate-400 font-medium leading-none mt-1">Show custom day names</p>
+                                            </div>
+                                            <button
+                                                onClick={handleToggleDayNames}
+                                                className={`relative inline-flex h-5 w-9 sm:h-6 sm:w-11 items-center rounded-full transition-colors focus:outline-none ${showDayNames ? 'bg-[#1a27c9]' : 'bg-slate-300'}`}
+                                            >
+                                                <span
+                                                    className={`inline-block h-3.5 w-3.5 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform ${showDayNames ? 'translate-x-4 sm:translate-x-6' : 'translate-x-1'}`}
+                                                />
+                                            </button>
                                         </div>
                                     </div>
-                                    
-                                    <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 min-w-[300px]">
-                                        <div className="flex-1">
-                                            <p className="font-bold text-sm text-[#0d0e0e]">إظهار أسماء الأيام</p>
-                                            <p className="text-[10px] text-slate-400 font-medium leading-none mt-1">Show custom day names</p>
+                                </div>
+
+                                {/* Add Day Card - Optimized Form */}
+                                <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-8 shadow-sm">
+                                    <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                                        <div className="bg-indigo-50 p-2 rounded-lg sm:rounded-xl">
+                                            <Calendar className="text-[#1a27c9] w-4 h-4 sm:w-5 sm:h-5" />
                                         </div>
-                                        <button
-                                            onClick={handleToggleDayNames}
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${showDayNames ? 'bg-[#1a27c9]' : 'bg-slate-300'}`}
-                                        >
-                                            <span
-                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showDayNames ? 'translate-x-6' : 'translate-x-1'}`}
+                                        <h3 className="text-sm sm:text-xl font-extrabold text-[#0d0e0e] leading-tight">Add Day</h3>
+                                    </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex-1 relative">
+                                            <input
+                                                type="text"
+                                                value={newDayName}
+                                                onChange={(e) => {
+                                                    setNewDayName(e.target.value);
+                                                    if (e.target.value.trim()) setDayError(false);
+                                                }}
+                                                placeholder="Day Label"
+                                                className={`w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-slate-50 border rounded-xl sm:rounded-2xl text-xs sm:text-base font-medium placeholder-slate-400 focus:outline-none focus:ring-2 transition-premium ${dayError ? 'border-red-500 focus:ring-red-100' : 'border-slate-100 focus:ring-[#1a27c9] focus:bg-white'}`}
                                             />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Add Day Card - Optimized Form */}
-                            <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="bg-indigo-50 p-2 rounded-xl">
-                                        <Calendar className="text-[#1a27c9]" size={20} />
-                                    </div>
-                                    <h3 className="text-xl font-extrabold text-[#0d0e0e]">Add New Agenda Day</h3>
-                                </div>
-
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex-1 relative">
-                                        <input
-                                            type="text"
-                                            value={newDayName}
-                                            onChange={(e) => {
-                                                setNewDayName(e.target.value);
-                                                if (e.target.value.trim()) setDayError(false);
-                                            }}
-                                            placeholder="Day Label (e.g. Day 1: Vision)"
-                                            className={`w-full px-5 py-3.5 bg-slate-50 border rounded-2xl font-medium placeholder-slate-400 focus:outline-none focus:ring-2 transition-premium ${dayError ? 'border-red-500 focus:ring-red-100' : 'border-slate-100 focus:ring-[#1a27c9] focus:bg-white'
-                                                }`}
-                                        />
-                                        {dayError && (
-                                            <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-1.5 ml-2">Label is required</p>
-                                        )}
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <input
-                                            type="date"
-                                            value={newDayDate}
-                                            onChange={(e) => setNewDayDate(e.target.value)}
-                                            className="flex-1 px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium"
-                                        />
-                                        <button
-                                            onClick={handleAddDay}
-                                            disabled={isSubmittingDay}
-                                            className="px-6 py-3.5 bg-[#1a27c9] text-white rounded-2xl font-extrabold hover:bg-[#1a27c9]/90 shadow-lg shadow-indigo-100 transition-premium flex items-center justify-center gap-2 group disabled:opacity-50 active:scale-95"
-                                        >
-                                            {isSubmittingDay ? (
-                                                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-                                            ) : (
-                                                <>
-                                                    <Plus size={20} className="group-hover:rotate-90 transition-transform" />
-                                                    <span>Add Day</span>
-                                                </>
+                                            {dayError && (
+                                                <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-1.5 ml-2">Required</p>
                                             )}
-                                        </button>
+                                        </div>
+                                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                                            <input
+                                                type="date"
+                                                value={newDayDate}
+                                                onChange={(e) => setNewDayDate(e.target.value)}
+                                                className="w-full sm:flex-1 px-4 sm:px-5 py-2.5 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-xs sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium min-w-0"
+                                            />
+                                            <button
+                                                onClick={handleAddDay}
+                                                disabled={isSubmittingDay}
+                                                className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3.5 bg-[#1a27c9] text-white rounded-xl sm:rounded-2xl font-extrabold hover:bg-[#1a27c9]/90 shadow-lg shadow-indigo-100 transition-premium flex items-center justify-center gap-2 group disabled:opacity-50 active:scale-95 text-xs sm:text-base"
+                                            >
+                                                {isSubmittingDay ? (
+                                                    <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent rounded-full" />
+                                                ) : (
+                                                    <>
+                                                        <Plus size={16} className="sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform" />
+                                                        <span>Add</span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
