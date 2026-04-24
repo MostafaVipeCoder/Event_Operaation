@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Plus, Trash2, Upload, Calendar, Clock, User, Save, ExternalLink, Edit2, UserCheck, UserX, Copy, Check, FileSpreadsheet, Download, UploadCloud, Loader2, AlertTriangle, AlertCircle, X, List, GripVertical, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -222,10 +222,59 @@ export default function EventBuilder({ event, onBack }) {
     const [showDayNames, setShowDayNames] = useState(event?.show_day_names !== false);
 
     // Staging and Validation States
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [stableState, setStableState] = useState(null);
     const [pendingDeletions, setPendingDeletions] = useState([]);
     const [pendingDayDeletions, setPendingDayDeletions] = useState([]);
     const [invalidSlotIds, setInvalidSlotIds] = useState(new Set());
+    
+    // Helper to normalize and serialize the state for robust comparison
+    // This handles discrepancies like "09:00:00" (from API) vs "09:00" (local update)
+    const serializeState = (days, slots, showDayNames) => {
+        const normalizeTime = (t) => {
+            if (!t) return '';
+            // Only take HH:mm parts and ensure padding
+            const parts = t.split(':');
+            if (parts.length < 2) return t;
+            return parts.slice(0, 2).map(p => p.padStart(2, '0')).join(':');
+        };
+
+        // Normalize days: pick only fields that affect the data, sort for stability
+        const nDays = (days || []).map(d => ({
+            day_name: (d.day_name || '').trim(),
+            day_date: d.day_date,
+            day_number: Number(d.day_number)
+        }));
+
+        // Normalize slots: sort days by ID, then slots within day by properties
+        const nSlots = {};
+        const dayIds = Object.keys(slots || {}).sort();
+        
+        dayIds.forEach(id => {
+            nSlots[id] = (slots[id] || []).map(s => ({
+                start_time: normalizeTime(s.start_time),
+                end_time: normalizeTime(s.end_time),
+                slot_title: (s.slot_title || '').trim(),
+                presenter_name: (s.presenter_name || '').trim(),
+                show_presenter: !!s.show_presenter,
+                bullet_points: (s.bullet_points || []).map(b => b.trim()).filter(Boolean)
+            }));
+        });
+
+        return JSON.stringify({
+            days: nDays,
+            slots: nSlots,
+            showDayNames: !!showDayNames
+        });
+    };
+
+    // Computed property: Automatically detect if anything has changed from the last saved state
+    const hasUnsavedChanges = useMemo(() => {
+        if (!stableState) return false;
+        
+        // Use the same serialization logic to compare current with stable
+        const current = serializeState(days, slots, showDayNames);
+        return current !== stableState;
+    }, [days, slots, showDayNames, stableState]);
 
     // Custom UI Dialogs State
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -332,6 +381,13 @@ export default function EventBuilder({ event, onBack }) {
                     slotsData[day.day_id] = allSlots[index] || [];
                 });
                 setSlots(slotsData);
+
+                // Set initial stable state for comparison using our normalization helper
+                const initialShowDayNames = fullEvent ? fullEvent.show_day_names !== false : (eventDetails.show_day_names !== false);
+                setStableState(serializeState(daysData, slotsData, initialShowDayNames));
+            } else {
+                const initialShowDayNames = fullEvent ? fullEvent.show_day_names !== false : (eventDetails.show_day_names !== false);
+                setStableState(serializeState([], {}, initialShowDayNames));
             }
         } catch (error) {
             console.error('Error loading event data:', error);
@@ -364,7 +420,6 @@ export default function EventBuilder({ event, onBack }) {
         setNewDayName('');
         setNewDayDate(new Date().toISOString().split('T')[0]);
         setDayError(false);
-        setHasUnsavedChanges(true);
         showToast('تم إضافة اليوم إلى المسودة');
     };
 
@@ -442,32 +497,6 @@ export default function EventBuilder({ event, onBack }) {
             // Close modal immediately
             setSlotModal(prev => ({ ...prev, show: false, saving: false }));
 
-            // Process API in background
-            // DISABLED FOR STAGING - Now only updating local state
-            /*
-            if (isEditing) {
-                await updateSlot(slotId, {
-                    start_time: startTime,
-                    end_time: endTime,
-                    slot_title: title,
-                    presenter_name: presenter,
-                    bullet_points: cleanBullets
-                });
-            } else {
-                await createSlot({
-                    day_id: dayId,
-                    start_time: startTime,
-                    end_time: endTime,
-                    slot_title: title,
-                    presenter_name: presenter,
-                    bullet_points: cleanBullets,
-                    sort_order: (slots[dayId]?.length || 0) + 1
-                });
-            }
-            loadEventData(true);
-            */
-
-            setHasUnsavedChanges(true);
             validateAgendaOrder(dayId);
         } catch (error) {
             console.error('Error saving slot:', error);
@@ -492,7 +521,6 @@ export default function EventBuilder({ event, onBack }) {
                 return newSlots;
             });
 
-            setHasUnsavedChanges(true);
             showToast('تم حذف اليوم من المسودة (اضغط حفظ للتأكيد النهائي)');
         });
     };
@@ -518,7 +546,6 @@ export default function EventBuilder({ event, onBack }) {
                 return newSlots;
             });
 
-            setHasUnsavedChanges(true);
             showToast('تم حذف الفقرة من المسودة (اضغط حفظ للتأكيد النهائي)');
         });
     };
@@ -539,7 +566,6 @@ export default function EventBuilder({ event, onBack }) {
                 : d
         ));
 
-        setHasUnsavedChanges(true);
         showToast('تم تحديث بيانات اليوم في المسودة');
     };
 
@@ -551,15 +577,12 @@ export default function EventBuilder({ event, onBack }) {
                 s.slot_id === slot.slot_id ? { ...s, show_presenter: newStatus } : s
             )
         }));
-        
-        setHasUnsavedChanges(true);
     };
 
     const handleToggleDayNames = async () => {
         const newValue = !showDayNames;
         setShowDayNames(newValue);
         setEventDetails(prev => ({ ...prev, show_day_names: newValue }));
-        setHasUnsavedChanges(true);
     };
 
     const shiftTimeString = (timeStr, shiftHours) => {
@@ -588,7 +611,6 @@ export default function EventBuilder({ event, onBack }) {
                 [dayId]: newDaySlots
             };
         });
-        setHasUnsavedChanges(true);
         // We can call validateAgendaOrder immediately because it uses the passed array if provided
         validateAgendaOrder(dayId, newDaySlots);
         showToast(`تم ${shiftHours > 0 ? 'تقديم' : 'تأخير'} مواعيد اليوم بمقدار ساعة`);
@@ -667,8 +689,6 @@ export default function EventBuilder({ event, onBack }) {
             ...prev,
             [targetDayId]: newDaySlots
         }));
-
-        setHasUnsavedChanges(true);
 
         // Chronological Validation
         const isLogical = validateAgendaOrder(targetDayId, newDaySlots);
@@ -761,12 +781,10 @@ export default function EventBuilder({ event, onBack }) {
                 }
             }
 
-            // 4. Update Event Settings (show_day_names)
             await updateEvent(event.event_id, {
                 show_day_names: showDayNames
             });
 
-            setHasUnsavedChanges(false);
             setPendingDeletions([]);
             setPendingDayDeletions([]);
             showToast('تم حفظ جميع التعديلات بنجاح! 🎉');
