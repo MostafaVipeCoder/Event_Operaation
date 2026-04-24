@@ -263,12 +263,12 @@ export default function EventDashboard() {
             </div>
 
             {/* Public Access Hub - NEW SECTION (Solid Branding) */}
-            <div className="bg-gradient-to-br from-athar-blue to-athar-black text-white py-10 relative overflow-hidden animate-in fade-in slide-in-from-top-2">
+            <div className="bg-gradient-to-br from-athar-blue to-athar-black text-white py-10 relative animate-in fade-in slide-in-from-top-2">
                 <div 
                     className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none" 
                     style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
                 />
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         <div>
                             <h2 className="text-2xl font-bold text-white tracking-tight mb-1">Public Access Hub</h2>
@@ -478,7 +478,7 @@ export default function EventDashboard() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-16">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-16">
                     {modules.map((module, index) => (
                         <React.Fragment key={index}>
                             {/* Mobile View (Icon Only) */}

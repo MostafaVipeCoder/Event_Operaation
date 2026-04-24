@@ -357,10 +357,12 @@ export default function EventBuilder({ event, onBack }) {
         try {
             if (!silent) setLoading(true);
 
+            let currentEventData = eventDetails;
             // If we don't have full event details, fetch them
             if (!eventDetails.event_name) {
                 const fullEvent = await getEvent(event.event_id);
                 if (fullEvent) {
+                    currentEventData = fullEvent;
                     setEventDetails(fullEvent);
                     setShowDayNames(fullEvent.show_day_names !== false);
                 }
@@ -383,10 +385,10 @@ export default function EventBuilder({ event, onBack }) {
                 setSlots(slotsData);
 
                 // Set initial stable state for comparison using our normalization helper
-                const initialShowDayNames = fullEvent ? fullEvent.show_day_names !== false : (eventDetails.show_day_names !== false);
+                const initialShowDayNames = currentEventData ? currentEventData.show_day_names !== false : true;
                 setStableState(serializeState(daysData, slotsData, initialShowDayNames));
             } else {
-                const initialShowDayNames = fullEvent ? fullEvent.show_day_names !== false : (eventDetails.show_day_names !== false);
+                const initialShowDayNames = currentEventData ? currentEventData.show_day_names !== false : true;
                 setStableState(serializeState([], {}, initialShowDayNames));
             }
         } catch (error) {

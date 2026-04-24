@@ -209,70 +209,71 @@ export default function Dashboard() {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
                         {events.map((event, index) => (
                             <div
                                 key={event.event_id}
                                 onClick={() => navigate(`/event/${event.event_id}`)}
                                 onMouseEnter={() => prefetch.eventDashboard()}
                                 style={{ animationDelay: `${index * 50}ms` }}
-                                className="group bg-card text-card-foreground rounded-2xl sm:rounded-3xl border border-white/5 p-5 sm:p-7 shadow-xl hover:shadow-2xl hover:border-primary/40 hover:-translate-y-1 transition-premium cursor-pointer relative overflow-hidden flex flex-col h-full animate-in fade-in zoom-in-95"
+                                className="group bg-card text-card-foreground rounded-2xl sm:rounded-3xl border border-white/5 p-4 sm:p-7 shadow-xl hover:shadow-2xl hover:border-primary/40 hover:-translate-y-1 transition-premium cursor-pointer relative overflow-hidden flex flex-col h-full animate-in fade-in zoom-in-95"
                             >
                                 {/* Decorative elements */}
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110 pointer-events-none"></div>
                                 <div className="absolute inset-x-0 bottom-0 h-1.5 bg-gradient-to-r from-primary/50 to-primary opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
                                 <div className="flex justify-between items-start mb-6 relative z-10">
-                                    <div className="bg-white p-3.5 rounded-lg group-hover:bg-athar-blue group-hover:text-white transition-all duration-300 border border-border shadow-sm">
-                                        <Calendar size={22} />
+                                    <div className="bg-white p-2.5 sm:p-3.5 rounded-lg group-hover:bg-athar-blue group-hover:text-white transition-all duration-300 border border-border shadow-sm">
+                                        <Calendar size={18} className="sm:hidden" />
+                                        <Calendar size={22} className="hidden sm:block" />
                                     </div>
-                                    <span className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border backdrop-blur-md ${event.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-muted/50 text-muted-foreground border-border/50'
+                                    <span className={`px-2 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[8px] sm:text-[10px] font-bold uppercase tracking-widest border backdrop-blur-md ${event.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-muted/50 text-muted-foreground border-border/50'
                                         }`}>
                                         {event.status || 'Active'}
                                     </span>
                                 </div>
 
-                                <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors line-clamp-2 relative z-10">
+                                <h3 className="text-sm sm:text-2xl font-bold mb-2 sm:mb-3 group-hover:text-primary transition-colors line-clamp-2 relative z-10">
                                     {event.event_name}
                                 </h3>
 
-                                <div className="h-px w-full bg-border/50 my-6 relative z-10" />
+                                <div className="h-px w-full bg-border/50 my-4 sm:my-6 relative z-10" />
 
-                                <div className="flex items-center gap-2.5 mt-auto relative z-10">
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 mt-auto relative z-10">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); navigate(`/event/${event.event_id}`); }}
-                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary/5 hover:bg-primary/10 text-primary text-sm font-bold rounded-xl transition-colors border border-primary/10"
+                                        className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-primary/5 hover:bg-primary/10 text-primary text-[10px] sm:text-sm font-bold rounded-xl transition-colors border border-primary/10"
                                     >
-                                        <Edit2 size={16} />
+                                        <Edit2 size={14} className="sm:size-[16px]" />
                                         <span>Manage</span>
                                     </button>
 
-                                    <div className="flex gap-1.5">
+                                    <div className="flex gap-1 sm:gap-1.5 justify-center">
                                         <a
                                             href={`#/agenda/${event.event_id}`}
                                             target="_blank"
                                             onClick={(e) => e.stopPropagation()}
-                                            className="h-11 w-11 flex items-center justify-center rounded-xl border border-border/50 bg-background text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all shadow-sm"
+                                            className="h-9 w-9 sm:h-11 sm:w-11 flex items-center justify-center rounded-lg sm:rounded-xl border border-border/50 bg-background text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all shadow-sm"
                                             title="View Public Page"
                                         >
-                                            <ExternalLink size={18} />
+                                            <ExternalLink size={16} className="sm:size-[18px]" />
                                         </a>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleCopyLink(event.event_id); }}
-                                            className={`h-11 w-11 flex items-center justify-center rounded-xl border transition-all shadow-sm ${copiedId === event.event_id
+                                            className={`h-9 w-9 sm:h-9 sm:w-11 flex items-center justify-center rounded-lg sm:rounded-xl border transition-all shadow-sm ${copiedId === event.event_id
                                                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
                                                 : 'bg-background border-border/50 text-muted-foreground hover:bg-primary/5 hover:border-primary/30 hover:text-primary'
                                                 }`}
                                             title="Copy Link"
                                         >
-                                            {copiedId === event.event_id ? <Check size={18} /> : <Copy size={18} />}
+                                            {copiedId === event.event_id ? <Check size={16} className="sm:size-[18px]" /> : <Copy size={16} className="sm:size-[18px]" />}
                                         </button>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleDeleteEvent(event.event_id); }}
-                                            className="h-11 w-11 flex items-center justify-center rounded-xl border border-border/50 bg-background text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-all shadow-sm"
+                                            className="h-9 w-9 sm:h-11 sm:w-11 flex items-center justify-center rounded-lg sm:rounded-xl border border-border/50 bg-background text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-all shadow-sm"
                                             title="Delete Event"
                                         >
-                                            <Trash2 size={18} />
+                                            <Trash2 size={16} className="sm:size-[18px]" />
                                         </button>
                                     </div>
                                 </div>
