@@ -1,4 +1,5 @@
-import { MapPin, Users, Plus, Banknote, Briefcase, Pencil, Trash2, ExternalLink, Globe, Linkedin, Facebook, Twitter, Instagram, Youtube, Github, GripVertical } from 'lucide-react';
+import React, { useState } from 'react';
+import { MapPin, Users, Plus, Banknote, Briefcase, Pencil, Trash2, ExternalLink, Globe, Linkedin, Facebook, Twitter, Instagram, Youtube, Github, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useSearchParams } from 'react-router-dom';
@@ -20,6 +21,7 @@ const LinkIcon = ({ type, ...props }) => {
 };
 
 const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false, priority = false }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const {
     attributes,
     listeners,
@@ -56,7 +58,9 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
       growth: "Growth",
       strategic: "Strategic Builder",
       link: "Link",
-      notSpecified: "Not Specified"
+      notSpecified: "Not Specified",
+      readMore: "Read More",
+      showLess: "Show Less"
     },
     ar: {
       sector: "القطاع",
@@ -67,7 +71,9 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
       growth: "نمو",
       strategic: "بناء استراتيجي",
       link: "رابط",
-      notSpecified: "غير محدد"
+      notSpecified: "غير محدد",
+      readMore: "عرض المزيد",
+      showLess: "عرض أقل"
     }
   };
 
@@ -281,7 +287,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
 
   // Premium Vertical Grid View (Matching Expert Style)
   return (
-    <div ref={setNodeRef} style={style} className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-8 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+    <div ref={setNodeRef} style={style} className="group relative w-full bg-white rounded-[2.5rem] md:rounded-[4rem] border border-slate-100 p-4 md:p-8 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Drag Handle */}
       {!previewMode && (
           <div {...attributes} {...listeners} className="absolute top-6 left-6 cursor-grab active:cursor-grabbing p-2 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity z-30">
@@ -346,15 +352,15 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
       </div>
 
       {/* Identity Profile Section */}
-      <div className="flex flex-col items-center mb-2 z-10 w-full">
-        <div className="relative w-44 h-44 mb-4">
+      <div className="flex flex-col items-center z-10 w-full">
+        <div className="relative w-24 h-24 md:w-44 md:h-44 mb-2 md:mb-4">
           {/* Shadow Layer */}
           <div
-            className="absolute inset-4 rounded-[3rem] blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
+            className="absolute inset-2 md:inset-4 rounded-[2rem] md:rounded-[3rem] blur-2xl md:blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
             style={{ backgroundColor: customColor }}
           />
           {/* Image Container */}
-          <div className="relative w-full h-full rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center transition-transform duration-1000 group-hover:scale-[1.05]">
+          <div className="relative w-full h-full rounded-[2rem] md:rounded-[3rem] overflow-hidden border-2 md:border-4 border-white shadow-xl md:shadow-2xl bg-white flex items-center justify-center transition-transform duration-1000 group-hover:scale-[1.05]">
             {displayConfig.show_logo ? (
               <LazyImage
                 src={logo ? getGoogleDriveFallbackUrls(logo)[0] : null}
@@ -366,7 +372,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
                 className="grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000"
                 fallback={
                   <div
-                    className="w-full h-full flex items-center justify-center text-6xl font-black"
+                    className="w-full h-full flex items-center justify-center text-4xl md:text-6xl font-black"
                     style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
                   >
                     {name.charAt(0)}
@@ -375,7 +381,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
               />
             ) : (
                 <div
-                    className="w-full h-full flex items-center justify-center text-6xl font-black"
+                    className="w-full h-full flex items-center justify-center text-4xl md:text-6xl font-black"
                     style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
                 >
                     {name.charAt(0)}
@@ -384,17 +390,17 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
           </div>
         </div>
 
-        <div className="px-4 w-full">
-          <h3 className="text-3xl font-black text-[#0d0e0e] tracking-tight mb-2 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
+        <div className="px-2 md:px-4 w-full">
+          <h3 className="text-xl md:text-3xl font-black text-[#0d0e0e] tracking-tight mb-1 md:mb-2 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 uppercase">
             {name}
           </h3>
           {displayConfig.show_founder && founder && (
-             <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-xs font-black text-slate-600 uppercase tracking-tighter">{founder}</span>
+             <div className="flex items-center justify-center gap-1.5 md:gap-2 mb-1 md:mb-2">
+                <span className="text-[10px] md:text-xs font-black text-slate-600 uppercase tracking-tighter">{founder}</span>
                 {displayConfig.show_role && role && (
                   <>
                     <span className="w-1 h-1 bg-slate-200 rounded-full" />
-                    <span className="text-[10px] font-medium text-slate-400 uppercase">{role}</span>
+                    <span className="text-[9px] md:text-[10px] font-medium text-slate-400 uppercase">{role}</span>
                   </>
                 )}
              </div>
@@ -403,7 +409,7 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
       </div>
 
       {/* Content Section */}
-      <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
+      <div className={`flex-1 px-2 md:px-4 z-10 w-full flex-col justify-between ${!isExpanded ? 'hidden sm:flex' : 'flex'}`}>
         {displayConfig.show_description && description && (
           <ExpandableText 
             text={description}
@@ -461,6 +467,27 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
         </div>
       )}
     </div>
+
+      {/* Mobile Expand Toggle */}
+      <div className="w-full mt-2 sm:hidden flex justify-center z-20">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+          className="flex items-center gap-1.5 px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-slate-500 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-colors"
+        >
+          {isExpanded ? (
+            <>
+              {t.showLess} <ChevronUp size={14} />
+            </>
+          ) : (
+            <>
+              {t.readMore} <ChevronDown size={14} />
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Dynamic Interaction Overlay */}
       <div

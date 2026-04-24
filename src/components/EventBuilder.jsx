@@ -60,48 +60,88 @@ function SortableSlot({ slot, onEdit, onDelete, onTogglePresenter, isInvalid }) 
         <div
             ref={setNodeRef}
             style={style}
-            className={`group/slot flex flex-col md:flex-row md:items-center justify-between p-5 bg-white border rounded-2xl gap-6 hover:border-[#1a27c9] transition-premium shadow-sm hover:shadow-lg hover:shadow-indigo-50/50 
+            className={`group/slot flex flex-col md:flex-row md:items-center justify-between p-2.5 md:p-5 bg-white border rounded-2xl gap-2 md:gap-6 hover:border-[#1a27c9] transition-premium shadow-sm hover:shadow-lg hover:shadow-indigo-50/50 
                 ${isDragging ? 'shadow-2xl border-[#1a27c9] scale-[1.02]' : ''}
                 ${isInvalid ? 'border-red-500 shadow-lg shadow-red-50 ring-1 ring-red-500/20 bg-red-50/5' : 'border-slate-100'}
             `}
         >
-            <div className="flex-1 flex flex-col md:flex-row md:items-center gap-6 w-full">
-                {/* Drag Handle */}
+            <div className="flex-1 flex flex-col md:flex-row gap-1.5 md:gap-6 w-full">
+                {/* Mobile Top Bar: Drag Handle + Actions */}
+                <div className="flex items-center justify-between w-full md:hidden">
+                    <div 
+                        {...attributes} 
+                        {...listeners} 
+                        className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-slate-300 hover:text-slate-500 transition-colors shrink-0"
+                    >
+                        <GripVertical size={16} />
+                    </div>
+                    <div className="flex items-center gap-1 opacity-80 group-hover/slot:opacity-100 transition-opacity">
+                        {slot.presenter_name && (
+                            <button
+                                onClick={() => onTogglePresenter(slot)}
+                                className={`p-1.5 rounded-lg transition-premium border active:scale-95 ${slot.show_presenter
+                                    ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
+                                    : 'text-slate-400 bg-slate-50 border-slate-100'
+                                    }`}
+                            >
+                                {slot.show_presenter ? <UserCheck size={13} /> : <UserX size={13} />}
+                            </button>
+                        )}
+                        <button
+                            onClick={() => onEdit(slot)}
+                            className="p-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-premium active:scale-95"
+                        >
+                            <Edit2 size={13} />
+                        </button>
+                        <button
+                            onClick={() => onDelete(slot.slot_id)}
+                            className="p-1.5 text-red-500 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-premium active:scale-95"
+                        >
+                            <Trash2 size={13} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Desktop Drag Handle */}
                 <div 
                     {...attributes} 
                     {...listeners} 
-                    className="cursor-grab active:cursor-grabbing p-2 -ml-2 text-slate-300 hover:text-slate-500 transition-colors shrink-0"
+                    className="hidden md:block cursor-grab active:cursor-grabbing p-2 -ml-2 text-slate-300 hover:text-slate-500 transition-colors shrink-0 self-center"
                 >
                     <GripVertical size={20} />
                 </div>
 
-                {/* Time Indicator */}
-                <div className="flex items-center gap-3 text-[#1a27c9] min-w-[160px] bg-indigo-50/50 px-4 py-2.5 rounded-xl font-black text-sm">
-                    <Clock size={16} />
-                    <span className="whitespace-nowrap">
-                        {formatTime(slot.start_time)} — {formatTime(slot.end_time)}
-                    </span>
-                </div>
+                {/* Slot Details (Time next to Title on Mobile) */}
+                <div className="flex items-center gap-2 md:gap-4 w-full min-w-0">
+                    {/* Time Indicator */}
+                    <div className="flex items-center gap-1.5 md:gap-3 text-[#1a27c9] min-w-[105px] md:min-w-[160px] bg-indigo-50/50 px-2 py-1 md:px-4 md:py-2.5 rounded-lg md:rounded-xl font-black text-[10px] md:text-sm shrink-0">
+                        <Clock size={11} className="md:w-4 md:h-4" />
+                        <span className="whitespace-nowrap">
+                            {formatTime(slot.start_time)} — {formatTime(slot.end_time)}
+                        </span>
+                    </div>
 
-                {/* Slot Content */}
-                <div className="flex-1 min-w-[200px]">
-                    <p className="text-lg font-extrabold text-[#0d0e0e] leading-tight mb-1">{slot.slot_title}</p>
-                    {slot.bullet_points?.length > 0 && (
-                        <div className="flex items-center gap-1.5 mt-1">
-                            <List size={12} className="text-indigo-400" />
-                            <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest">{slot.bullet_points.length} نقطة</span>
-                        </div>
-                    )}
-                    {slot.presenter_name && (
-                        <div className="flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">
-                            <User size={14} className="text-[#1a27c9]" />
-                            <span>{slot.presenter_name}</span>
-                        </div>
-                    )}
+                    {/* Slot Content */}
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[13px] md:text-lg font-extrabold text-[#0d0e0e] leading-tight md:mb-1 truncate md:whitespace-normal">{slot.slot_title}</p>
+                        {slot.bullet_points?.length > 0 && (
+                            <div className="hidden md:flex items-center gap-1.5 mt-1">
+                                <List size={12} className="text-indigo-400" />
+                                <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest">{slot.bullet_points.length} نقطة</span>
+                            </div>
+                        )}
+                        {slot.presenter_name && (
+                            <div className="hidden md:flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">
+                                <User size={14} className="text-[#1a27c9]" />
+                                <span>{slot.presenter_name}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 w-full md:w-auto justify-end opacity-60 group-hover/slot:opacity-100 transition-opacity">
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center gap-2 w-full md:w-auto justify-end opacity-60 group-hover/slot:opacity-100 transition-opacity">
                 {slot.presenter_name && (
                     <button
                         onClick={() => onTogglePresenter(slot)}
@@ -522,6 +562,38 @@ export default function EventBuilder({ event, onBack }) {
         setHasUnsavedChanges(true);
     };
 
+    const shiftTimeString = (timeStr, shiftHours) => {
+        if (!timeStr) return '00:00';
+        let [hours, minutes] = timeStr.split(':').map(Number);
+        hours += shiftHours;
+        // Clamp to 00:00 - 23:59
+        if (hours < 0) hours = 0;
+        if (hours > 23) hours = 23;
+        
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    };
+
+    const handleShiftDayTime = (dayId, shiftHours) => {
+        let newDaySlots = [];
+        setSlots(prev => {
+            const daySlots = prev[dayId] || [];
+            newDaySlots = daySlots.map(slot => ({
+                ...slot,
+                start_time: shiftTimeString(slot.start_time, shiftHours),
+                end_time: shiftTimeString(slot.end_time, shiftHours)
+            }));
+            
+            return {
+                ...prev,
+                [dayId]: newDaySlots
+            };
+        });
+        setHasUnsavedChanges(true);
+        // We can call validateAgendaOrder immediately because it uses the passed array if provided
+        validateAgendaOrder(dayId, newDaySlots);
+        showToast(`تم ${shiftHours > 0 ? 'تقديم' : 'تأخير'} مواعيد اليوم بمقدار ساعة`);
+    };
+
     const agendaUrl = `${window.location.href.split('#')[0].replace(/\/$/, '')}/#/agenda/${event.event_id}`;
 
     const [copied, setCopied] = useState(false);
@@ -558,9 +630,13 @@ export default function EventBuilder({ event, onBack }) {
         return isLogical;
     };
 
-    // DnD Sensors
+    // DnD Sensors — include touch distance threshold for mobile
     const sensors = useSensors(
-        useSensor(PointerSensor),
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // must drag 8px before activating (prevents accidental drags on tap)
+            },
+        }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
@@ -764,35 +840,41 @@ export default function EventBuilder({ event, onBack }) {
                         <div className="space-y-6">
                             {/* Save Changes Floating Bar */}
                             {hasUnsavedChanges && (
-                                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 duration-500">
-                                    <div className="bg-[#0d0e0e] text-white px-8 py-5 rounded-[2.5rem] shadow-2xl shadow-indigo-200/50 flex items-center gap-8 border border-white/10 backdrop-blur-xl">
-                                        <div className="flex items-center gap-3 pr-8 border-r border-white/10">
-                                            <div className="w-3 h-3 rounded-full bg-amber-500 animate-pulse" />
-                                            <span className="font-bold text-sm tracking-tight whitespace-nowrap">عناصر غير محفوظة بالمسودة</span>
+                                <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom-4 duration-500 safe-bottom">
+                                    <div className="bg-[#0d0e0e] text-white px-4 sm:px-8 py-4 sm:py-5 mx-3 sm:mx-auto sm:max-w-3xl sm:rounded-[2.5rem] mb-3 sm:mb-8 shadow-2xl shadow-indigo-200/50 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8 border border-white/10 backdrop-blur-xl rounded-2xl">
+                                        <div className="flex items-center gap-3 sm:pr-8 sm:border-r sm:border-white/10">
+                                            <div className="w-3 h-3 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                                            <span className="font-bold text-sm tracking-tight">عناصر غير محفوظة بالمسودة</span>
+                                            {invalidSlotIds.size > 0 && (
+                                                <div className="flex items-center gap-1.5 text-red-400 sm:hidden">
+                                                    <AlertCircle size={14} />
+                                                    <span className="text-xs font-bold">صلح الأخطاء أولاً</span>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-3 w-full sm:w-auto">
                                             <button
                                                 onClick={() => loadEventData(false)}
                                                 disabled={isSavingChanges}
-                                                className="px-6 py-2.5 hover:bg-white/10 rounded-2xl font-bold text-sm transition-premium disabled:opacity-30"
+                                                className="flex-1 sm:flex-none px-4 py-2.5 hover:bg-white/10 rounded-2xl font-bold text-sm transition-premium disabled:opacity-30 text-center"
                                             >
-                                                تجاهل التغييرات
+                                                تجاهل
                                             </button>
                                             <button
                                                 onClick={handleFinalSave}
                                                 disabled={isSavingChanges || invalidSlotIds.size > 0}
-                                                className="flex items-center gap-2 px-8 py-3 bg-[#1a27c9] hover:bg-[#151e9c] text-white rounded-2xl font-black text-sm transition-premium shadow-xl shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#1a27c9] hover:bg-[#151e9c] text-white rounded-2xl font-black text-sm transition-premium shadow-xl shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {isSavingChanges ? (
-                                                    <Loader2 size={20} className="animate-spin" />
+                                                    <Loader2 size={18} className="animate-spin" />
                                                 ) : (
-                                                    <Save size={20} />
+                                                    <Save size={18} />
                                                 )}
-                                                <span>حفظ التعديلات النهائية</span>
+                                                <span>حفظ التعديلات</span>
                                             </button>
                                         </div>
                                         {invalidSlotIds.size > 0 && (
-                                            <div className="pl-4 flex items-center gap-2 text-red-400">
+                                            <div className="hidden sm:flex pl-4 items-center gap-2 text-red-400">
                                                 <AlertCircle size={18} />
                                                 <span className="text-xs font-bold">صلح الأخطاء الزمنية أولاً</span>
                                             </div>
@@ -928,7 +1010,7 @@ export default function EventBuilder({ event, onBack }) {
                                     <h3 className="text-xl font-extrabold text-[#0d0e0e]">Add New Agenda Day</h3>
                                 </div>
 
-                                <div className="flex flex-col md:flex-row gap-4">
+                                <div className="flex flex-col gap-3">
                                     <div className="flex-1 relative">
                                         <input
                                             type="text"
@@ -945,98 +1027,117 @@ export default function EventBuilder({ event, onBack }) {
                                             <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-1.5 ml-2">Label is required</p>
                                         )}
                                     </div>
-                                    <div className="md:w-64">
+                                    <div className="flex gap-3">
                                         <input
                                             type="date"
                                             value={newDayDate}
                                             onChange={(e) => setNewDayDate(e.target.value)}
-                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium"
+                                            className="flex-1 px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium"
                                         />
+                                        <button
+                                            onClick={handleAddDay}
+                                            disabled={isSubmittingDay}
+                                            className="px-6 py-3.5 bg-[#1a27c9] text-white rounded-2xl font-extrabold hover:bg-[#1a27c9]/90 shadow-lg shadow-indigo-100 transition-premium flex items-center justify-center gap-2 group disabled:opacity-50 active:scale-95"
+                                        >
+                                            {isSubmittingDay ? (
+                                                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                                            ) : (
+                                                <>
+                                                    <Plus size={20} className="group-hover:rotate-90 transition-transform" />
+                                                    <span>Add Day</span>
+                                                </>
+                                            )}
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={handleAddDay}
-                                        disabled={isSubmittingDay}
-                                        className="px-8 py-3.5 bg-[#1a27c9] text-white rounded-2xl font-extrabold hover:bg-[#1a27c9]/90 shadow-lg shadow-indigo-100 transition-premium flex items-center justify-center gap-2 group disabled:opacity-50 active:scale-95"
-                                    >
-                                        {isSubmittingDay ? (
-                                            <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-                                        ) : (
-                                            <>
-                                                <Plus size={20} className="group-hover:rotate-90 transition-transform" />
-                                                <span>Add Day</span>
-                                            </>
-                                        )}
-                                    </button>
                                 </div>
                             </div>
 
                             {/* Days List */}
                             {days.map((day) => (
-                                <div key={day.day_id} className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-premium">
-                                    <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/50">
+                                <div key={day.day_id} className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-premium">
+                                    <div className="p-3 sm:p-6 border-b border-slate-100 flex flex-row items-center justify-between gap-2 sm:gap-4 bg-slate-50/50">
                                         {editingDayId === day.day_id ? (
-                                            <div className="flex flex-col md:flex-row flex-1 gap-3 md:items-center">
+                                            <div className="flex flex-col md:flex-row flex-1 gap-3 md:items-center min-w-0">
                                                 <input
                                                     type="text"
                                                     value={editDayName}
                                                     onChange={(e) => setEditDayName(e.target.value)}
-                                                    className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-lg font-bold focus:ring-[#1a27c9] outline-none"
+                                                    className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm sm:text-lg font-bold focus:ring-[#1a27c9] outline-none w-full"
                                                     autoFocus
                                                 />
                                                 <input
                                                     type="date"
                                                     value={editDayDate.split('T')[0]}
                                                     onChange={(e) => setEditDayDate(e.target.value)}
-                                                    className="bg-white border border-slate-200 rounded-xl px-4 py-2 outline-none"
+                                                    className="bg-white border border-slate-200 rounded-xl px-4 py-2 outline-none text-sm w-full"
                                                 />
-                                                <div className="flex gap-2">
+                                                <div className="flex gap-2 shrink-0">
                                                     <button
                                                         onClick={handleUpdateDay}
-                                                        className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-colors"
+                                                        className="p-2 sm:p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-colors"
                                                     >
-                                                        <Save size={20} />
+                                                        <Save size={18} className="sm:w-5 sm:h-5" />
                                                     </button>
                                                     <button
                                                         onClick={() => setEditingDayId(null)}
-                                                        className="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors"
+                                                        className="p-2 sm:p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors"
                                                     >
-                                                        ✕
+                                                        <X size={18} className="sm:w-5 sm:h-5" />
                                                     </button>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex items-center gap-4">
-                                                <div className="bg-[#1a27c9] text-white h-12 w-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-indigo-100">
+                                            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+                                                <div className="bg-[#1a27c9] text-white h-9 w-9 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-sm sm:text-xl shadow-lg shadow-indigo-100 shrink-0">
                                                     {day.day_number || '?'}
                                                 </div>
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <h3 className="text-2xl font-black text-[#0d0e0e]">{day.day_name}</h3>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <h3 className="text-sm sm:text-2xl font-black text-[#0d0e0e] truncate">{day.day_name}</h3>
                                                         <button
                                                             onClick={() => handleStartEditDay(day)}
-                                                            className="text-slate-300 hover:text-[#1a27c9] transition-premium"
+                                                            className="text-slate-300 hover:text-[#1a27c9] transition-premium shrink-0"
                                                             title="Rename Day"
                                                         >
-                                                            <Edit2 size={16} />
+                                                            <Edit2 size={12} className="sm:w-4 sm:h-4" />
                                                         </button>
                                                     </div>
-                                                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">{formatDate(day.day_date)}</p>
+                                                    <p className="text-slate-500 font-bold text-[8px] sm:text-xs uppercase tracking-widest truncate">{formatDate(day.day_date)}</p>
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="flex gap-2 w-full md:w-auto">
+                                        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                                            {/* +1 / -1 Buttons */}
+                                            <div className="flex items-center bg-slate-200/50 rounded-lg sm:rounded-xl p-0.5 sm:p-1">
+                                                <button
+                                                    onClick={() => handleShiftDayTime(day.day_id, -1)}
+                                                    className="px-2 py-1 sm:px-4 sm:py-2 text-slate-600 font-bold text-[9px] sm:text-sm hover:bg-white rounded-md sm:rounded-lg transition-premium"
+                                                    title="Delay one hour"
+                                                >
+                                                    -1
+                                                </button>
+                                                <div className="w-px h-3 sm:h-4 bg-slate-300 mx-0.5 sm:mx-1"></div>
+                                                <button
+                                                    onClick={() => handleShiftDayTime(day.day_id, 1)}
+                                                    className="px-2 py-1 sm:px-4 sm:py-2 text-slate-600 font-bold text-[9px] sm:text-sm hover:bg-white rounded-md sm:rounded-lg transition-premium"
+                                                    title="Forward one hour"
+                                                >
+                                                    +1
+                                                </button>
+                                            </div>
+
                                             <button
                                                 onClick={() => handleOpenSlotModal(day.day_id)}
-                                                className="grow md:grow-0 px-6 py-3 bg-[#0d0e0e] text-white rounded-xl font-bold hover:bg-slate-800 transition-premium flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-slate-200"
+                                                className="px-2 py-1.5 sm:px-5 sm:py-2.5 bg-[#0d0e0e] text-white rounded-lg sm:rounded-xl font-bold hover:bg-slate-800 transition-premium flex items-center justify-center gap-1 sm:gap-2 active:scale-95 shadow-md"
                                             >
-                                                <Plus size={18} />
-                                                <span>Add Slot</span>
+                                                <Plus size={12} className="sm:w-[18px] sm:h-[18px]" />
+                                                <span className="text-[9px] sm:text-sm whitespace-nowrap">Add Slot</span>
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteDay(day.day_id)}
-                                                className="px-4 py-3 bg-red-50 text-red-500 border border-red-100 rounded-xl hover:bg-red-100 transition-premium"
+                                                className="p-1.5 sm:px-3 sm:py-2.5 bg-red-50 text-red-500 border border-red-100 rounded-lg sm:rounded-xl hover:bg-red-100 transition-premium"
                                             >
-                                                <Trash2 size={20} />
+                                                <Trash2 size={13} className="sm:w-[20px] sm:h-[20px]" />
                                             </button>
                                         </div>
                                     </div>
@@ -1377,8 +1478,8 @@ export default function EventBuilder({ event, onBack }) {
 
                 {/* Slot Addition/Edit Modal */}
                 {slotModal.show && (
-                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-manrope">
-                        <div className="bg-white rounded-[2.5rem] w-full max-w-xl p-6 md:p-10 shadow-2xl scale-in-center border border-slate-100 max-h-[90vh] overflow-y-auto flex flex-col">
+                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 sm:p-4 font-manrope">
+                        <div className="bg-white rounded-t-3xl sm:rounded-[2.5rem] w-full sm:max-w-xl p-5 sm:p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto flex flex-col">
                             <div className="flex items-center gap-4 mb-8">
                                 <div className="bg-indigo-50 p-3 rounded-2xl">
                                     <Plus size={24} className="text-[#1a27c9]" />
@@ -1389,7 +1490,7 @@ export default function EventBuilder({ event, onBack }) {
                             </div>
 
                             <div className="space-y-6">
-                                <div className="grid grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 sm:gap-6">
                                     <div className="space-y-2">
                                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label>
                                         <select
@@ -1487,17 +1588,17 @@ export default function EventBuilder({ event, onBack }) {
                                 </div>
                             </div>
 
-                            <div className="flex gap-4 mt-10">
+                            <div className="flex flex-col sm:flex-row gap-3 mt-8">
                                 <button
                                     onClick={handleSaveSlot}
                                     disabled={slotModal.saving}
-                                    className="flex-[2] px-8 py-4 bg-[#1a27c9] text-white rounded-2xl hover:bg-indigo-700 transition-premium font-black text-lg shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 disabled:opacity-50 active:scale-95"
+                                    className="flex-[2] px-6 py-4 bg-[#1a27c9] text-white rounded-2xl hover:bg-indigo-700 transition-premium font-black text-base sm:text-lg shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 disabled:opacity-50 active:scale-95"
                                 >
                                     {slotModal.saving ? (
                                         <div className="animate-spin h-6 w-6 border-3 border-white border-t-transparent rounded-full" />
                                     ) : (
                                         <>
-                                            <Save size={22} />
+                                            <Save size={20} />
                                             <span>{slotModal.isEditing ? 'Update Pulse' : 'Save Pulse'}</span>
                                         </>
                                     )}
@@ -1505,7 +1606,7 @@ export default function EventBuilder({ event, onBack }) {
                                 <button
                                     onClick={() => setSlotModal({ ...slotModal, show: false })}
                                     disabled={slotModal.saving}
-                                    className="flex-1 px-8 py-4 bg-slate-100 text-slate-500 rounded-2xl hover:bg-slate-200 transition-premium font-bold active:scale-95"
+                                    className="flex-1 px-6 py-4 bg-slate-100 text-slate-500 rounded-2xl hover:bg-slate-200 transition-premium font-bold active:scale-95"
                                 >
                                     Cancel
                                 </button>
@@ -1554,7 +1655,7 @@ export default function EventBuilder({ event, onBack }) {
 
             {/* Global Toast Notification */}
             {toast.show && (
-                <div className={`fixed bottom-8 right-8 z-[110] flex items-center gap-4 px-6 py-4 rounded-2xl shadow-2xl border animate-slideInRight ${toast.type === 'success' ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-rose-600 text-white border-rose-500'}`}>
+                <div className={`fixed bottom-20 sm:bottom-8 left-4 right-4 sm:left-auto sm:right-8 sm:w-auto z-[110] flex items-center gap-4 px-5 py-4 rounded-2xl shadow-2xl border animate-slideInRight ${toast.type === 'success' ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-rose-600 text-white border-rose-500'}`}>
                     <div className="flex items-center gap-3">
                         {toast.type === 'success' ? <Check size={20} className="shrink-0" /> : <AlertTriangle size={20} className="shrink-0" />}
                         <span className="font-extrabold text-sm tracking-tight">{toast.message}</span>

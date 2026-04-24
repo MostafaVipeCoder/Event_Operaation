@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X, Briefcase } from 'lucide-react';
+import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X, Briefcase, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { getEvent, updateEvent } from '../lib/api';
 import { prefetch } from '../App';
 import SyncButton from './SyncButton';
@@ -18,11 +18,13 @@ export default function EventDashboard() {
     const [expertsColor, setExpertsColor] = useState('#9333ea'); // Default Purple
     const [startupsColor, setStartupsColor] = useState('#059669'); // Default Emerald
     const [themeSaved, setThemeSaved] = useState(false);
+    const [isSyncOpen, setIsSyncOpen] = useState(false);
 
     // Edit Name State
     const [isEditingName, setIsEditingName] = useState(false);
     const [editedName, setEditedName] = useState('');
     const [isSavingName, setIsSavingName] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState(null);
 
     // Sync Metadata State
     const [gsheetsUrl, setGsheetsUrl] = useState('');
@@ -199,22 +201,21 @@ export default function EventDashboard() {
             ></div>
             <div className="absolute top-0 right-0 w-full h-[500px] bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-athar-blue/10 via-background to-background pointer-events-none -z-10"></div>
 
-            {/* Header */}
             <div className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-50 animate-in fade-in slide-in-from-top-4">
                 <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-20">
-                        <div className="flex items-center gap-6">
-                            <Link to="/" className="p-3 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-300 group">
-                                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                    <div className="flex items-center justify-between gap-4 min-h-[64px] sm:h-20 py-3 sm:py-0">
+                        <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+                            <Link to="/" className="shrink-0 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-300 group tap-target">
+                                <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                             </Link>
-                            <div>
+                            <div className="min-w-0">
                                 {isEditingName ? (
                                     <div className="flex items-center gap-2">
                                         <input
                                             type="text"
                                             value={editedName}
                                             onChange={(e) => setEditedName(e.target.value)}
-                                            className="text-2xl font-extrabold text-foreground tracking-tight bg-background border border-border rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                            className="text-lg sm:text-2xl font-extrabold text-foreground tracking-tight bg-background border border-border rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all w-40 sm:w-auto"
                                             autoFocus
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') handleSaveName();
@@ -225,31 +226,33 @@ export default function EventDashboard() {
                                             }}
                                             disabled={isSavingName}
                                         />
-                                        <button onClick={handleSaveName} disabled={isSavingName} className="p-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-500/20 transition-colors">
+                                        <button onClick={handleSaveName} disabled={isSavingName} className="p-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-500/20 transition-colors tap-target">
                                             <Check size={18} />
                                         </button>
-                                        <button onClick={() => { setEditedName(event.event_name); setIsEditingName(false); }} disabled={isSavingName} className="p-1.5 bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20 transition-colors">
+                                        <button onClick={() => { setEditedName(event.event_name); setIsEditingName(false); }} disabled={isSavingName} className="p-1.5 bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20 transition-colors tap-target">
                                             <X size={18} />
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-3">
-                                        <h1 className="text-2xl font-extrabold text-foreground tracking-tight hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-athar-blue hover:to-athar-yellow transition-all duration-300">{event.event_name}</h1>
-                                        <button onClick={() => setIsEditingName(true)} className="text-muted-foreground hover:text-primary transition-colors" title="Edit Event Name">
+                                    <div className="flex items-center gap-2">
+                                        <h1 className="text-lg sm:text-2xl font-extrabold text-foreground tracking-tight truncate max-w-[140px] sm:max-w-xs hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-athar-blue hover:to-athar-yellow transition-all duration-300">{event.event_name}</h1>
+                                        <button onClick={() => setIsEditingName(true)} className="shrink-0 text-muted-foreground hover:text-primary transition-colors tap-target" title="Edit Event Name">
                                             <Edit2 size={16} />
                                         </button>
                                     </div>
                                 )}
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] leading-none mt-1">Event Master Control</p>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] leading-none mt-1 hidden sm:block">Event Master Control</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-6">
-                            {/* Active Users Present In This Event */}
-                            <ActiveUsers users={activeUsers} />
+                        <div className="flex items-center gap-2 sm:gap-6 shrink-0">
+                            {/* Active Users — hidden on tiny screens */}
+                            <div className="hidden sm:block">
+                                <ActiveUsers users={activeUsers} />
+                            </div>
                             
-                            <div className="flex items-center gap-4 border-l border-border pl-6">
+                            <div className="flex items-center gap-2 sm:gap-4 sm:border-l border-border sm:pl-6">
                                 <SyncButton eventId={eventId} onSyncComplete={() => window.location.reload()} />
-                                <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border ${event.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'
+                                <div className={`hidden sm:block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border ${event.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'
                                     }`}>
                                     • {event.status || 'Active'}
                                 </div>
@@ -272,100 +275,132 @@ export default function EventDashboard() {
                             <p className="text-white/60 text-xs font-medium uppercase tracking-[0.1em] mb-4">Share these links with your guests</p>
                         </div>
                         <div className="flex flex-wrap gap-4 items-center">
-                            {/* English Links */}
-                            <div className="flex flex-col gap-2">
-                                <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] text-center">English Version</span>
-                                <div className="flex flex-wrap gap-2 justify-center">
-                                    <button 
-                                        onClick={(e) => {
-                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`;
-                                            navigator.clipboard.writeText(link);
-                                            e.currentTarget.innerHTML = 'Copied!';
-                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> Full Link'; }, 2000);
-                                        }}
-                                        className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2"
-                                    >
-                                        <ClipboardList size={16} /> Full Link
-                                    </button>
-                                    <button 
-                                        onClick={(e) => {
-                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en&mode=agenda_experts`;
-                                            navigator.clipboard.writeText(link);
-                                            e.currentTarget.innerHTML = 'Copied!';
-                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> Agenda & Experts'; }, 2000);
-                                        }}
-                                        className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2"
-                                    >
-                                        <ClipboardList size={16} /> Agenda & Experts
-                                    </button>
-                                    <button 
-                                        onClick={(e) => {
-                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en&mode=agenda_only`;
-                                            navigator.clipboard.writeText(link);
-                                            e.currentTarget.innerHTML = 'Copied!';
-                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> Agenda Only'; }, 2000);
-                                        }}
-                                        className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2"
-                                    >
-                                        <ClipboardList size={16} /> Agenda Only
-                                    </button>
-                                    <a 
-                                        href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`} 
-                                        target="_blank" 
-                                        className="px-6 py-3 bg-athar-yellow hover:bg-white text-athar-black rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105"
-                                    >
-                                        <ExternalLink size={16} /> Open
-                                    </a>
-                                </div>
+                            {/* English Links Dropdown */}
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setOpenDropdown(openDropdown === 'en' ? null : 'en')}
+                                    className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2"
+                                >
+                                    English Links <ChevronDown size={16} className={`transition-transform duration-300 ${openDropdown === 'en' ? 'rotate-180' : ''}`} />
+                                </button>
+                                
+                                {openDropdown === 'en' && (
+                                    <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto w-56 bg-card border border-border rounded-xl shadow-xl p-2 flex flex-col gap-1 z-50">
+                                        <button 
+                                            onClick={(e) => {
+                                                const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`;
+                                                navigator.clipboard.writeText(link);
+                                                const btn = e.currentTarget;
+                                                const originalHtml = btn.innerHTML;
+                                                btn.innerHTML = '<span class="flex items-center gap-2 justify-center w-full">Copied!</span>';
+                                                setTimeout(() => { btn.innerHTML = originalHtml; setOpenDropdown(null); }, 1500);
+                                            }}
+                                            className="px-3 py-2 text-sm text-foreground hover:bg-secondary rounded-lg flex items-center gap-2 text-left transition-colors"
+                                        >
+                                            <ClipboardList size={16} className="text-muted-foreground" /> Full Link
+                                        </button>
+                                        <button 
+                                            onClick={(e) => {
+                                                const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en&mode=agenda_experts`;
+                                                navigator.clipboard.writeText(link);
+                                                const btn = e.currentTarget;
+                                                const originalHtml = btn.innerHTML;
+                                                btn.innerHTML = '<span class="flex items-center gap-2 justify-center w-full">Copied!</span>';
+                                                setTimeout(() => { btn.innerHTML = originalHtml; setOpenDropdown(null); }, 1500);
+                                            }}
+                                            className="px-3 py-2 text-sm text-foreground hover:bg-secondary rounded-lg flex items-center gap-2 text-left transition-colors"
+                                        >
+                                            <ClipboardList size={16} className="text-muted-foreground" /> Agenda & Experts
+                                        </button>
+                                        <button 
+                                            onClick={(e) => {
+                                                const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en&mode=agenda_only`;
+                                                navigator.clipboard.writeText(link);
+                                                const btn = e.currentTarget;
+                                                const originalHtml = btn.innerHTML;
+                                                btn.innerHTML = '<span class="flex items-center gap-2 justify-center w-full">Copied!</span>';
+                                                setTimeout(() => { btn.innerHTML = originalHtml; setOpenDropdown(null); }, 1500);
+                                            }}
+                                            className="px-3 py-2 text-sm text-foreground hover:bg-secondary rounded-lg flex items-center gap-2 text-left transition-colors"
+                                        >
+                                            <ClipboardList size={16} className="text-muted-foreground" /> Agenda Only
+                                        </button>
+                                        <div className="h-px bg-border my-1" />
+                                        <a 
+                                            href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=en`} 
+                                            target="_blank" 
+                                            className="px-3 py-2 text-sm font-bold text-athar-yellow hover:bg-secondary rounded-lg flex items-center gap-2 text-left transition-colors"
+                                            onClick={() => setOpenDropdown(null)}
+                                        >
+                                            <ExternalLink size={16} /> Open English
+                                        </a>
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="w-px h-12 bg-white/20 hidden md:block" />
+                            <div className="w-px h-10 bg-white/20 hidden md:block" />
 
-                            {/* Arabic Links */}
-                            <div className="flex flex-col gap-2">
-                                <span className="text-[10px] font-bold text-athar-yellow uppercase tracking-[0.2em] text-center">Arabic Version (RTL)</span>
-                                <div className="flex flex-wrap gap-2 justify-center">
-                                    <button 
-                                        onClick={(e) => {
-                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`;
-                                            navigator.clipboard.writeText(link);
-                                            e.currentTarget.innerHTML = 'تم النسخ!';
-                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> المنصة كاملة'; }, 2000);
-                                        }}
-                                        className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2 font-arabic"
-                                    >
-                                        <ClipboardList size={16} /> المنصة كاملة
-                                    </button>
-                                    <button 
-                                        onClick={(e) => {
-                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar&mode=agenda_experts`;
-                                            navigator.clipboard.writeText(link);
-                                            e.currentTarget.innerHTML = 'تم النسخ!';
-                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> الأجندة والخبراء'; }, 2000);
-                                        }}
-                                        className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2 font-arabic"
-                                    >
-                                        <ClipboardList size={16} /> الأجندة والخبراء
-                                    </button>
-                                    <button 
-                                        onClick={(e) => {
-                                            const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar&mode=agenda_only`;
-                                            navigator.clipboard.writeText(link);
-                                            e.currentTarget.innerHTML = 'تم النسخ!';
-                                            setTimeout(() => { e.currentTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> الأجندة فقط'; }, 2000);
-                                        }}
-                                        className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2 font-arabic"
-                                    >
-                                        <ClipboardList size={16} /> الأجندة فقط
-                                    </button>
-                                    <a 
-                                        href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`} 
-                                        target="_blank" 
-                                        className="px-6 py-3 bg-athar-yellow hover:bg-white text-athar-black rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 font-arabic"
-                                    >
-                                        <ExternalLink size={16} /> فتح
-                                    </a>
-                                </div>
+                            {/* Arabic Links Dropdown */}
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setOpenDropdown(openDropdown === 'ar' ? null : 'ar')}
+                                    className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-xs font-semibold uppercase tracking-wider backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2 font-arabic"
+                                >
+                                    الروابط العربية <ChevronDown size={16} className={`transition-transform duration-300 ${openDropdown === 'ar' ? 'rotate-180' : ''}`} />
+                                </button>
+                                
+                                {openDropdown === 'ar' && (
+                                    <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto w-56 bg-card border border-border rounded-xl shadow-xl p-2 flex flex-col gap-1 z-50 font-arabic" dir="rtl">
+                                        <button 
+                                            onClick={(e) => {
+                                                const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`;
+                                                navigator.clipboard.writeText(link);
+                                                const btn = e.currentTarget;
+                                                const originalHtml = btn.innerHTML;
+                                                btn.innerHTML = '<span class="flex items-center gap-2 justify-center w-full">تم النسخ!</span>';
+                                                setTimeout(() => { btn.innerHTML = originalHtml; setOpenDropdown(null); }, 1500);
+                                            }}
+                                            className="px-3 py-2 text-sm text-foreground hover:bg-secondary rounded-lg flex items-center gap-2 text-right transition-colors"
+                                        >
+                                            <ClipboardList size={16} className="text-muted-foreground" /> المنصة كاملة
+                                        </button>
+                                        <button 
+                                            onClick={(e) => {
+                                                const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar&mode=agenda_experts`;
+                                                navigator.clipboard.writeText(link);
+                                                const btn = e.currentTarget;
+                                                const originalHtml = btn.innerHTML;
+                                                btn.innerHTML = '<span class="flex items-center gap-2 justify-center w-full">تم النسخ!</span>';
+                                                setTimeout(() => { btn.innerHTML = originalHtml; setOpenDropdown(null); }, 1500);
+                                            }}
+                                            className="px-3 py-2 text-sm text-foreground hover:bg-secondary rounded-lg flex items-center gap-2 text-right transition-colors"
+                                        >
+                                            <ClipboardList size={16} className="text-muted-foreground" /> الأجندة والخبراء
+                                        </button>
+                                        <button 
+                                            onClick={(e) => {
+                                                const link = `${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar&mode=agenda_only`;
+                                                navigator.clipboard.writeText(link);
+                                                const btn = e.currentTarget;
+                                                const originalHtml = btn.innerHTML;
+                                                btn.innerHTML = '<span class="flex items-center gap-2 justify-center w-full">تم النسخ!</span>';
+                                                setTimeout(() => { btn.innerHTML = originalHtml; setOpenDropdown(null); }, 1500);
+                                            }}
+                                            className="px-3 py-2 text-sm text-foreground hover:bg-secondary rounded-lg flex items-center gap-2 text-right transition-colors"
+                                        >
+                                            <ClipboardList size={16} className="text-muted-foreground" /> الأجندة فقط
+                                        </button>
+                                        <div className="h-px bg-border my-1" />
+                                        <a 
+                                            href={`${window.location.origin}${window.location.pathname}?agenda=${eventId}&lang=ar`} 
+                                            target="_blank" 
+                                            className="px-3 py-2 text-sm font-bold text-athar-yellow hover:bg-secondary rounded-lg flex items-center gap-2 text-right transition-colors"
+                                            onClick={() => setOpenDropdown(null)}
+                                        >
+                                            <ExternalLink size={16} /> فتح باللغة العربية
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -374,7 +409,7 @@ export default function EventDashboard() {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-                <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in fade-in slide-in-from-bottom-4">
+                <div className="mb-10 sm:mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4 animate-in fade-in slide-in-from-bottom-4">
                     <div>
                         <div className="flex items-center gap-3 mb-3">
                             <div className="bg-primary/10 p-2 rounded-lg">
@@ -387,87 +422,118 @@ export default function EventDashboard() {
                 </div>
 
                 {/* Cloud Sync Configuration */}
-                <div className="mb-12 bg-card rounded-lg border border-border p-8 shadow-sm relative overflow-hidden group animate-in fade-in slide-in-from-bottom-8">
-                    <div className="absolute inset-0 bg-gradient-to-r from-athar-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="bg-primary/10 p-2 rounded-lg text-primary">
-                                    <RefreshCw size={18} />
+                <div className="mb-12 bg-card rounded-xl border border-border overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-8">
+                    {/* Header - Clickable for mobile accordion */}
+                    <div 
+                        className="p-6 md:p-8 relative group cursor-pointer md:cursor-default"
+                        onClick={() => setIsSyncOpen(!isSyncOpen)}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-athar-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                        <div className="flex items-start md:items-center justify-between gap-4 relative z-10">
+                            <div>
+                                <div className="flex items-center gap-3 mb-1.5 md:mb-2">
+                                    <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                                        <RefreshCw size={18} />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-foreground tracking-tight">Sync With Sheet</h3>
                                 </div>
-                                <h3 className="text-xl font-bold text-foreground tracking-tight">Sync With Sheet</h3>
+                                <p className="text-muted-foreground text-sm font-medium">Provide a Google Sheets URL to synchronize all modules at once.</p>
                             </div>
-                            <p className="text-muted-foreground text-sm font-medium mb-4">Provide a Google Sheets URL to synchronize all modules at once.</p>
+                            <div className="md:hidden mt-2 p-2 bg-secondary/50 rounded-lg text-muted-foreground">
+                                {isSyncOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            </div>
+                        </div>
+                    </div>
 
-                            <div className="flex flex-wrap gap-3 w-full">
-                                <input
-                                    type="text"
-                                    placeholder="Paste Google Sheets URL here..."
-                                    value={gsheetsUrl}
-                                    onChange={(e) => setGsheetsUrl(e.target.value)}
-                                    className="flex-1 min-w-[300px] px-6 py-3.5 bg-background border border-border rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                                />
+                    {/* Content - Collapsible on mobile */}
+                    <div className={`${isSyncOpen ? 'block' : 'hidden'} md:block px-6 pb-6 md:px-8 md:pb-8 pt-0`}>
+                        <div className="flex flex-col gap-3 w-full mt-2 md:mt-0 pt-4 md:pt-0 border-t border-border/50 md:border-none">
+                            <input
+                                type="text"
+                                placeholder="Paste Google Sheets URL here..."
+                                value={gsheetsUrl}
+                                onChange={(e) => setGsheetsUrl(e.target.value)}
+                                className="w-full px-4 sm:px-6 py-3.5 bg-background border border-border rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                            />
+                            <div className="flex items-center gap-3 w-full">
                                 <button
                                     onClick={handleSaveGsheetsUrl}
                                     disabled={isSavingUrl || gsheetsUrl === event?.gsheets_url}
-                                    className="px-6 py-3.5 bg-primary text-primary-foreground rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex items-center justify-center shadow-lg"
+                                    className="px-4 py-3.5 md:px-6 bg-primary text-primary-foreground rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm tap-target aspect-square md:aspect-auto"
                                 >
-                                    {isSavingUrl ? 'Saving...' : 'Save Source'}
+                                    {isSavingUrl ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+                                    <span className="hidden md:inline">{isSavingUrl ? 'Saving...' : 'Save Source'}</span>
                                 </button>
                                 <a
                                     href="https://docs.google.com/spreadsheets/d/15uqLAXYvVwIFGbIp8FjG5IA1oCwjdU72Hs4ONO06WCc/copy"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-6 py-3.5 bg-secondary text-secondary-foreground border border-border rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] hover:bg-secondary/80 transition-all duration-300 flex items-center gap-2"
+                                    className="flex-1 md:flex-none px-4 py-3.5 md:px-6 bg-secondary text-secondary-foreground border border-border rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] hover:bg-secondary/80 transition-all duration-300 flex items-center justify-center gap-2 tap-target"
                                 >
                                     <FileSpreadsheet size={16} />
-                                    Sheet Template
+                                    <span>Template</span>
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-16">
                     {modules.map((module, index) => (
-                        <div
-                            key={index}
-                            className="relative rounded-lg border border-border p-8 transition-all duration-300 hover:shadow-xl flex flex-col group bg-card backdrop-blur-sm overflow-hidden animate-in fade-in zoom-in-95 fill-mode-both"
-                            style={{ animationDelay: `${index * 50}ms` }}
-                            onMouseEnter={() => module.prefetchKey && prefetch[module.prefetchKey]?.()}
-                        >
-                            {/* Hover Gradient line */}
-                            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-athar-blue via-athar-blue/80 to-athar-yellow opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                            <div className="flex items-start justify-between mb-6 relative z-10">
-                                <div className="p-4 rounded-lg shadow-sm border border-border group-hover:scale-110 transition-transform duration-300 bg-background" style={{ color: module.accent, borderColor: `${module.accent}30` }}>
+                        <React.Fragment key={index}>
+                            {/* Mobile View (Icon Only) */}
+                            <button
+                                onClick={() => navigate(module.manageLink)}
+                                onMouseEnter={() => module.prefetchKey && prefetch[module.prefetchKey]?.()}
+                                className="md:hidden flex flex-col items-center justify-start gap-2 pt-2 active:scale-95 transition-transform animate-in fade-in zoom-in-95 fill-mode-both"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                                <div className="p-4 rounded-2xl shadow-sm border border-border bg-card flex items-center justify-center" style={{ color: module.accent, borderColor: `${module.accent}30` }}>
                                     {module.icon}
                                 </div>
-                            </div>
+                                <span className="text-[11px] font-bold text-center text-foreground leading-tight px-1">{module.title}</span>
+                            </button>
 
-                            <h3 className="text-2xl font-bold text-foreground mb-2 tracking-tight relative z-10 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-athar-blue group-hover:to-athar-yellow transition-all duration-300">{module.title}</h3>
-                            <p className="text-muted-foreground font-medium mb-10 leading-relaxed text-sm flex-1 relative z-10">{module.description}</p>
+                            {/* Desktop View */}
+                            <div
+                                className="hidden md:flex relative rounded-lg border border-border p-8 transition-all duration-300 hover:shadow-xl flex-col group bg-card backdrop-blur-sm overflow-hidden animate-in fade-in zoom-in-95 fill-mode-both cursor-pointer"
+                                onClick={() => navigate(module.manageLink)}
+                                style={{ animationDelay: `${index * 50}ms` }}
+                                onMouseEnter={() => module.prefetchKey && prefetch[module.prefetchKey]?.()}
+                            >
+                                {/* Hover Gradient line */}
+                                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-athar-blue via-athar-blue/80 to-athar-yellow opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                            <div className="flex flex-col gap-3 mt-auto relative z-10">
-                                <button
-                                    onClick={() => navigate(module.manageLink)}
-                                    onMouseEnter={() => module.prefetchKey && prefetch[module.prefetchKey]?.()}
-                                    className="w-full py-4 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg transition-all duration-300 hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:opacity-90"
-                                >
-                                    <span>Enter Module</span>
-                                </button>
+                                <div className="flex items-start justify-between mb-6 relative z-10">
+                                    <div className="p-4 rounded-lg shadow-sm border border-border group-hover:scale-110 transition-transform duration-300 bg-background" style={{ color: module.accent, borderColor: `${module.accent}30` }}>
+                                        {module.icon}
+                                    </div>
+                                </div>
 
-                                {module.editFormsLink && (
+                                <h3 className="text-2xl font-bold text-foreground mb-2 tracking-tight relative z-10 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-athar-blue group-hover:to-athar-yellow transition-all duration-300">{module.title}</h3>
+                                <p className="text-muted-foreground font-medium mb-10 leading-relaxed text-sm flex-1 relative z-10">{module.description}</p>
+
+                                <div className="flex flex-col gap-3 mt-auto relative z-10">
                                     <button
-                                        onClick={() => navigate(module.editFormsLink)}
-                                        className="w-full py-3 rounded-lg font-semibold text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-300 flex items-center justify-center gap-2"
+                                        onClick={() => navigate(module.manageLink)}
+                                        onMouseEnter={() => module.prefetchKey && prefetch[module.prefetchKey]?.()}
+                                        className="w-full py-4 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg transition-all duration-300 hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:opacity-90 tap-target"
                                     >
-                                        <Settings size={16} />
-                                        <span>Customize Forms</span>
+                                        <span>Enter Module</span>
                                     </button>
-                                )}
+
+                                    {module.editFormsLink && (
+                                        <button
+                                            onClick={() => navigate(module.editFormsLink)}
+                                            className="w-full py-3 rounded-lg font-semibold text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-300 flex items-center justify-center gap-2 tap-target"
+                                        >
+                                            <Settings size={16} />
+                                            <span>Customize Forms</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        </React.Fragment>
                     ))}
                 </div>
 

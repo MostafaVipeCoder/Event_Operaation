@@ -187,34 +187,34 @@ export default function EventVisualManager() {
         <div className="min-h-screen bg-gray-200 font-manrope pb-24">
             {/* Header */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
-                <div className="max-w-[1600px] mx-auto px-6 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => navigate(`/event/${eventId}`)}
-                                className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-premium"
+                                className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-premium tap-target shrink-0"
                             >
                                 <ArrowLeft size={24} />
                             </button>
                             <div>
-                                <h1 className="text-xl font-black text-[#0d0e0e] tracking-tight">Event Visuals</h1>
+                                <h1 className="text-lg sm:text-xl font-black text-[#0d0e0e] tracking-tight">Event Visuals</h1>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Design & Branding</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                             <a
                                 href={`#/agenda/${eventId}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-premium"
+                                className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-premium tap-target"
                             >
                                 <Eye size={18} />
-                                <span>Preview</span>
+                                <span className="hidden xs:inline">Preview</span>
                             </a>
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-[#1a27c9] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-indigo-100 disabled:opacity-50 transition-premium"
+                                className="flex items-center gap-2 px-4 sm:px-6 py-2.5 bg-[#1a27c9] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-indigo-100 disabled:opacity-50 transition-premium tap-target"
                             >
                                 {saving ? <Loader2 className="animate-spin" size={18} /> : (success ? <Check size={18} /> : <Save size={18} />)}
                                 <span>{saving ? 'Saving...' : (success ? 'Saved!' : 'Save Changes')}</span>
@@ -224,7 +224,7 @@ export default function EventVisualManager() {
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 py-12">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
                 <div className="grid grid-cols-1 gap-8">
 
                     {/* ── Agenda Cover ── */}

@@ -55,7 +55,8 @@ export default function SyncButton({ eventId, onSyncComplete, className = "" }) 
             <button
                 onClick={startPreview}
                 disabled={isSyncing}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-premium active:scale-95 disabled:opacity-50 ${syncStatus === 'success'
+                title="Sync With Sheet"
+                className={`flex items-center justify-center w-10 h-10 rounded-xl font-bold transition-premium active:scale-95 disabled:opacity-50 ${syncStatus === 'success'
                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                         : syncStatus === 'error'
                             ? 'bg-red-50 text-red-600 border border-red-100'
@@ -71,10 +72,6 @@ export default function SyncButton({ eventId, onSyncComplete, className = "" }) 
                 ) : (
                     <RefreshCw size={16} />
                 )}
-
-                <span>
-                    {isSyncing ? 'Processing...' : syncStatus === 'success' ? 'Synced!' : syncStatus === 'error' ? 'Sync Failed' : 'Sync With Sheet'}
-                </span>
             </button>
 
             {/* Sync Preview Modal */}

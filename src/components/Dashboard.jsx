@@ -106,57 +106,62 @@ export default function Dashboard() {
 
             {/* Premium Header */}
             <div className="relative z-10 bg-background/70 backdrop-blur-xl border-b border-border/50 sticky top-0 shadow-sm animate-in fade-in duration-500">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="bg-athar-blue p-2.5 rounded-xl shadow-lg shadow-athar-blue/20">
-                                <Layout className="text-white" size={24} />
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                        {/* Logo */}
+                        <div className="flex items-center gap-3 shrink-0">
+                            <div className="bg-athar-blue p-2 sm:p-2.5 rounded-xl shadow-lg shadow-athar-blue/20">
+                                <Layout className="text-white" size={20} />
                             </div>
-                            <div>
-                                <h1 className="text-xl font-extrabold text-athar-black tracking-tight flex items-center gap-2">
+                            <div className="hidden sm:block">
+                                <h1 className="text-lg font-extrabold text-athar-black tracking-tight flex items-center gap-2">
                                     Athar <span className="text-athar-blue">Planner</span>
                                 </h1>
                                 <p className="text-[10px] text-athar-black/40 font-bold uppercase tracking-widest mt-0.5">Professional Event Ecosystem</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-6">
-                            <ActiveUsers users={activeUsers} />
-                            
-                            <div className="flex items-center gap-3 border-l border-border/50 pl-6">
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 sm:gap-4">
+                            <div className="hidden sm:block">
+                                <ActiveUsers users={activeUsers} />
+                            </div>
+
+                            <div className="flex items-center gap-2 sm:gap-3 sm:border-l sm:border-border/50 sm:pl-4">
                                 <Link
                                     to="/experts"
-                                    className="flex items-center gap-2 text-muted-foreground hover:text-athar-blue px-4 py-2 rounded-lg font-bold transition-all hover:bg-athar-blue/5"
+                                    className="flex items-center gap-2 text-muted-foreground hover:text-athar-blue px-3 sm:px-4 py-2 rounded-lg font-bold transition-all hover:bg-athar-blue/5 tap-target"
                                 >
                                     <UsersIcon size={18} />
-                                    <span>Experts Hub</span>
+                                    <span className="hidden sm:inline">Experts Hub</span>
                                 </Link>
 
                                 <button
                                     onClick={() => setShowCreateModal(true)}
-                                    className="group relative overflow-hidden flex items-center gap-2 bg-gradient-to-r from-athar-blue to-athar-black text-white px-5 py-2.5 rounded-lg font-bold transition-all duration-300 shadow-lg shadow-athar-blue/20 hover:-translate-y-0.5 active:scale-95"
+                                    className="group relative overflow-hidden flex items-center gap-2 bg-gradient-to-r from-athar-blue to-athar-black text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-bold transition-all duration-300 shadow-lg shadow-athar-blue/20 hover:-translate-y-0.5 active:scale-95"
                                 >
                                     <Plus size={18} className="relative z-10" />
-                                    <span className="relative z-10">Create Event</span>
+                                    <span className="relative z-10 hidden sm:inline">Create Event</span>
                                 </button>
 
-                            <button
-                                onClick={handleSignOut}
-                                className="flex items-center justify-center w-11 h-11 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all border border-transparent hover:border-destructive/20"
-                                title="Sign Out"
-                            >
-                                <LogOut size={20} />
-                            </button>
+                                <button
+                                    onClick={handleSignOut}
+                                    className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all border border-transparent hover:border-destructive/20 tap-target"
+                                    title="Sign Out"
+                                >
+                                    <LogOut size={18} />
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
                 {/* Stats / Welcome Section */}
-                <div className="mb-12 animate-in slide-in-from-bottom-4 duration-700">
-                    <h2 className="text-4xl font-extrabold mb-3 tracking-tight text-foreground">Welcome Back</h2>
-                    <p className="text-muted-foreground font-medium text-lg flex items-center gap-2">
+                <div className="mb-8 sm:mb-12 animate-in slide-in-from-bottom-4 duration-700">
+                    <h2 className="text-2xl sm:text-4xl font-extrabold mb-2 tracking-tight text-foreground">Welcome Back</h2>
+                    <p className="text-muted-foreground font-medium text-base sm:text-lg flex items-center gap-2">
                         You have <strong className="text-primary">{events.length} active event{events.length !== 1 ? 's' : ''}</strong> under your management.
                     </p>
                 </div>
@@ -204,14 +209,14 @@ export default function Dashboard() {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                         {events.map((event, index) => (
                             <div
                                 key={event.event_id}
                                 onClick={() => navigate(`/event/${event.event_id}`)}
                                 onMouseEnter={() => prefetch.eventDashboard()}
                                 style={{ animationDelay: `${index * 50}ms` }}
-                                className="group bg-card text-card-foreground rounded-3xl border border-white/5 p-7 shadow-xl hover:shadow-2xl hover:border-primary/40 hover:-translate-y-1 transition-premium cursor-pointer relative overflow-hidden flex flex-col h-full animate-in fade-in zoom-in-95"
+                                className="group bg-card text-card-foreground rounded-2xl sm:rounded-3xl border border-white/5 p-5 sm:p-7 shadow-xl hover:shadow-2xl hover:border-primary/40 hover:-translate-y-1 transition-premium cursor-pointer relative overflow-hidden flex flex-col h-full animate-in fade-in zoom-in-95"
                             >
                                 {/* Decorative elements */}
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110 pointer-events-none"></div>
@@ -280,8 +285,8 @@ export default function Dashboard() {
             {/* Create Event Modal */}
             {
                 showCreateModal && (
-                    <div className="fixed inset-0 bg-background/80 backdrop-blur-xl flex items-center justify-center z-50 p-4">
-                        <div className="bg-card text-card-foreground border border-white/10 rounded-3xl w-full max-w-lg p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden animate-in fade-in zoom-in-95 flex flex-col">
+                    <div className="fixed inset-0 bg-background/80 backdrop-blur-xl flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+                        <div className="bg-card text-card-foreground border border-white/10 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg p-6 sm:p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 flex flex-col">
                             {/* Glassmorphism accents */}
                             <div className="absolute -top-32 -right-32 w-64 h-64 bg-athar-blue/20 rounded-full blur-3xl pointer-events-none"></div>
                             <div 

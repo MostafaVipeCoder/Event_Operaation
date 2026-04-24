@@ -52,6 +52,7 @@ const ExpertManager = () => {
     const [showLibraryModal, setShowLibraryModal] = useState(false);
     const [libraryExperts, setLibraryExperts] = useState([]);
     const [libraryLoading, setLibraryLoading] = useState(false);
+    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -301,94 +302,122 @@ const ExpertManager = () => {
         <div className="min-h-screen bg-gray-200 font-manrope selection:bg-[#1a27c9]/10 selection:text-[#1a27c9]">
             {/* Header Area */}
             <div className="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm">
-                <div className="max-w-[1600px] mx-auto px-6 py-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="flex items-center gap-6">
-                            <button
-                                onClick={() => navigate(`/event/${eventId}`)}
-                                className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-white transition-premium group"
-                            >
-                                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                            </button>
-                            <div>
-                                <h1 className="text-3xl font-black text-[#0d0e0e] tracking-tight">Mentors Hub</h1>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Curate your events visionaries & speakers</p>
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
+                    <div className="flex flex-col gap-4">
+                        {/* Top row: back + title */}
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => navigate(`/event/${eventId}`)}
+                                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-white transition-premium group tap-target shrink-0"
+                                >
+                                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                                </button>
+                                <div>
+                                    <h1 className="text-xl sm:text-3xl font-black text-[#0d0e0e] tracking-tight">Mentors Hub</h1>
+                                    <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Curate your events visionaries &amp; speakers</p>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Navigation Tabs */}
-                        <div className="flex p-1 bg-slate-100 rounded-2xl w-fit">
-                            <button
-                                onClick={() => setActiveTab('curated')}
-                                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'curated'
-                                    ? 'bg-white text-[#1a27c9] shadow-sm'
-                                    : 'text-slate-400 hover:text-slate-600'
-                                    }`}
-                            >
-                                <Users size={16} />
-                                Expert Grid
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('review')}
-                                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'review'
-                                    ? 'bg-white text-[#1a27c9] shadow-sm'
-                                    : 'text-slate-400 hover:text-slate-600'
-                                    }`}
-                            >
-                                <Inbox size={16} />
-                                Review Desk
-                                {submissions.filter(s => s.status === 'pending').length > 0 && (
-                                    <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-                                )}
-                            </button>
-                        </div>
+                        {/* Bottom row: tabs + search + actions */}
+                        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                            
+                            {/* Navigation Tabs */}
+                            <div className={`flex p-1 bg-slate-100 rounded-2xl shrink-0 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
+                                <button
+                                    onClick={() => setActiveTab('curated')}
+                                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'curated'
+                                        ? 'bg-white text-[#1a27c9] shadow-sm'
+                                        : 'text-slate-400 hover:text-slate-600'
+                                        }`}
+                                >
+                                    <Users size={16} />
+                                    <span className="hidden xs:inline">Expert Grid</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('review')}
+                                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'review'
+                                        ? 'bg-white text-[#1a27c9] shadow-sm'
+                                        : 'text-slate-400 hover:text-slate-600'
+                                        }`}
+                                >
+                                    <Inbox size={16} />
+                                    <span className="hidden xs:inline">Review Desk</span>
+                                    {submissions.filter(s => s.status === 'pending').length > 0 && (
+                                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+                                    )}
+                                </button>
+                            </div>
 
-                        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto mt-4 xl:mt-0 justify-center xl:justify-end">
-                            <div className="relative group w-full sm:w-auto grow">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1a27c9] transition-colors" size={18} />
+                            <div className={`w-px h-8 bg-slate-200 hidden sm:block shrink-0 ${isSearchExpanded ? 'hidden sm:block' : 'hidden sm:block'}`} />
+
+                            <div className={`relative group shrink-0 ${isSearchExpanded ? 'flex-1 min-w-[200px]' : 'w-[50px] sm:flex-1 sm:min-w-[160px]'}`}>
+                                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1a27c9] transition-colors ${isSearchExpanded ? 'block' : 'hidden sm:block'}`} size={18} />
                                 <input
                                     type="text"
                                     placeholder="Search experts..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium w-full sm:w-64"
+                                    onBlur={() => { if(!searchTerm) setIsSearchExpanded(false) }}
+                                    className={`pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium w-full ${isSearchExpanded ? 'block' : 'hidden sm:block'}`}
+                                    autoFocus={isSearchExpanded}
                                 />
+                                {!isSearchExpanded && (
+                                    <button
+                                        onClick={() => setIsSearchExpanded(true)}
+                                        className="sm:hidden w-full h-[50px] bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:bg-white transition-premium shadow-sm"
+                                    >
+                                        <Search size={20} />
+                                    </button>
+                                )}
+                                {isSearchExpanded && (
+                                    <button 
+                                        onClick={() => {setSearchTerm(''); setIsSearchExpanded(false)}} 
+                                        className="sm:hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500"
+                                    >
+                                        <X size={16}/>
+                                    </button>
+                                )}
                             </div>
-                            <SyncButton
-                                eventId={eventId}
-                                onSyncComplete={loadData}
-                                className="md:w-auto h-[54px]"
-                            />
-                            <button
-                                onClick={() => {
-                                    setShowLibraryModal(true);
-                                    if (libraryExperts.length === 0) {
-                                        setLibraryLoading(true);
-                                        getMasterExperts().then(data => {
-                                            setLibraryExperts(data || []);
-                                            setLibraryLoading(false);
-                                        });
-                                    }
-                                }}
-                                className="flex items-center gap-3 bg-white text-athar-blue border border-athar-blue/20 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-athar-blue/5 transition-premium group active:scale-95 shadow-sm"
-                            >
-                                <Users size={18} className="group-hover:scale-110 transition-transform" />
-                                <span>Import from Hub</span>
-                            </button>
-                            <button
-                                onClick={() => setShowAddModal(true)}
-                                className="flex items-center gap-3 bg-[#1a27c9] text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-indigo-200 transition-premium group active:scale-95"
-                            >
-                                <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
-                                <span>Add Expert</span>
-                            </button>
-                            <button
-                                onClick={() => setShowSettingsModal(true)}
-                                className="w-[54px] h-[54px] bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-slate-50 transition-premium shadow-sm"
-                                title="Card Settings"
-                            >
-                                <Layout size={20} />
-                            </button>
+                            
+                            <div className={`flex items-center gap-2 sm:gap-3 shrink-0 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
+                                <SyncButton
+                                    eventId={eventId}
+                                    onSyncComplete={loadData}
+                                    className="h-[50px] sm:h-[54px]"
+                                />
+                                <button
+                                    onClick={() => {
+                                        setShowLibraryModal(true);
+                                        if (libraryExperts.length === 0) {
+                                            setLibraryLoading(true);
+                                            getMasterExperts().then(data => {
+                                                setLibraryExperts(data || []);
+                                                setLibraryLoading(false);
+                                            });
+                                        }
+                                    }}
+                                    className="flex items-center justify-center w-[50px] sm:w-auto gap-2 sm:gap-3 bg-white text-athar-blue border border-athar-blue/20 px-0 sm:px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-athar-blue/5 transition-premium group active:scale-95 shadow-sm tap-target"
+                                >
+                                    <Users size={18} className="group-hover:scale-110 transition-transform shrink-0" />
+                                    <span className="hidden sm:inline">Import from Hub</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowAddModal(true)}
+                                    className="flex items-center justify-center w-[50px] sm:w-auto gap-2 sm:gap-3 bg-[#1a27c9] text-white px-0 sm:px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-indigo-200 transition-premium group active:scale-95 tap-target"
+                                >
+                                    <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500 shrink-0" />
+                                    <span className="hidden sm:inline">Add Expert</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowSettingsModal(true)}
+                                    className="w-[50px] sm:w-[54px] h-[50px] sm:h-[54px] bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-slate-50 transition-premium shadow-sm tap-target"
+                                    title="Card Settings"
+                                >
+                                    <Layout size={20} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -488,7 +517,7 @@ const ExpertManager = () => {
             )}
 
             {/* Main Content Area */}
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in duration-700">
                         <div className="w-20 h-20 border-4 border-slate-100 border-t-[#1a27c9] rounded-full animate-spin mb-8"></div>
@@ -515,7 +544,7 @@ const ExpertManager = () => {
                             items={filteredExperts.map(e => e.expert_id || e.id)}
                             strategy={rectSortingStrategy}
                         >
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
                                 {filteredExperts.map(expert => (
                                     <ExpertCard
                                         key={expert.expert_id || expert.id}

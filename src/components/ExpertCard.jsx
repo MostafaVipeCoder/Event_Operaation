@@ -1,12 +1,14 @@
-import { MapPin, Briefcase, Linkedin, Twitter, ExternalLink, Pencil, Trash2, GripVertical, Globe } from 'lucide-react';
+import { MapPin, Briefcase, Linkedin, Twitter, ExternalLink, Pencil, Trash2, GripVertical, Globe, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { getGoogleDriveFallbackUrls } from '../lib/utils';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import LazyImage from './LazyImage';
 import ExpandableText from './ExpandableText';
+import { useState } from 'react';
 
 const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false, priority = false }) => {
+    const [expanded, setExpanded] = useState(false);
     const {
         attributes,
         listeners,
@@ -229,13 +231,13 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
         <div 
             ref={setNodeRef}
             style={style}
-            className="group relative w-full bg-white rounded-[4rem] border border-slate-100 p-6 md:p-10 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}
+            className="group relative w-full bg-white rounded-[2rem] md:rounded-[4rem] border border-slate-100 p-4 md:p-10 hover:shadow-2xl transition-all duration-700 flex flex-col overflow-hidden ring-1 ring-slate-100/50 items-center text-center" dir={isRtl ? 'rtl' : 'ltr'}
         >
             {!previewMode && (
                 <div 
                     {...attributes} 
                     {...listeners}
-                    className="absolute top-6 left-6 cursor-grab active:cursor-grabbing p-2 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity z-30"
+                    className="absolute top-2 left-2 md:top-6 md:left-6 cursor-grab active:cursor-grabbing p-2 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity z-30"
                 >
                     <GripVertical size={20} />
                 </div>
@@ -249,16 +251,16 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                 style={{ backgroundColor: customColor }}
             />
 
-            <div className={`absolute top-6 ${isRtl ? 'left-6' : 'right-6'} z-20 flex flex-col gap-2`}>
+            <div className={`absolute top-2 md:top-6 ${isRtl ? 'left-2 md:left-6' : 'right-2 md:right-6'} z-20 flex flex-col gap-2`}>
                 {onEdit && (
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
                             onEdit(expert);
                         }}
-                        className="w-10 h-10 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all group/edit"
+                        className="w-8 h-8 md:w-10 md:h-10 bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl md:rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:shadow-xl transition-all group/edit"
                     >
-                        <Pencil size={16} className="group-hover/edit:rotate-12 transition-transform" />
+                        <Pencil size={14} className="group-hover/edit:rotate-12 transition-transform md:w-[16px] md:h-[16px]" />
                     </button>
                 )}
                 {onDelete && (
@@ -269,31 +271,31 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                                 onDelete(expert.expert_id || expert.id);
                             }
                         }}
-                        className="w-10 h-10 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-xl transition-all group/delete"
+                        className="w-8 h-8 md:w-10 md:h-10 bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl md:rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:shadow-xl transition-all group/delete"
                     >
-                        <Trash2 size={16} className="group-hover/delete:scale-110 transition-transform" />
+                        <Trash2 size={14} className="group-hover/delete:scale-110 transition-transform md:w-[16px] md:h-[16px]" />
                     </button>
                 )}
             </div>
 
             <div className="flex flex-col items-center mb-2 z-10 w-full relative">
-                <div className="relative w-44 h-44 mb-3">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-44 md:h-44 mb-3">
                     {linkedin && show_linkedin && (
                         <a
                             href={linkedin}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`absolute -top-2 -right-2 z-30 w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-[#0077b5] shadow-xl hover:scale-110 transition-all hover:bg-slate-50`}
+                            className={`absolute -top-1 -right-1 md:-top-2 md:-right-2 z-30 w-8 h-8 md:w-12 md:h-12 bg-white border border-slate-200 rounded-xl md:rounded-2xl flex items-center justify-center text-[#0077b5] shadow-xl hover:scale-110 transition-all hover:bg-slate-50`}
                         >
-                            <Linkedin size={24} />
+                            <Linkedin size={16} className="md:w-[24px] md:h-[24px]" />
                         </a>
                     )}
                    
                     <div
-                        className="absolute inset-4 rounded-[3.5rem] blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
+                        className="absolute inset-2 md:inset-4 rounded-[2rem] md:rounded-[3.5rem] blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
                         style={{ backgroundColor: customColor }}
                     />
-                    <div className="relative w-full h-full rounded-[3.5rem] overflow-hidden border-4 border-white shadow-2xl bg-slate-50 transition-transform duration-1000 group-hover:scale-[1.05]">
+                    <div className="relative w-full h-full rounded-[2rem] md:rounded-[3.5rem] overflow-hidden border-2 md:border-4 border-white shadow-2xl bg-slate-50 transition-transform duration-1000 group-hover:scale-[1.05]">
                         {show_photo ? (
                             <LazyImage
                                 src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
@@ -304,7 +306,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                                 className="grayscale-[0.2] contrast-[1.1] group-hover:grayscale-0 transition-all duration-1000"
                                 fallback={
                                     <div
-                                        className="w-full h-full flex items-center justify-center text-6xl font-black"
+                                        className="w-full h-full flex items-center justify-center text-4xl md:text-6xl font-black"
                                         style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
                                     >
                                         {name.charAt(0)}
@@ -313,7 +315,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                             />
                         ) : (
                             <div
-                                className="w-full h-full flex items-center justify-center text-6xl font-black"
+                                className="w-full h-full flex items-center justify-center text-4xl md:text-6xl font-black"
                                 style={{ backgroundColor: getLightColor(customColor, '10'), color: customColor }}
                             >
                                 {name.charAt(0)}
@@ -322,39 +324,61 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                     </div>
                 </div>
 
-                <div className="px-4 w-full">
-                    <h3 className={`text-2xl font-black text-[#0d0e0e] tracking-tight mb-1 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
+                {/* Mobile Read More Toggle */}
+                <div className="md:hidden w-full px-1">
+                    {!expanded ? (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
+                            className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-[#1a27c9] rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 border border-slate-100 transition-colors"
+                        >
+                            Read More <ChevronDown size={14} />
+                        </button>
+                    ) : null}
+                </div>
+
+                {/* Desktop always visible, Mobile conditionally visible */}
+                <div className={`px-2 md:px-4 w-full transition-all duration-300 ${expanded ? 'block mt-3' : 'hidden md:block'}`}>
+                    <h3 className={`text-lg md:text-2xl font-black text-[#0d0e0e] tracking-tight mb-1 leading-none group-hover:text-[#1a27c9] transition-colors duration-500 ${!isRtl ? 'uppercase' : ''}`}>
                         {name}
                     </h3>
                     {show_title && (
-                        <p className={`text-[#1a27c9] text-[10px] font-black opacity-80 mb-2 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
+                        <p className={`text-[#1a27c9] text-[9px] md:text-[10px] font-black opacity-80 mb-2 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
                             {expert.title}
                         </p>
                     )}
                 </div>
             </div>
 
-            <div className="flex-1 px-4 z-10 w-full flex flex-col justify-between">
+            <div className={`flex-1 px-2 md:px-4 z-10 w-full flex-col justify-between ${expanded ? 'flex' : 'hidden md:flex'}`}>
                 {show_bio && (
                     <ExpandableText 
                         text={expert.bio || t.fallbackBio}
                         lines={4}
                         lang={lang}
                         color={customColor}
-                        className="text-slate-500 text-[0.95rem] font-medium mb-2"
+                        className="text-slate-500 text-[0.75rem] sm:text-[0.85rem] md:text-[0.95rem] font-medium mb-2"
                     />
                 )}
 
                 {show_company && (
-                    <div className="flex justify-center">
-                        <div className="bg-slate-50 p-4 px-8 rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200 min-w-[200px]">
-                            <div className="flex items-center justify-center gap-2 text-slate-400 mb-1">
-                                <Briefcase size={14} />
-                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{t.organization}</span>
+                    <div className="flex justify-center mt-2 md:mt-0">
+                        <div className="bg-slate-50 p-2 md:p-4 px-4 md:px-8 rounded-2xl md:rounded-3xl border border-slate-100 transition-all group-hover:bg-white group-hover:border-slate-200 min-w-[140px] md:min-w-[200px]">
+                            <div className="flex items-center justify-center gap-1 md:gap-2 text-slate-400 mb-1">
+                                <Briefcase size={12} className="md:w-[14px] md:h-[14px]" />
+                                <span className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-slate-400">{t.organization}</span>
                             </div>
-                            <p className="text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.company || 'Not Specified'}</p>
+                            <p className="text-[9px] md:text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.company || 'Not Specified'}</p>
                         </div>
                     </div>
+                )}
+
+                {expanded && (
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
+                        className="md:hidden w-full mt-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 border border-slate-100 transition-colors"
+                    >
+                        Show Less <ChevronUp size={14} />
+                    </button>
                 )}
             </div>
 

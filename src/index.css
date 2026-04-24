@@ -72,10 +72,17 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
+  }
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
   }
   body {
     @apply font-manrope bg-background text-foreground antialiased selection:bg-athar-yellow/30 selection:text-athar-black;
     transition: background-color 0.3s ease;
+    /* Smooth momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -109,6 +116,43 @@
         transition-duration: 400ms;
         transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     }
+
+    /* ── Mobile Helpers ────────────────────────────────────── */
+    .safe-bottom {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .safe-top {
+        padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    /* Prevent horizontal scroll on the whole app */
+    .no-overflow-x {
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+
+    /* Full-screen mobile modal overlay */
+    .modal-mobile {
+        @apply fixed inset-0 z-50 flex flex-col;
+    }
+
+    /* Touch-friendly minimum tap target */
+    .tap-target {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Floating action bar — mobile-safe bottom spacing */
+    .float-bar {
+        @apply fixed bottom-0 left-0 right-0 z-50;
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Responsive truncate for long text in cards */
+    .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+    .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 }
 
 @keyframes scale-in-center {
