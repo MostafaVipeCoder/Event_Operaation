@@ -78,7 +78,7 @@ export const extractGoogleDriveId = (url) => {
 
     // Try a more aggressive search for anything looking like a Drive ID if it's a Drive URL
     if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
-        const parts = url.split(/[\/\?&=]/);
+        const parts = url.split(/[/?&=]/);
         const likelyId = parts.find(part => part.match(/^[-\w]{25,50}$/));
         if (likelyId) return likelyId;
     }

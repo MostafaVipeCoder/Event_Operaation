@@ -449,7 +449,7 @@ export const uploadImage = async (file, path = 'covers') => {
  * Supports previewOnly mode to return a diff before applying changes.
  */
 export const importAgendaData = async (eventId, data, previewOnly = false) => {
-    const { days: sheetDays, slots: sheetSlots, experts: sheetExperts, companies: sheetCompanies } = data;
+    const { experts: sheetExperts, companies: sheetCompanies } = data;
     console.log(`[Supabase] Differential Sync ${previewOnly ? 'PREVIEW' : 'START'} for event: ${eventId}`);
 
     const stats = {

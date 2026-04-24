@@ -338,23 +338,19 @@ export const parseGenericExcel = (file) => {
  * Fetches and parses a public Google Sheet generically.
  */
 export const fetchAndParseGenericGoogleSheet = async (url) => {
-    try {
-        const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-        if (!match) throw new Error('Invalid Google Sheets URL.');
-        const spreadsheetId = match[1];
+    const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    if (!match) throw new Error('Invalid Google Sheets URL.');
+    const spreadsheetId = match[1];
 
-        const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=xlsx`;
-        const response = await fetch(exportUrl);
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=xlsx`;
+    const response = await fetch(exportUrl);
 
-        if (!response.ok) throw new Error('Failed to fetch Google Sheet.');
+    if (!response.ok) throw new Error('Failed to fetch Google Sheet.');
 
-        const buffer = await response.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array' });
+    const buffer = await response.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: 'array' });
 
-        return parseGenericWorkbook(workbook);
-    } catch (error) {
-        throw error;
-    }
+    return parseGenericWorkbook(workbook);
 };
 
 /**
@@ -381,25 +377,21 @@ export const parseAgendaExcel = (file) => {
  * Fetches and parses a public Google Sheet as an XLSX file.
  */
 export const fetchAndParseGoogleSheet = async (url) => {
-    try {
-        // Extract Spreadsheet ID
-        const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-        if (!match) throw new Error('Invalid Google Sheets URL. Please ensure it is a valid /spreadsheets/d/ link.');
-        const spreadsheetId = match[1];
+    // Extract Spreadsheet ID
+    const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    if (!match) throw new Error('Invalid Google Sheets URL. Please ensure it is a valid /spreadsheets/d/ link.');
+    const spreadsheetId = match[1];
 
-        // Fetch XLSX export
-        const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=xlsx`;
-        const response = await fetch(exportUrl);
+    // Fetch XLSX export
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=xlsx`;
+    const response = await fetch(exportUrl);
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch Google Sheet. Ensure it is shared as "Anyone with the link can view".');
-        }
-
-        const buffer = await response.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
-
-        return parseWorkbook(workbook);
-    } catch (error) {
-        throw error;
+    if (!response.ok) {
+        throw new Error('Failed to fetch Google Sheet. Ensure it is shared as "Anyone with the link can view".');
     }
+
+    const buffer = await response.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
+
+    return parseWorkbook(workbook);
 };
