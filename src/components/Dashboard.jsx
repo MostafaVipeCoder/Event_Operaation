@@ -133,7 +133,7 @@ export default function Dashboard() {
                                     className="flex items-center gap-2 text-muted-foreground hover:text-athar-blue px-3 sm:px-4 py-2 rounded-lg font-bold transition-all hover:bg-athar-blue/5 tap-target"
                                 >
                                     <UsersIcon size={18} />
-                                    <span className="hidden sm:inline">Experts Hub</span>
+                                    <span className="hidden sm:inline">Athar Experts Network</span>
                                 </Link>
 
                                 <button

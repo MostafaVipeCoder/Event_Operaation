@@ -36,7 +36,6 @@ const CompaniesPage = () => {
     );
 
     return (
-    return (
         <div className="min-h-screen bg-background text-foreground font-manrope font-semibold relative overflow-x-hidden">
             {/* Page Background Gradients and Noise */}
             <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-athar-blue/5 via-background to-background" />
@@ -59,7 +58,7 @@ const CompaniesPage = () => {
                             <div>
                                 <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
                                     <div className="bg-athar-blue p-1 rounded-lg sm:p-1.5">
-                                        <Layout className="text-white" size={14} className="sm:size-[18px]" />
+                                        <Layout className="text-white sm:size-[18px]" size={14} />
                                     </div>
                                     <h1 className="text-lg sm:text-2xl font-black tracking-tight">Companies Hub</h1>
                                 </div>

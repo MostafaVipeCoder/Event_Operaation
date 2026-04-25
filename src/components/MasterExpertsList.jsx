@@ -90,9 +90,9 @@ export default function MasterExpertsList() {
                             <div>
                                 <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
                                     <div className="bg-athar-blue p-1 rounded-lg sm:p-1.5">
-                                        <Users className="text-white" size={14} className="sm:size-[18px]" />
+                                        <Users className="text-white sm:size-[18px]" size={14} />
                                     </div>
-                                    <h1 className="text-lg sm:text-2xl font-black tracking-tight">Experts Pulse</h1>
+                                    <h1 className="text-lg sm:text-2xl font-black tracking-tight">Athar Expert Networks</h1>
                                 </div>
                                 <p className="text-[10px] sm:text-sm text-muted-foreground font-semibold">Global Expert Library</p>
                             </div>
