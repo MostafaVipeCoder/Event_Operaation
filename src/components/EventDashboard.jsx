@@ -133,7 +133,6 @@ export default function EventDashboard() {
     const modules = [
         {
             title: "Agenda Builder",
-            description: "Control the rhythm of your event schedule.",
             icon: <Calendar size={32} className="text-primary" />,
             manageLink: `/event/${eventId}/agenda`,
             previewLink: `/agenda/${eventId}`,
@@ -141,26 +140,14 @@ export default function EventDashboard() {
             accent: "hsl(var(--primary))",
         },
         {
-            title: "Experts List",
-            description: "Curate the thinkers and visionaries of the stage.",
-            icon: <Users size={32} style={{ color: expertsColor }} />,
-            manageLink: `/event/${eventId}/experts`,
-            previewLink: `/view/${eventId}/experts`,
-            prefetchKey: 'experts',
-            accent: expertsColor,
-        },
-        {
-            title: "Companies List",
-            description: "Showcase the builders and innovators of tomorrow.",
-            icon: <Rocket size={32} style={{ color: startupsColor }} />,
-            manageLink: `/event/${eventId}/startups`,
-            previewLink: `/view/${eventId}/startups`,
-            prefetchKey: 'startups',
-            accent: startupsColor,
+            title: "Lists",
+            icon: <LayoutGrid size={32} className="text-emerald-600" />,
+            manageLink: `/event/${eventId}/lists`,
+            prefetchKey: 'lists',
+            accent: "#059669",
         },
         {
             title: "Form Builder",
-            description: "Customize company and expert registration forms.",
             icon: <Inbox size={32} className="text-primary" />,
             manageLink: `/event/${eventId}/forms`,
             prefetchKey: 'forms',
@@ -168,7 +155,6 @@ export default function EventDashboard() {
         },
         {
             title: "Event Visuals",
-            description: "Customize cover branding, colors, and typography.",
             icon: <Palette size={32} className="text-primary" />,
             manageLink: `/event/${eventId}/visuals`,
             prefetchKey: 'visuals',
@@ -176,7 +162,6 @@ export default function EventDashboard() {
         },
         {
             title: "Selection Process",
-            description: "Manage applicant screening, interviews, and approvals.",
             icon: <ClipboardList size={32} className="text-primary" />,
             manageLink: `/event/${eventId}/selection`,
             prefetchKey: 'selection',
@@ -184,7 +169,6 @@ export default function EventDashboard() {
         },
         {
             title: "Marketing Analytics",
-            description: "Track campaign performance and applicant sources in real-time.",
             icon: <BarChart3 size={32} className="text-primary" />,
             manageLink: `/event/${eventId}/analytics`,
             prefetchKey: 'analytics',
@@ -235,13 +219,13 @@ export default function EventDashboard() {
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2">
-                                        <h1 className="text-lg sm:text-2xl font-extrabold text-foreground tracking-tight truncate max-w-[140px] sm:max-w-xs hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-athar-blue hover:to-athar-yellow transition-all duration-300">{event.event_name}</h1>
+                                        <h1 className="text-lg sm:text-2xl font-extrabold text-foreground tracking-tight truncate max-w-[140px] sm:max-w-xs hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-athar-blue hover:to-athar-yellow transition-all duration-300 leading-none">{event.event_name}</h1>
                                         <button onClick={() => setIsEditingName(true)} className="shrink-0 text-muted-foreground hover:text-primary transition-colors tap-target" title="Edit Event Name">
                                             <Edit2 size={16} />
                                         </button>
                                     </div>
                                 )}
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] leading-none mt-1 hidden sm:block">Event Master Control</p>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em] leading-none -mt-1 hidden sm:block">Program Master Control</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 sm:gap-6 shrink-0">
@@ -337,7 +321,6 @@ export default function EventDashboard() {
                                     </div>
                                 )}
                             </div>
-
                             <div className="w-px h-10 bg-white/20 hidden md:block" />
 
                             {/* Arabic Links Dropdown */}
@@ -409,18 +392,6 @@ export default function EventDashboard() {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-                <div className="mb-10 sm:mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4 animate-in fade-in slide-in-from-bottom-4">
-                    <div>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="bg-primary/10 p-2 rounded-lg">
-                                <LayoutGrid size={20} className="text-primary" />
-                            </div>
-                            <h2 className="text-3xl font-bold text-foreground tracking-tight">Event Modules</h2>
-                        </div>
-                        <p className="text-muted-foreground font-medium">Coordinate the core elements of your event experience.</p>
-                    </div>
-                </div>
-
                 {/* Cloud Sync Configuration */}
                 <div className="mb-12 bg-card rounded-xl border border-border overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-8">
                     {/* Header - Clickable for mobile accordion */}
@@ -496,7 +467,7 @@ export default function EventDashboard() {
 
                             {/* Desktop View */}
                             <div
-                                className="hidden md:flex relative rounded-lg border border-border p-8 transition-all duration-300 hover:shadow-xl flex-col group bg-card backdrop-blur-sm overflow-hidden animate-in fade-in zoom-in-95 fill-mode-both cursor-pointer"
+                                className="hidden md:flex relative rounded-2xl border border-border p-6 transition-all duration-300 hover:shadow-xl flex-col items-center text-center group bg-card backdrop-blur-sm overflow-hidden animate-in fade-in zoom-in-95 fill-mode-both cursor-pointer"
                                 onClick={() => navigate(module.manageLink)}
                                 style={{ animationDelay: `${index * 50}ms` }}
                                 onMouseEnter={() => module.prefetchKey && prefetch[module.prefetchKey]?.()}
@@ -504,20 +475,19 @@ export default function EventDashboard() {
                                 {/* Hover Gradient line */}
                                 <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-athar-blue via-athar-blue/80 to-athar-yellow opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                                <div className="flex items-start justify-between mb-6 relative z-10">
-                                    <div className="p-4 rounded-lg shadow-sm border border-border group-hover:scale-110 transition-transform duration-300 bg-background" style={{ color: module.accent, borderColor: `${module.accent}30` }}>
+                                <div className="flex items-center justify-center mb-5 relative z-10">
+                                    <div className="p-4 rounded-xl shadow-sm border border-border group-hover:scale-110 transition-transform duration-300 bg-background" style={{ color: module.accent, borderColor: `${module.accent}30` }}>
                                         {module.icon}
                                     </div>
                                 </div>
 
-                                <h3 className="text-2xl font-bold text-foreground mb-2 tracking-tight relative z-10 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-athar-blue group-hover:to-athar-yellow transition-all duration-300">{module.title}</h3>
-                                <p className="text-muted-foreground font-medium mb-10 leading-relaxed text-sm flex-1 relative z-10">{module.description}</p>
+                                <h3 className="text-xl font-bold text-foreground mb-6 tracking-tight relative z-10 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-athar-blue group-hover:to-athar-yellow transition-all duration-300">{module.title}</h3>
 
-                                <div className="flex flex-col gap-3 mt-auto relative z-10">
+                                <div className="flex flex-col gap-3 w-full mt-auto relative z-10">
                                     <button
                                         onClick={() => navigate(module.manageLink)}
                                         onMouseEnter={() => module.prefetchKey && prefetch[module.prefetchKey]?.()}
-                                        className="w-full py-4 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg transition-all duration-300 hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:opacity-90 tap-target"
+                                        className="w-full py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg transition-all duration-300 hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:opacity-90 tap-target"
                                     >
                                         <span>Enter Module</span>
                                     </button>
@@ -525,7 +495,7 @@ export default function EventDashboard() {
                                     {module.editFormsLink && (
                                         <button
                                             onClick={() => navigate(module.editFormsLink)}
-                                            className="w-full py-3 rounded-lg font-semibold text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-300 flex items-center justify-center gap-2 tap-target"
+                                            className="w-full py-2.5 rounded-xl font-semibold text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-300 flex items-center justify-center gap-2 tap-target"
                                         >
                                             <Settings size={16} />
                                             <span>Customize Forms</span>

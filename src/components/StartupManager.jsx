@@ -25,7 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 
-const StartupManager = () => {
+const StartupManager = ({ isEmbedded = false }) => {
     const { eventId } = useParams();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
@@ -288,113 +288,127 @@ const StartupManager = () => {
         company.industry?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    return (
-        <div className="min-h-screen bg-gray-100 font-manrope selection:bg-[#059669]/10 selection:text-[#059669]">
-            <div className="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
-                    <div className="flex flex-col gap-4">
-                        {/* Top row: back + title */}
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-4">
-                                <button
-                                    onClick={() => navigate(`/event/${eventId}`)}
-                                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#059669] hover:border-[#059669] hover:bg-white transition-premium group tap-target shrink-0"
-                                >
-                                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                                </button>
-                                <div>
-                                    <h1 className="text-xl sm:text-3xl font-black text-[#0d0e0e] tracking-tight">Company Grid</h1>
-                                    <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Populate your events ecosystem</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Bottom row: tabs + search + actions */}
-                        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                            
-                            {/* Navigation Tabs */}
-                            <div className={`flex p-1 bg-slate-100 rounded-2xl shrink-0 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
-                                <button
-                                    onClick={() => setActiveTab('curated')}
-                                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'curated'
-                                        ? 'bg-white text-[#059669] shadow-sm'
-                                        : 'text-slate-400 hover:text-slate-600'
-                                        }`}
-                                >
-                                    <Layout size={16} />
-                                    <span className="hidden xs:inline">Company Grid</span>
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('review')}
-                                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'review'
-                                        ? 'bg-white text-[#059669] shadow-sm'
-                                        : 'text-slate-400 hover:text-slate-600'
-                                        }`}
-                                >
-                                    <Inbox size={16} />
-                                    <span className="hidden xs:inline">Review Desk</span>
-                                    {submissions.filter(s => s.status === 'pending').length > 0 && (
-                                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-                                    )}
-                                </button>
-                            </div>
-
-                            <div className={`w-px h-8 bg-slate-200 hidden sm:block shrink-0 ${isSearchExpanded ? 'hidden sm:block' : 'hidden sm:block'}`} />
-
-                            <div className={`relative group shrink-0 ${isSearchExpanded ? 'flex-1 min-w-[200px]' : 'w-[50px] sm:flex-1 sm:min-w-[160px]'}`}>
-                                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#059669] transition-colors ${isSearchExpanded ? 'block' : 'hidden sm:block'}`} size={18} />
-                                <input
-                                    type="text"
-                                    placeholder="Find ventures..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    onBlur={() => { if(!searchTerm) setIsSearchExpanded(false) }}
-                                    className={`pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium w-full ${isSearchExpanded ? 'block' : 'hidden sm:block'}`}
-                                    autoFocus={isSearchExpanded}
-                                />
-                                {!isSearchExpanded && (
-                                    <button
-                                        onClick={() => setIsSearchExpanded(true)}
-                                        className="sm:hidden w-full h-[50px] bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#059669] hover:bg-white transition-premium shadow-sm"
-                                    >
-                                        <Search size={20} />
-                                    </button>
-                                )}
-                                {isSearchExpanded && (
-                                    <button 
-                                        onClick={() => {setSearchTerm(''); setIsSearchExpanded(false)}} 
-                                        className="sm:hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500"
-                                    >
-                                        <CloseIcon size={16}/>
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className={`flex items-center gap-2 sm:gap-3 shrink-0 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
-                                <SyncButton
-                                    eventId={eventId}
-                                    onSyncComplete={loadData}
-                                    className="h-[50px] sm:h-[54px]"
-                                />
-                                <button
-                                    onClick={() => setShowAddModal(true)}
-                                    className="flex items-center justify-center w-[50px] sm:w-auto gap-2 sm:gap-3 bg-[#059669] text-white px-0 sm:px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-emerald-200 transition-premium group active:scale-95 tap-target"
-                                >
-                                    <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500 shrink-0" />
-                                    <span className="hidden sm:inline">Add Company</span>
-                                </button>
-                                <button
-                                    onClick={() => setShowSettingsModal(true)}
-                                    className="w-[50px] sm:w-[54px] h-[50px] sm:h-[54px] bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#059669] hover:border-[#059669] hover:bg-slate-50 transition-premium shadow-sm tap-target"
-                                    title="Card Settings"
-                                >
-                                    <Layout size={20} />
-                                </button>
-                            </div>
-                        </div>
+    const renderHeaderTop = () => (
+        <div className="flex flex-col gap-4">
+            {/* Top row: back + title */}
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate(`/event/${eventId}`)}
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#059669] hover:border-[#059669] hover:bg-white transition-premium group tap-target shrink-0"
+                    >
+                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                    </button>
+                    <div>
+                        <h1 className="text-xl sm:text-3xl font-black text-[#0d0e0e] tracking-tight">Company Grid</h1>
+                        <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Populate your events ecosystem</p>
                     </div>
                 </div>
             </div>
+        </div>
+    );
+
+    const renderActionBar = () => (
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {/* Navigation Tabs */}
+            <div className={`flex p-1 bg-slate-100 rounded-2xl shrink-0 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
+                <button
+                    onClick={() => setActiveTab('curated')}
+                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'curated'
+                        ? 'bg-white text-[#059669] shadow-sm'
+                        : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                >
+                    <Layout size={16} />
+                    <span className="hidden xs:inline">Company Grid</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('review')}
+                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'review'
+                        ? 'bg-white text-[#059669] shadow-sm'
+                        : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                >
+                    <Inbox size={16} />
+                    <span className="hidden xs:inline">Review Desk</span>
+                    {submissions.filter(s => s.status === 'pending').length > 0 && (
+                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+                    )}
+                </button>
+            </div>
+
+            <div className={`w-px h-8 bg-slate-200 hidden sm:block shrink-0 ${isSearchExpanded ? 'hidden sm:block' : 'hidden sm:block'}`} />
+
+            <div className={`relative group shrink-0 ${isSearchExpanded ? 'flex-1 min-w-[200px]' : 'w-[50px] sm:flex-1 sm:min-w-[160px]'}`}>
+                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#059669] transition-colors ${isSearchExpanded ? 'block' : 'hidden sm:block'}`} size={18} />
+                <input
+                    type="text"
+                    placeholder="Find ventures..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onBlur={() => { if (!searchTerm) setIsSearchExpanded(false) }}
+                    className={`pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium w-full ${isSearchExpanded ? 'block' : 'hidden sm:block'}`}
+                    autoFocus={isSearchExpanded}
+                />
+                {!isSearchExpanded && (
+                    <button
+                        onClick={() => setIsSearchExpanded(true)}
+                        className="sm:hidden w-full h-[50px] bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#059669] hover:bg-white transition-premium shadow-sm"
+                    >
+                        <Search size={20} />
+                    </button>
+                )}
+                {isSearchExpanded && (
+                    <button
+                        onClick={() => { setSearchTerm(''); setIsSearchExpanded(false) }}
+                        className="sm:hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500"
+                    >
+                        <CloseIcon size={16} />
+                    </button>
+                )}
+            </div>
+
+            <div className={`flex items-center gap-2 sm:gap-3 shrink-0 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
+                <SyncButton
+                    eventId={eventId}
+                    onSyncComplete={loadData}
+                    className="h-[50px] sm:h-[54px]"
+                />
+                <button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center justify-center w-[50px] sm:w-auto gap-2 sm:gap-3 bg-[#059669] text-white px-0 sm:px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-emerald-200 transition-premium group active:scale-95 tap-target"
+                >
+                    <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500 shrink-0" />
+                    <span className="hidden sm:inline">Add Company</span>
+                </button>
+                <button
+                    onClick={() => setShowSettingsModal(true)}
+                    className="w-[50px] sm:w-[54px] h-[50px] sm:h-[54px] bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#059669] hover:border-[#059669] hover:bg-slate-50 transition-premium shadow-sm tap-target"
+                    title="Card Settings"
+                >
+                    <Layout size={20} />
+                </button>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className={`${!isEmbedded ? 'min-h-screen bg-gray-100' : ''} font-manrope selection:bg-[#059669]/10 selection:text-[#059669]`}>
+            {!isEmbedded ? (
+                <div className="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm">
+                    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
+                        <div className="flex flex-col gap-6">
+                            {renderHeaderTop()}
+                            {renderActionBar()}
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 px-4 py-4 mb-6 shadow-premium">
+                    {renderActionBar()}
+                </div>
+            )}
+
 
             {/* Card Settings Modal */}
             {showSettingsModal && (
@@ -649,46 +663,43 @@ const StartupManager = () => {
 
             {/* Deploy Startup Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-8 lg:p-12 shadow-2xl relative">
+                <div className="fixed inset-0 bg-[#0d0e0e]/40 backdrop-blur-md flex items-center justify-center z-[100] p-2 sm:p-4">
+                    <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-5 sm:p-8 md:p-10 lg:p-12 shadow-2xl relative animate-in zoom-in duration-300">
                         <button
                             onClick={() => {
                                 setShowAddModal(false);
                                 setEditingCompany(null);
                                 setFormData({ 
-                                    name: '', 
-                                    founder: '', 
-                                    role: '', 
+                                    startup_name: '', 
                                     industry: '', 
                                     stage: '', 
                                     governorate: '', 
                                     description: '', 
-                                    links: [], 
                                     logo_url: '',
+                                    links: [],
                                     display_config: {
-                                        show_founder: true,
-                                        show_role: true,
+                                        show_industry: true,
                                         show_stage: true,
                                         show_governorate: true,
-                                        show_industry: true,
                                         show_description: true,
+                                        show_logo: true,
                                         show_links: true
                                     }
                                 });
                             }}
-                            className="absolute top-8 right-8 text-slate-400 hover:text-rose-500 transition-colors"
+                            className="absolute top-4 right-4 sm:top-8 sm:right-8 p-2 bg-slate-50 hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-500 transition-all z-10"
                         >
-                            <CloseIcon size={24} />
+                            <X size={20} />
                         </button>
 
-                        <div className="mb-10">
-                            <div className="flex items-center gap-3 mb-2">
-                                {editingCompany ? <Pencil size={16} className="text-[#059669]" /> : <Plus size={16} className="text-[#059669]" />}
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                                    {editingCompany ? 'Venture Modification' : 'Venture Deployment'}
+                        <div className="mb-6 sm:mb-10">
+                            <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                                {editingCompany ? <Pencil size={14} className="text-[#059669]" /> : <Plus size={14} className="text-[#059669]" />}
+                                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                                    {editingCompany ? 'Startup Modification' : 'Venture Entry'}
                                 </span>
                             </div>
-                            <h2 className="text-4xl font-black text-[#0d0e0e] tracking-tight leading-none">
+                            <h2 className="text-2xl sm:text-4xl font-black text-[#0d0e0e] tracking-tight leading-none">
                                 {editingCompany ? 'Edit' : 'Deploy'} <span className="text-[#059669]">Startup</span>
                             </h2>
                         </div>
@@ -921,8 +932,8 @@ const StartupManager = () => {
                                 </label>
                             </div>
 
-                            {/* Dynamic Links */}
-                            <div className="space-y-3">
+                             {/* Dynamic Links */}
+                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Links / روابط</label>
@@ -946,64 +957,70 @@ const StartupManager = () => {
                                     <button
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, links: [...(prev.links || []), { label: '', url: '', icon: 'globe' }] }))}
-                                        className="text-[10px] font-black uppercase tracking-widest text-[#059669] hover:text-[#0d0e0e] transition-colors flex items-center gap-1"
+                                        className="text-[10px] font-black uppercase tracking-widest text-[#059669] hover:text-[#0d0e0e] transition-colors flex items-center gap-1 bg-[#059669]/5 px-3 py-1.5 rounded-lg"
                                     >
-                                        <span className="text-lg leading-none">+</span> Add Link
+                                        <Plus size={14} /> Add Link
                                     </button>
                                 </div>
-                                {(formData.links || []).map((link, idx) => (
-                                    <div key={idx} className="flex gap-2 items-center flex-wrap md:flex-nowrap">
-                                        <select
-                                            className="w-12 md:w-auto px-2 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium shrink-0"
-                                            value={link.icon || 'globe'}
-                                            onChange={e => {
-                                                const updated = [...formData.links];
-                                                updated[idx] = { ...updated[idx], icon: e.target.value };
-                                                setFormData(prev => ({ ...prev, links: updated }));
-                                            }}
-                                        >
-                                            <option value="globe">🌐</option>
-                                            <option value="facebook">📘</option>
-                                            <option value="linkedin">💼</option>
-                                            <option value="twitter">🐦</option>
-                                            <option value="instagram">📸</option>
-                                            <option value="youtube">📺</option>
-                                            <option value="github">💻</option>
-                                        </select>
-                                        <input
-                                            type="text"
-                                            placeholder="Label (e.g. Website, Pitch Deck)"
-                                            className="w-28 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium shrink-0"
-                                            value={link.label}
-                                            onChange={e => {
-                                                const updated = [...formData.links];
-                                                updated[idx] = { ...updated[idx], label: e.target.value };
-                                                setFormData(prev => ({ ...prev, links: updated }));
-                                            }}
-                                        />
-                                        <input
-                                            type="url"
-                                            placeholder="https://..."
-                                            className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium min-w-[200px]"
-                                            value={link.url}
-                                            onChange={e => {
-                                                const updated = [...formData.links];
-                                                updated[idx] = { ...updated[idx], url: e.target.value };
-                                                setFormData(prev => ({ ...prev, links: updated }));
-                                            }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData(prev => ({ ...prev, links: prev.links.filter((_, i) => i !== idx) }))}
-                                            className="w-10 h-10 rounded-xl border border-slate-100 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all flex items-center justify-center shrink-0"
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                ))}
-                                {(!formData.links || formData.links.length === 0) && (
-                                    <p className="text-xs text-slate-400 italic px-2">لا يوجد روابط بعد — اضغط "Add Link" لإضافة رابط</p>
-                                )}
+                                <div className="space-y-3">
+                                    {(formData.links || []).map((link, idx) => (
+                                        <div key={idx} className="flex gap-2 items-start p-3 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+                                            <div className="flex flex-col gap-2 flex-1">
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        className="w-12 px-2 py-3 bg-white border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#059669]/10 transition-premium shrink-0"
+                                                        value={link.icon || 'globe'}
+                                                        onChange={e => {
+                                                            const updated = [...formData.links];
+                                                            updated[idx] = { ...updated[idx], icon: e.target.value };
+                                                            setFormData(prev => ({ ...prev, links: updated }));
+                                                        }}
+                                                    >
+                                                        <option value="globe">🌐</option>
+                                                        <option value="facebook">📘</option>
+                                                        <option value="linkedin">💼</option>
+                                                        <option value="twitter">🐦</option>
+                                                        <option value="instagram">📸</option>
+                                                        <option value="youtube">📺</option>
+                                                        <option value="github">💻</option>
+                                                    </select>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Label (e.g. Website)"
+                                                        className="flex-1 px-4 py-3 bg-white border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#059669]/10 transition-premium"
+                                                        value={link.label}
+                                                        onChange={e => {
+                                                            const updated = [...formData.links];
+                                                            updated[idx] = { ...updated[idx], label: e.target.value };
+                                                            setFormData(prev => ({ ...prev, links: updated }));
+                                                        }}
+                                                    />
+                                                </div>
+                                                <input
+                                                    type="url"
+                                                    placeholder="https://..."
+                                                    className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#059669]/10 transition-premium"
+                                                    value={link.url}
+                                                    onChange={e => {
+                                                        const updated = [...formData.links];
+                                                        updated[idx] = { ...updated[idx], url: e.target.value };
+                                                        setFormData(prev => ({ ...prev, links: updated }));
+                                                    }}
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, links: prev.links.filter((_, i) => i !== idx) }))}
+                                                className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all flex items-center justify-center shrink-0 shadow-sm"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {(!formData.links || formData.links.length === 0) && (
+                                        <p className="text-xs text-slate-400 italic px-2 py-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">لا يوجد روابط بعد — اضغط "Add Link" لإضافة رابط</p>
+                                    )}
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company Logo {isFieldRequired('logo_url') && '*'}</label>
@@ -1036,18 +1053,18 @@ const StartupManager = () => {
                                     </div>
                                 </div>
 
-                            <div className="pt-6 flex gap-4">
+                            <div className="pt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowAddModal(false)}
-                                    className="flex-1 px-8 py-5 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-premium"
+                                    className="order-2 sm:order-1 flex-1 px-8 py-4 sm:py-5 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-premium"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     disabled={isSubmitting}
                                     type="submit"
-                                    className="flex-[2] px-8 py-5 bg-[#059669] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0d0e0e] shadow-2xl shadow-emerald-100 transition-premium flex items-center justify-center gap-3 active:scale-95"
+                                    className="order-1 sm:order-2 flex-[2] px-8 py-4 sm:py-5 bg-[#059669] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0d0e0e] shadow-2xl shadow-emerald-100 transition-premium flex items-center justify-center gap-3 active:scale-95"
                                 >
                                     {isSubmitting ? (
                                         <>

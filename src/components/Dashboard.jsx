@@ -141,7 +141,7 @@ export default function Dashboard() {
                                     className="group relative overflow-hidden flex items-center gap-2 bg-gradient-to-r from-athar-blue to-athar-black text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-bold transition-all duration-300 shadow-lg shadow-athar-blue/20 hover:-translate-y-0.5 active:scale-95"
                                 >
                                     <Plus size={18} className="relative z-10" />
-                                    <span className="relative z-10 hidden sm:inline">Create Event</span>
+                                    <span className="relative z-10 hidden sm:inline">Create Project</span>
                                 </button>
 
                                 <button
@@ -283,7 +283,7 @@ export default function Dashboard() {
                 )}
             </div>
 
-            {/* Create Event Modal */}
+            {/* Create Project Modal */}
             {
                 showCreateModal && (
                     <div className="fixed inset-0 bg-background/80 backdrop-blur-xl flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
@@ -331,7 +331,7 @@ export default function Dashboard() {
                                                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                                 <span className="relative z-10 flex items-center justify-center gap-2">
                                                     <Plus size={20} />
-                                                    Create Event
+                                                    Create Project
                                                 </span>
                                             </button>
                                         </div>

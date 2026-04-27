@@ -214,6 +214,9 @@ export default function EventBuilder({ event, onBack }) {
     const [editDayDate, setEditDayDate] = useState('');
 
     const [isUploading, setIsUploading] = useState(false);
+    const [coverImageUrl, setCoverImageUrl] = useState(event?.header_image_url || '');
+    const [isUploadingCover, setIsUploadingCover] = useState(false);
+    const [coverSaved, setCoverSaved] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
     const [gsheetsUrl, setGsheetsUrl] = useState('');
     const [lastSyncTime, setLastSyncTime] = useState(null);
@@ -287,6 +290,33 @@ export default function EventBuilder({ event, onBack }) {
 
     const askConfirm = (message, onConfirm) => {
         setConfirmState({ show: true, message, onConfirm });
+    };
+
+    const handleCoverUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            setIsUploadingCover(true);
+            const publicUrl = await uploadImage(file, 'visuals');
+            setCoverImageUrl(publicUrl);
+            await updateEvent(event.event_id, { header_image_url: publicUrl });
+            setCoverSaved(true);
+            setTimeout(() => setCoverSaved(false), 3000);
+        } catch (err) {
+            console.error('Cover upload failed:', err);
+            alert('فشل رفع الصورة. حاول مرة تانية.');
+        } finally {
+            setIsUploadingCover(false);
+        }
+    };
+
+    const handleRemoveCover = async () => {
+        try {
+            setCoverImageUrl('');
+            await updateEvent(event.event_id, { header_image_url: '' });
+        } catch (err) {
+            console.error('Remove cover failed:', err);
+        }
     };
 
 
@@ -990,6 +1020,62 @@ export default function EventBuilder({ event, onBack }) {
                                     )}
                                 </div>
                             )}
+
+                            {/* ── Agenda Cover Image ── */}
+                            <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+                                <div className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-indigo-50 p-2 sm:p-2.5 rounded-xl text-[#1a27c9]">
+                                            <Upload size={18} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm sm:text-base font-black text-[#0d0e0e]">Agenda Cover</h3>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">صورة الكوفر في صفحة الأجندة</p>
+                                        </div>
+                                    </div>
+                                    {coverSaved && (
+                                        <span className="flex items-center gap-1.5 text-emerald-600 text-xs font-black animate-in fade-in duration-300">
+                                            <Check size={14} /> Saved!
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="relative group aspect-[4/1] sm:aspect-[5/1] bg-slate-50 flex items-center justify-center overflow-hidden">
+                                    {coverImageUrl ? (
+                                        <>
+                                            <img
+                                                src={getGoogleDriveDirectLink(coverImageUrl)}
+                                                className="w-full h-full object-cover"
+                                                alt="Agenda cover"
+                                            />
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                                <label className="cursor-pointer bg-white text-[#0d0e0e] px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors">
+                                                    Change
+                                                    <input type="file" className="hidden" onChange={handleCoverUpload} accept="image/*" />
+                                                </label>
+                                                <button
+                                                    onClick={handleRemoveCover}
+                                                    className="bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-600 transition-colors"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <label className="cursor-pointer flex flex-col items-center gap-2 group/lbl">
+                                            <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 text-slate-300 group-hover/lbl:text-[#1a27c9] group-hover/lbl:border-indigo-200 transition-colors">
+                                                <Upload size={28} />
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-400 group-hover/lbl:text-[#1a27c9] transition-colors">Click to upload agenda cover</span>
+                                            <input type="file" className="hidden" onChange={handleCoverUpload} accept="image/*" />
+                                        </label>
+                                    )}
+                                    {isUploadingCover && (
+                                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                                            <Loader2 className="animate-spin text-[#1a27c9]" size={36} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
                             {/* Agenda Layout Controls - Side by Side on Mobile */}
                             <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-6">

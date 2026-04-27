@@ -28,7 +28,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 
-const ExpertManager = () => {
+const ExpertManager = ({ isEmbedded = false }) => {
     const { eventId } = useParams();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
@@ -298,130 +298,127 @@ const ExpertManager = () => {
         }
     };
 
+    const renderActionBar = () => (
+        <>
+            {/* Navigation Tabs */}
+            <div className={`flex p-1 bg-slate-100 rounded-2xl shrink-0 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
+                <button
+                    onClick={() => setActiveTab('curated')}
+                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'curated'
+                        ? 'bg-white text-[#1a27c9] shadow-sm'
+                        : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                >
+                    <Users size={16} />
+                    <span className="hidden xs:inline">Expert Grid</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('review')}
+                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'review'
+                        ? 'bg-white text-[#1a27c9] shadow-sm'
+                        : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                >
+                    <Inbox size={16} />
+                    <span className="hidden xs:inline">Review Desk</span>
+                    {submissions.filter(s => s.status === 'pending').length > 0 && (
+                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+                    )}
+                </button>
+            </div>
+
+            <div className={`w-px h-8 bg-slate-200 hidden sm:block shrink-0 ${isSearchExpanded ? 'hidden sm:block' : 'hidden sm:block'}`} />
+
+            <div className={`relative group w-full lg:flex-1 lg:min-w-[200px] order-3 lg:order-2`}>
+                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1a27c9] transition-colors`} size={18} />
+                <input
+                    type="text"
+                    placeholder="Search experts..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={`pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium w-full`}
+                />
+            </div>
+
+            <div className={`flex items-center gap-2 sm:gap-3 shrink-0 order-2 lg:order-3 ml-auto`}>
+                <SyncButton
+                    eventId={eventId}
+                    onSyncComplete={loadData}
+                    className="h-[50px] sm:h-[54px]"
+                />
+                <button
+                    onClick={() => {
+                        setShowLibraryModal(true);
+                        if (libraryExperts.length === 0) {
+                            setLibraryLoading(true);
+                            getMasterExperts().then(data => {
+                                setLibraryExperts(data || []);
+                                setLibraryLoading(false);
+                            });
+                        }
+                    }}
+                    className="flex items-center justify-center w-[50px] sm:w-auto gap-2 sm:gap-3 bg-white text-athar-blue border border-athar-blue/20 px-0 sm:px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-athar-blue/5 transition-premium group active:scale-95 shadow-sm tap-target"
+                >
+                    <Users size={18} className="group-hover:scale-110 transition-transform shrink-0" />
+                    <span className="hidden sm:inline">Import from Network</span>
+                </button>
+                <button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center justify-center w-[50px] sm:w-auto gap-2 sm:gap-3 bg-[#1a27c9] text-white px-0 sm:px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-indigo-200 transition-premium group active:scale-95 tap-target"
+                >
+                    <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500 shrink-0" />
+                    <span className="hidden sm:inline">Add Expert</span>
+                </button>
+                <button
+                    onClick={() => setShowSettingsModal(true)}
+                    className="w-[50px] sm:w-[54px] h-[50px] sm:h-[54px] bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-slate-50 transition-premium shadow-sm tap-target"
+                    title="Card Settings"
+                >
+                    <Layout size={20} />
+                </button>
+            </div>
+        </>
+    );
+
     return (
-        <div className="min-h-screen bg-gray-200 font-manrope selection:bg-[#1a27c9]/10 selection:text-[#1a27c9]">
+        <div className={`${!isEmbedded ? 'min-h-screen bg-gray-200' : ''} font-manrope selection:bg-[#1a27c9]/10 selection:text-[#1a27c9]`}>
             {/* Header Area */}
-            <div className="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
-                    <div className="flex flex-col gap-4">
-                        {/* Top row: back + title */}
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-4">
-                                <button
-                                    onClick={() => navigate(`/event/${eventId}`)}
-                                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-white transition-premium group tap-target shrink-0"
-                                >
-                                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                                </button>
-                                <div>
-                                    <h1 className="text-xl sm:text-3xl font-black text-[#0d0e0e] tracking-tight">Mentors Hub</h1>
-                                    <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Curate your events visionaries &amp; speakers</p>
+            {!isEmbedded ? (
+                <div className="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm">
+                    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
+                        <div className="flex flex-col gap-4">
+                            {/* Top row: back + title */}
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => navigate(`/event/${eventId}`)}
+                                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-white transition-premium group tap-target shrink-0"
+                                    >
+                                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                                    </button>
+                                    <div>
+                                        <h1 className="text-xl sm:text-3xl font-black text-[#0d0e0e] tracking-tight">Mentors Hub</h1>
+                                        <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Curate your events visionaries &amp; speakers</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Bottom row: tabs + search + actions */}
-                        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                            
-                            {/* Navigation Tabs */}
-                            <div className={`flex p-1 bg-slate-100 rounded-2xl shrink-0 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
-                                <button
-                                    onClick={() => setActiveTab('curated')}
-                                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'curated'
-                                        ? 'bg-white text-[#1a27c9] shadow-sm'
-                                        : 'text-slate-400 hover:text-slate-600'
-                                        }`}
-                                >
-                                    <Users size={16} />
-                                    <span className="hidden xs:inline">Expert Grid</span>
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('review')}
-                                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'review'
-                                        ? 'bg-white text-[#1a27c9] shadow-sm'
-                                        : 'text-slate-400 hover:text-slate-600'
-                                        }`}
-                                >
-                                    <Inbox size={16} />
-                                    <span className="hidden xs:inline">Review Desk</span>
-                                    {submissions.filter(s => s.status === 'pending').length > 0 && (
-                                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-                                    )}
-                                </button>
-                            </div>
-
-                            <div className={`w-px h-8 bg-slate-200 hidden sm:block shrink-0 ${isSearchExpanded ? 'hidden sm:block' : 'hidden sm:block'}`} />
-
-                            <div className={`relative group shrink-0 ${isSearchExpanded ? 'flex-1 min-w-[200px]' : 'w-[50px] sm:flex-1 sm:min-w-[160px]'}`}>
-                                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1a27c9] transition-colors ${isSearchExpanded ? 'block' : 'hidden sm:block'}`} size={18} />
-                                <input
-                                    type="text"
-                                    placeholder="Search experts..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    onBlur={() => { if(!searchTerm) setIsSearchExpanded(false) }}
-                                    className={`pl-12 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium w-full ${isSearchExpanded ? 'block' : 'hidden sm:block'}`}
-                                    autoFocus={isSearchExpanded}
-                                />
-                                {!isSearchExpanded && (
-                                    <button
-                                        onClick={() => setIsSearchExpanded(true)}
-                                        className="sm:hidden w-full h-[50px] bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:bg-white transition-premium shadow-sm"
-                                    >
-                                        <Search size={20} />
-                                    </button>
-                                )}
-                                {isSearchExpanded && (
-                                    <button 
-                                        onClick={() => {setSearchTerm(''); setIsSearchExpanded(false)}} 
-                                        className="sm:hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500"
-                                    >
-                                        <X size={16}/>
-                                    </button>
-                                )}
-                            </div>
-                            
-                            <div className={`flex items-center gap-2 sm:gap-3 shrink-0 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
-                                <SyncButton
-                                    eventId={eventId}
-                                    onSyncComplete={loadData}
-                                    className="h-[50px] sm:h-[54px]"
-                                />
-                                <button
-                                    onClick={() => {
-                                        setShowLibraryModal(true);
-                                        if (libraryExperts.length === 0) {
-                                            setLibraryLoading(true);
-                                            getMasterExperts().then(data => {
-                                                setLibraryExperts(data || []);
-                                                setLibraryLoading(false);
-                                            });
-                                        }
-                                    }}
-                                    className="flex items-center justify-center w-[50px] sm:w-auto gap-2 sm:gap-3 bg-white text-athar-blue border border-athar-blue/20 px-0 sm:px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-athar-blue/5 transition-premium group active:scale-95 shadow-sm tap-target"
-                                >
-                                    <Users size={18} className="group-hover:scale-110 transition-transform shrink-0" />
-                                    <span className="hidden sm:inline">Import from Hub</span>
-                                </button>
-                                <button
-                                    onClick={() => setShowAddModal(true)}
-                                    className="flex items-center justify-center w-[50px] sm:w-auto gap-2 sm:gap-3 bg-[#1a27c9] text-white px-0 sm:px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] hover:shadow-2xl hover:shadow-indigo-200 transition-premium group active:scale-95 tap-target"
-                                >
-                                    <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500 shrink-0" />
-                                    <span className="hidden sm:inline">Add Expert</span>
-                                </button>
-                                <button
-                                    onClick={() => setShowSettingsModal(true)}
-                                    className="w-[50px] sm:w-[54px] h-[50px] sm:h-[54px] bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-[#1a27c9] hover:border-[#1a27c9] hover:bg-slate-50 transition-premium shadow-sm tap-target"
-                                    title="Card Settings"
-                                >
-                                    <Layout size={20} />
-                                </button>
+                            {/* Bottom row: tabs + search + actions */}
+                            <div className="flex flex-wrap items-center gap-3 sm:gap-4 pb-2 sm:pb-0">
+                                {renderActionBar()}
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            ) : (
+                <div className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-20">
+                    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                            {renderActionBar()}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Card Settings Modal */}
             {showSettingsModal && (
@@ -665,8 +662,8 @@ const ExpertManager = () => {
 
             {/* Deploy Expert Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl p-8 lg:p-12 shadow-2xl relative overflow-hidden">
+                <div className="fixed inset-0 bg-[#0d0e0e]/40 backdrop-blur-md flex items-center justify-center z-[100] p-2 sm:p-4">
+                    <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-5 sm:p-8 md:p-10 lg:p-12 shadow-2xl relative animate-in zoom-in duration-300">
                         <button
                             onClick={() => {
                                 setShowAddModal(false);
@@ -687,19 +684,19 @@ const ExpertManager = () => {
                                     }
                                 });
                             }}
-                            className="absolute top-8 right-8 text-slate-400 hover:text-rose-500 transition-colors"
+                            className="absolute top-4 right-4 sm:top-8 sm:right-8 p-2 bg-slate-50 hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-500 transition-all z-10"
                         >
-                            <X size={24} />
+                            <X size={20} />
                         </button>
 
-                        <div className="mb-10">
-                            <div className="flex items-center gap-3 mb-2">
-                                {editingExpert ? <Pencil size={16} className="text-[#1a27c9]" /> : <Plus size={16} className="text-[#1a27c9]" />}
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                        <div className="mb-6 sm:mb-10">
+                            <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                                {editingExpert ? <Pencil size={14} className="text-[#1a27c9]" /> : <Plus size={14} className="text-[#1a27c9]" />}
+                                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
                                     {editingExpert ? 'Expert Modification' : 'Expert Entry'}
                                 </span>
                             </div>
-                            <h2 className="text-4xl font-black text-[#0d0e0e] tracking-tight leading-none">
+                            <h2 className="text-2xl sm:text-4xl font-black text-[#0d0e0e] tracking-tight leading-none">
                                 {editingExpert ? 'Edit' : 'Deploy'} <span className="text-[#1a27c9]">Expert</span>
                             </h2>
                         </div>
@@ -889,21 +886,21 @@ const ExpertManager = () => {
                                 </div>
                             </div>
 
-                            <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3 font-manrope">
+                            <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-3 font-manrope">
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setShowAddModal(false);
                                         setEditingExpert(null);
                                     }}
-                                    className="px-8 py-4 bg-white border border-slate-100 text-slate-400 hover:text-slate-600 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-premium"
+                                    className="order-2 sm:order-1 w-full sm:w-auto px-8 py-4 bg-white border border-slate-100 text-slate-400 hover:text-slate-600 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-premium"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     disabled={isSubmitting}
                                     type="submit"
-                                    className="flex-[2] px-8 py-5 bg-[#1a27c9] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0d0e0e] shadow-2xl shadow-indigo-100 transition-premium flex items-center justify-center gap-3 active:scale-95"
+                                    className="order-1 sm:order-2 w-full sm:flex-[2] px-8 py-4 sm:py-5 bg-[#1a27c9] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0d0e0e] shadow-2xl shadow-indigo-100 transition-premium flex items-center justify-center gap-3 active:scale-95"
                                 >
                                     {isSubmitting ? (
                                         <>
@@ -1010,13 +1007,13 @@ const ExpertManager = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-10 flex items-center gap-4">
+                            <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                                 <button
                                     onClick={() => {
                                         handleApproveExpert(selectedSubmission);
                                         setShowPreview(false);
                                     }}
-                                    className="flex-1 py-5 bg-[#1a27c9] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] transition-premium shadow-xl shadow-indigo-200/50 flex items-center justify-center gap-2"
+                                    className="order-1 w-full sm:flex-1 py-4 sm:py-5 bg-[#1a27c9] text-white rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] hover:bg-[#0d0e0e] transition-premium shadow-xl shadow-indigo-200/50 flex items-center justify-center gap-2"
                                 >
                                     <CheckCircle size={18} />
                                     Authorize Entry
@@ -1026,7 +1023,7 @@ const ExpertManager = () => {
                                         handleRejectExpert(selectedSubmission);
                                         setShowPreview(false);
                                     }}
-                                    className="px-12 py-5 bg-white text-rose-500 border border-slate-100 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-50 transition-premium flex items-center justify-center gap-2"
+                                    className="order-2 w-full sm:px-12 py-4 sm:py-5 bg-white text-rose-500 border border-slate-100 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] hover:bg-rose-50 transition-premium flex items-center justify-center gap-2"
                                 >
                                     <XCircle size={18} />
                                     Block
@@ -1049,7 +1046,7 @@ const ExpertManager = () => {
                                         <div className="w-10 h-10 bg-athar-blue/10 rounded-2xl flex items-center justify-center text-athar-blue">
                                             <Database size={20} />
                                         </div>
-                                        <h2 className="text-3xl font-black text-[#0d0e0e] tracking-tight uppercase">Mentor Hub</h2>
+                                        <h2 className="text-3xl font-black text-[#0d0e0e] tracking-tight uppercase">Athar Network</h2>
                                     </div>
                                     <p className="text-slate-500 font-bold tracking-widest text-[10px] uppercase">Source vetted experts from the global Pulse network</p>
                                 </div>

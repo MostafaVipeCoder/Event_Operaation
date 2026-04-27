@@ -8,8 +8,9 @@ import {
 } from 'lucide-react';
 import {
     getEventForms, createEventForm, deleteEventForm, updateEventForm,
-    getFormConfigById, saveFormConfigById
+    getFormConfigById, saveFormConfigById, getEvent, updateEvent, uploadImage
 } from '../lib/api';
+import { getGoogleDriveDirectLink } from '../lib/utils';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -561,7 +562,45 @@ export default function FormEditor() {
     const [creating, setCreating] = useState(false);
     const [editingForm, setEditingForm] = useState(null);
 
+    // Form Cover state
+    const [formCoverUrl, setFormCoverUrl] = useState('');
+    const [isUploadingFormCover, setIsUploadingFormCover] = useState(false);
+    const [formCoverSaved, setFormCoverSaved] = useState(false);
+
     useEffect(() => { loadForms(); }, [eventId]);
+
+    useEffect(() => {
+        getEvent(eventId).then(data => {
+            if (data?.form_cover_image_url) setFormCoverUrl(data.form_cover_image_url);
+        }).catch(console.error);
+    }, [eventId]);
+
+    const handleFormCoverUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            setIsUploadingFormCover(true);
+            const publicUrl = await uploadImage(file, 'visuals');
+            setFormCoverUrl(publicUrl);
+            await updateEvent(eventId, { form_cover_image_url: publicUrl });
+            setFormCoverSaved(true);
+            setTimeout(() => setFormCoverSaved(false), 3000);
+        } catch (err) {
+            console.error('Form cover upload failed:', err);
+            alert('فشل رفع الصورة. حاول مرة تانية.');
+        } finally {
+            setIsUploadingFormCover(false);
+        }
+    };
+
+    const handleRemoveFormCover = async () => {
+        try {
+            setFormCoverUrl('');
+            await updateEvent(eventId, { form_cover_image_url: '' });
+        } catch (err) {
+            console.error('Remove form cover failed:', err);
+        }
+    };
 
     const loadForms = async () => {
         try {
@@ -660,6 +699,63 @@ export default function FormEditor() {
                         <AlertCircle size={18} /><span className="font-bold">{error}</span>
                     </div>
                 )}
+
+
+                {/* ── Form Cover ── */}
+                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-rose-50 p-2.5 rounded-xl text-rose-500">
+                                <Upload size={18} />
+                            </div>
+                            <div>
+                                <h3 className="text-sm sm:text-base font-black text-slate-900">Form Cover</h3>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">صورة الكوفر في صفحات التسجيل</p>
+                            </div>
+                        </div>
+                        {formCoverSaved && (
+                            <span className="flex items-center gap-1.5 text-emerald-600 text-xs font-black animate-in fade-in duration-300">
+                                <CheckCircle size={14} /> Saved!
+                            </span>
+                        )}
+                    </div>
+                    <div className="relative group aspect-[4/1] sm:aspect-[5/1] bg-slate-50 flex items-center justify-center overflow-hidden">
+                        {formCoverUrl ? (
+                            <>
+                                <img
+                                    src={getGoogleDriveDirectLink(formCoverUrl)}
+                                    className="w-full h-full object-cover"
+                                    alt="Form cover"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                    <label className="cursor-pointer bg-white text-slate-900 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors">
+                                        Change
+                                        <input type="file" className="hidden" onChange={handleFormCoverUpload} accept="image/*" />
+                                    </label>
+                                    <button
+                                        onClick={handleRemoveFormCover}
+                                        className="bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-600 transition-colors"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <label className="cursor-pointer flex flex-col items-center gap-2 group/lbl">
+                                <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 text-slate-300 group-hover/lbl:text-rose-500 group-hover/lbl:border-rose-200 transition-colors">
+                                    <Upload size={28} />
+                                </div>
+                                <span className="text-xs font-bold text-slate-400 group-hover/lbl:text-rose-500 transition-colors">Click to upload form cover</span>
+                                <input type="file" className="hidden" onChange={handleFormCoverUpload} accept="image/*" />
+                            </label>
+                        )}
+                        {isUploadingFormCover && (
+                            <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                                <Loader className="animate-spin text-rose-500" size={36} />
+                            </div>
+                        )}
+                    </div>
+                </div>
 
                 {loading ? (
                     <div className="text-center py-24">

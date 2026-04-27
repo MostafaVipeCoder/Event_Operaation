@@ -117,6 +117,10 @@
         transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    .shadow-premium {
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    }
+
     /* ── Mobile Helpers ────────────────────────────────────── */
     .safe-bottom {
         padding-bottom: env(safe-area-inset-bottom, 0px);
