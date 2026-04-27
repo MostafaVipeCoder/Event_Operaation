@@ -154,26 +154,12 @@ export default function EventDashboard() {
             accent: "hsl(var(--primary))",
         },
         {
-            title: "Event Visuals",
-            icon: <Palette size={32} className="text-primary" />,
-            manageLink: `/event/${eventId}/visuals`,
-            prefetchKey: 'visuals',
-            accent: "hsl(var(--primary))",
-        },
-        {
             title: "Selection Process",
             icon: <ClipboardList size={32} className="text-primary" />,
             manageLink: `/event/${eventId}/selection`,
             prefetchKey: 'selection',
             accent: "hsl(var(--primary))",
         },
-        {
-            title: "Marketing Analytics",
-            icon: <BarChart3 size={32} className="text-primary" />,
-            manageLink: `/event/${eventId}/analytics`,
-            prefetchKey: 'analytics',
-            accent: "hsl(var(--primary))",
-        }
     ];
 
     return (
