@@ -4,8 +4,9 @@ import {
     ArrowLeft, Plus, Save, Trash2, GripVertical,
     Type, FileText, List, Upload, AlertCircle, CheckCircle, Loader, ExternalLink,
     Link2, Copy, CheckCheck, EyeOff, Settings, Users, Building2, ClipboardList,
-    ToggleLeft, ToggleRight, ChevronRight, X
+    ToggleLeft, ToggleRight, ChevronRight, X, BarChart3
 } from 'lucide-react';
+import SubmissionAnalytics from './SubmissionAnalytics';
 import {
     getEventForms, createEventForm, deleteEventForm, updateEventForm,
     getFormConfigById, saveFormConfigById, getEvent, updateEvent, uploadImage
@@ -561,6 +562,7 @@ export default function FormEditor() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [creating, setCreating] = useState(false);
     const [editingForm, setEditingForm] = useState(null);
+    const [activeTab, setActiveTab] = useState('forms'); // 'forms' | 'analytics'
 
     // Form Cover state
     const [formCoverUrl, setFormCoverUrl] = useState('');
@@ -682,16 +684,66 @@ export default function FormEditor() {
                                 </p>
                             </div>
                         </div>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-[#0d0e0e] text-white rounded-xl font-bold hover:bg-[#1a27c9] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 tap-target self-start sm:self-auto"
-                        >
-                            <Plus size={18} />
-                            <span>Create New Form</span>
-                        </button>
+
+                        {/* Tab Switcher */}
+                        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
+                            <button
+                                onClick={() => setActiveTab('forms')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                                    activeTab === 'forms'
+                                        ? 'bg-white text-[#0d0e0e] shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                <ClipboardList size={15} />
+                                <span>Forms</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('analytics')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                                    activeTab === 'analytics'
+                                        ? 'bg-white text-[#1a27c9] shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                <BarChart3 size={15} />
+                                <span>Analytics</span>
+                            </button>
+                        </div>
+
+                        {activeTab === 'forms' && (
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-[#0d0e0e] text-white rounded-xl font-bold hover:bg-[#1a27c9] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 tap-target self-start sm:self-auto"
+                            >
+                                <Plus size={18} />
+                                <span>Create New Form</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* ── Analytics Tab ── */}
+            {activeTab === 'analytics' ? (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Info Banner */}
+                    <div className="bg-indigo-600 rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
+                        <div className="relative z-10 max-w-2xl">
+                            <h2 className="text-2xl sm:text-3xl font-black mb-3 tracking-tight leading-tight italic">
+                                Optimize Your Campaign Strategy with Data
+                            </h2>
+                            <p className="text-indigo-100 text-base sm:text-lg font-medium leading-relaxed">
+                                Track where your applicants are coming from in real-time. Use these insights to reallocate budget to the highest performing channels.
+                            </p>
+                        </div>
+                        <BarChart3 size={180} className="absolute -right-8 -bottom-8 text-white/10 rotate-12" />
+                    </div>
+                    <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden p-8">
+                        <SubmissionAnalytics eventId={eventId} />
+                    </div>
+                </div>
+            ) : (
 
             <div className="max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 {error && (
@@ -807,6 +859,7 @@ export default function FormEditor() {
                     </div>
                 )}
             </div>
+            )} {/* end activeTab ternary */}
 
             {showCreateModal && (
                 <CreateFormModal
