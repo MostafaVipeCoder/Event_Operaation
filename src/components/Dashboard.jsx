@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, ChevronRight, Layout, Trash2, X, AlertCircle, Edit2, ExternalLink, Check, Copy, LogOut, Users as UsersIcon } from 'lucide-react';
+import { Plus, Calendar, ChevronRight, Layout, Trash2, X, AlertCircle, Edit2, ExternalLink, Check, Copy, LogOut, Users as UsersIcon, BookOpen } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getEvents, createEvent, deleteEvent } from '../lib/api';
 import { formatDate } from '../lib/utils';
@@ -128,6 +128,14 @@ export default function Dashboard() {
                             </div>
 
                             <div className="flex items-center gap-2 sm:gap-3 sm:border-l sm:border-border/50 sm:pl-4">
+                                <Link
+                                    to="/library"
+                                    className="flex items-center gap-2 text-muted-foreground hover:text-athar-blue px-3 sm:px-4 py-2 rounded-lg font-bold transition-all hover:bg-athar-blue/5 tap-target"
+                                >
+                                    <BookOpen size={18} />
+                                    <span className="hidden sm:inline">Central Library</span>
+                                </Link>
+
                                 <Link
                                     to="/experts"
                                     className="flex items-center gap-2 text-muted-foreground hover:text-athar-blue px-3 sm:px-4 py-2 rounded-lg font-bold transition-all hover:bg-athar-blue/5 tap-target"

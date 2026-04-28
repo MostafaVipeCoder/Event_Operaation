@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Send, Loader, AlertTriangle } from 'lucide-react';
 import DynamicFormBuilder from './DynamicFormBuilder';
 
@@ -7,21 +7,18 @@ import DynamicFormBuilder from './DynamicFormBuilder';
 import { getEvent, getFormConfig, submitCompanyRegistration, uploadImage } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 import CompanyCard from './CompanyCard';
+import { translations } from '../lib/translations';
 
 /**
  * CompanyPortal Component
  * 
  * Public-facing registration portal for companies to submit their information.
- * Features:
- * - Dynamic form based on event configuration
- * - Live card preview
- * - File upload for logos
- * - Form validation
- * - Success confirmation
  */
 const CompanyPortal = () => {
     const { eventId } = useParams();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isArabic = searchParams.get('lang') === 'ar';
 
     // State management
     const [event, setEvent] = useState(null);
@@ -32,6 +29,10 @@ const CompanyPortal = () => {
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState(null);
+
+    
+
+    const t = isArabic ? translations.ar : translations.en;
 
     // Load event and form configuration
     useEffect(() => {
@@ -48,13 +49,14 @@ const CompanyPortal = () => {
             setEvent(eventData);
 
             // Update Page Title
-            if (eventData?.event_name) {
-                document.title = `Athar Programs | Registration for ${eventData.event_name}`;
+            const eventName = (isArabic && eventData?.event_name_ar) ? eventData.event_name_ar : eventData.event_name;
+            if (eventName) {
+                document.title = `Athar Programs | Registration for ${eventName}`;
             }
 
             // Check if portal is enabled
             if (!eventData.company_portal_enabled) {
-                setError('Company registrations are currently closed for this event.');
+                setError(t.closedError);
                 return;
             }
 
@@ -62,7 +64,7 @@ const CompanyPortal = () => {
             if (eventData.submission_deadline) {
                 const deadline = new Date(eventData.submission_deadline);
                 if (new Date() > deadline) {
-                    setError('The registration deadline has passed.');
+                    setError(t.deadlineError);
                     return;
                 }
             }
@@ -84,7 +86,7 @@ const CompanyPortal = () => {
 
         } catch (err) {
             console.error('Error loading portal:', err);
-            setError('Failed to load registration form. Please try again later.');
+            setError(t.loadError);
         } finally {
             setLoading(false);
         }
@@ -105,10 +107,11 @@ const CompanyPortal = () => {
 
         formFields.forEach(field => {
             const value = formValues[field.field_name];
+            const fieldLabel = (isArabic && field.field_label_ar) ? field.field_label_ar : field.field_label;
 
             // Required field validation
             if (field.is_required && !value) {
-                newErrors[field.field_name] = `${field.field_label} is required`;
+                newErrors[field.field_name] = isArabic ? `${fieldLabel} مطلوب` : `${fieldLabel} is required`;
                 return;
             }
 
@@ -117,11 +120,11 @@ const CompanyPortal = () => {
 
             // Type-specific validation
             if (field.field_type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                newErrors[field.field_name] = 'Invalid email address';
+                newErrors[field.field_name] = isArabic ? 'بريد إلكتروني غير صالح' : 'Invalid email address';
             }
 
             if (field.field_type === 'url' && !/^https?:\/\/.+/.test(value)) {
-                newErrors[field.field_name] = 'Invalid URL format';
+                newErrors[field.field_name] = isArabic ? 'رابط غير صالح' : 'Invalid URL format';
             }
 
             // Custom validation rules
@@ -129,15 +132,15 @@ const CompanyPortal = () => {
                 const { minLength, maxLength, pattern } = field.validation_rules;
 
                 if (minLength && value.length < minLength) {
-                    newErrors[field.field_name] = `Minimum length is ${minLength} characters`;
+                    newErrors[field.field_name] = isArabic ? `الحد الأدنى هو ${minLength} أحرف` : `Minimum length is ${minLength} characters`;
                 }
 
                 if (maxLength && value.length > maxLength) {
-                    newErrors[field.field_name] = `Maximum length is ${maxLength} characters`;
+                    newErrors[field.field_name] = isArabic ? `الحد الأقصى هو ${maxLength} أحرف` : `Maximum length is ${maxLength} characters`;
                 }
 
                 if (pattern && !new RegExp(pattern).test(value)) {
-                    newErrors[field.field_name] = 'Invalid format';
+                    newErrors[field.field_name] = isArabic ? 'تنسيق غير صالح' : 'Invalid format';
                 }
             }
         });
@@ -147,7 +150,7 @@ const CompanyPortal = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
 
         if (!validateForm()) {
             return;
@@ -159,7 +162,7 @@ const CompanyPortal = () => {
             setSubmitted(true);
         } catch (err) {
             console.error('Submission error:', err);
-            setError('Failed to submit registration. Please try again.');
+            setError(t.submitError);
         } finally {
             setSubmitting(false);
         }
@@ -171,7 +174,7 @@ const CompanyPortal = () => {
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
                 <div className="text-center">
                     <Loader className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-                    <p className="text-slate-600 font-semibold">Loading registration form...</p>
+                    <p className={`text-slate-600 font-semibold ${isArabic ? 'font-arabic' : 'font-manrope'}`}>{t.loading}</p>
                 </div>
             </div>
         );
@@ -181,17 +184,17 @@ const CompanyPortal = () => {
     if (error && !event) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-                <div className="max-w-md bg-white rounded-3xl p-8 shadow-xl border-2 border-red-100">
+                <div className="max-w-md bg-white rounded-3xl p-8 shadow-xl border-2 border-red-100" dir={isArabic ? 'rtl' : 'ltr'}>
                     <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <AlertTriangle className="w-8 h-8 text-red-600" />
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-800 text-center mb-2">Registration Unavailable</h2>
-                    <p className="text-slate-600 text-center mb-6">{error}</p>
+                    <h2 className={`text-2xl font-bold text-slate-800 text-center mb-2 ${isArabic ? 'font-arabic' : 'font-manrope'}`}>{t.unavailableTitle}</h2>
+                    <p className={`text-slate-600 text-center mb-6 ${isArabic ? 'font-arabic' : 'font-manrope'}`}>{error}</p>
                     <button
                         onClick={() => navigate('/')}
-                        className="w-full py-3 bg-slate-800 text-white rounded-2xl font-semibold hover:bg-slate-700 transition-all"
+                        className={`w-full py-3 bg-slate-800 text-white rounded-2xl font-semibold hover:bg-slate-700 transition-all ${isArabic ? 'font-arabic' : 'font-manrope'}`}
                     >
-                        Go Home
+                        {t.goHome}
                     </button>
                 </div>
             </div>
@@ -202,20 +205,20 @@ const CompanyPortal = () => {
     if (submitted) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-                <div className="max-w-lg bg-white rounded-3xl p-12 shadow-2xl border-2 border-green-100">
+                <div className="max-w-lg bg-white rounded-3xl p-12 shadow-2xl border-2 border-green-100" dir={isArabic ? 'rtl' : 'ltr'}>
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle className="w-12 h-12 text-green-600" />
                     </div>
-                    <h2 className="text-3xl font-black text-slate-800 text-center mb-3">Registration Submitted! 🎉</h2>
-                    <p className="text-slate-600 text-center mb-2">
-                        Thank you for registering for <span className="font-semibold">{event?.event_name}</span>.
+                    <h2 className={`text-3xl font-black text-slate-800 text-center mb-3 ${isArabic ? 'font-arabic' : 'font-manrope'}`}>{t.submittedTitle}</h2>
+                    <p className={`text-slate-600 text-center mb-2 ${isArabic ? 'font-arabic' : 'font-manrope'}`}>
+                        {t.submittedDesc} <span className="font-semibold">{(isArabic && event?.event_name_ar) ? event.event_name_ar : event?.event_name}</span>.
                     </p>
-                    <p className="text-sm text-slate-500 text-center mb-8">
-                        Your submission is being reviewed and you'll be notified once approved.
+                    <p className={`text-sm text-slate-500 text-center mb-8 ${isArabic ? 'font-arabic' : 'font-manrope'}`}>
+                        {t.reviewDesc}
                     </p>
                     <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
-                        <p className="text-xs font-semibold text-blue-800 text-center">
-                            💡 You'll receive a confirmation email shortly
+                        <p className={`text-xs font-semibold text-blue-800 text-center ${isArabic ? 'font-arabic' : 'font-manrope'}`}>
+                            💡 {t.emailTip}
                         </p>
                     </div>
                 </div>
@@ -228,10 +231,12 @@ const CompanyPortal = () => {
     const headerHeight = event?.header_height || '16rem';
     const headerSettings = event?.header_settings || { fontFamily: 'font-manrope' };
     const displayImage = event?.form_cover_image_url || event?.header_image_url;
+    const displayEventName = (isArabic && event?.event_name_ar) ? event.event_name_ar : event?.event_name;
 
     return (
         <div
-            className={`min-h-screen selection:bg-indigo-100 antialiased ${headerSettings.fontFamily}`}
+            className={`min-h-screen selection:bg-indigo-100 antialiased ${isArabic ? 'font-arabic' : headerSettings.fontFamily}`}
+            dir={isArabic ? 'rtl' : 'ltr'}
             style={{
                 backgroundImage: event?.background_image_url
                     ? `url(${getGoogleDriveDirectLink(event.background_image_url)})`
@@ -280,23 +285,23 @@ const CompanyPortal = () => {
                                     fontWeight: headerSettings.titleWeight || '900',
                                 }}
                             >
-                                {event.event_name}
+                                {displayEventName}
                             </h1>
-                            {headerSettings.titleDescription && (
+                            {((isArabic && headerSettings.titleDescription_ar) || headerSettings.titleDescription) && (
                                 <p
                                     className="text-lg md:text-2xl opacity-90 font-bold leading-relaxed tracking-wide"
                                     style={{ color: headerSettings.titleColor || '#0d0e0e' }}
                                 >
-                                    {headerSettings.titleDescription}
+                                    {(isArabic && headerSettings.titleDescription_ar) ? headerSettings.titleDescription_ar : headerSettings.titleDescription}
                                 </p>
                             )}
                         </div>
                     ) : (
                         <div className="relative z-10 text-center">
                             <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2">
-                                Company Registration
+                                {t.headerTitle}
                             </h1>
-                            <p className="text-lg text-slate-600 font-bold">{event?.event_name}</p>
+                            <p className="text-lg text-slate-600 font-bold">{displayEventName}</p>
                         </div>
                     )}
                 </div>
@@ -307,12 +312,12 @@ const CompanyPortal = () => {
                     <div className="max-w-7xl mx-auto px-4 py-8">
                         <div className="text-center">
                             <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2">
-                                Company Registration
+                                {t.headerTitle}
                             </h1>
-                            <p className="text-lg text-slate-600 mb-1">{event?.event_name}</p>
-                            {event?.company_portal_message && (
+                            <p className="text-lg text-slate-600 mb-1">{displayEventName}</p>
+                            {((isArabic && event?.company_portal_message_ar) || event?.company_portal_message) && (
                                 <p className="text-sm text-slate-500 max-w-2xl mx-auto mt-3">
-                                    {event.company_portal_message}
+                                    {(isArabic && event?.company_portal_message_ar) ? event.company_portal_message_ar : event.company_portal_message}
                                 </p>
                             )}
                         </div>
@@ -326,7 +331,7 @@ const CompanyPortal = () => {
                     {/* Form Section (Top) - Constrained */}
                     <div className="max-w-4xl mx-auto w-full">
                         <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-200 p-8 md:p-12">
-                            <h2 className="text-3xl font-black text-slate-800 mb-8 tracking-tight">Company Information</h2>
+                            <h2 className="text-3xl font-black text-slate-800 mb-8 tracking-tight">{t.infoTitle}</h2>
 
                             <form onSubmit={handleSubmit}>
                                 <DynamicFormBuilder
@@ -338,7 +343,7 @@ const CompanyPortal = () => {
                                 />
 
                                 {error && (
-                                    <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+                                    <div className={`mt-6 p-4 bg-red-50 border border-red-200 rounded-2xl ${isArabic ? 'text-right' : 'text-left'}`}>
                                         <p className="text-sm text-red-700">{error}</p>
                                     </div>
                                 )}
@@ -350,21 +355,21 @@ const CompanyPortal = () => {
                     <div className="w-full">
                         <div className="space-y-6 max-w-[1920px] mx-auto">
                             <div className="max-w-4xl mx-auto bg-blue-50/50 rounded-3xl p-6 border border-blue-100">
-                                <h3 className="text-lg font-black text-blue-900 mb-2 flex items-center gap-2">
+                                <h3 className={`text-lg font-black text-blue-900 mb-2 flex items-center gap-2 ${isArabic ? 'flex-row-reverse' : 'flex-row'}`}>
                                     <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                                    Live Preview
+                                    {t.livePreview}
                                 </h3>
-                                <p className="text-sm text-blue-700/80 leading-relaxed">
-                                    This is exactly how your card will appear in the event agenda.
+                                <p className={`text-sm text-blue-700/80 leading-relaxed ${isArabic ? 'text-right' : 'text-left'}`}>
+                                    {t.previewDesc}
                                 </p>
                             </div>
 
                             <CompanyCard
                                 company={{
-                                    startup_name: formValues.name || formValues.startup_name || 'Your Company',
+                                    startup_name: formValues.name || formValues.startup_name || t.defaultCompanyName,
                                     logo_url: formValues.logo_url || formValues.logoUrl,
-                                    industry: formValues.industry || formValues.sector || 'Industry',
-                                    location: formValues.location || 'Global',
+                                    industry: formValues.industry || formValues.sector || t.defaultIndustry,
+                                    location: formValues.location || t.defaultLocation,
                                     description: formValues.description || formValues.bio || ''
                                 }}
                                 customColor="#1a27c9"
@@ -378,17 +383,17 @@ const CompanyPortal = () => {
                         <button
                             onClick={handleSubmit}
                             disabled={submitting}
-                            className="w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl font-black text-xl uppercase tracking-widest hover:from-blue-700 hover:to-indigo-800 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3"
+                            className={`w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl font-black text-xl uppercase tracking-widest hover:from-blue-700 hover:to-indigo-800 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 ${isArabic ? 'font-arabic' : 'font-manrope'}`}
                         >
                             {submitting ? (
                                 <>
                                     <Loader className="w-6 h-6 animate-spin" />
-                                    Submitting...
+                                    {t.submitting}
                                 </>
                             ) : (
                                 <>
-                                    <Send className="w-6 h-6" />
-                                    Submit Registration
+                                    <Send className={`w-6 h-6 ${isArabic ? 'rotate-180' : ''}`} />
+                                    {t.submitBtn}
                                 </>
                             )}
                         </button>

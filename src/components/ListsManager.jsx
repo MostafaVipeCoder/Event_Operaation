@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-    Users, 
-    Rocket, 
+import {
+    Users,
+    Rocket,
     ArrowLeft,
     Search,
     Filter,
@@ -16,7 +16,7 @@ import StartupManager from './StartupManager';
 const ListsManager = () => {
     const { eventId } = useParams();
     const navigate = useNavigate();
-    const [activeList, setActiveList] = useState('mentors'); // 'mentors' or 'ventures'
+    const [activeList, setActiveList] = useState('mentors'); // 'mentors' or 'Startups'
 
     return (
         <div className="min-h-screen bg-gray-50/50 font-manrope selection:bg-[#059669]/10 selection:text-[#059669]">
@@ -38,14 +38,14 @@ const ListsManager = () => {
                                         <h1 className="text-lg sm:text-3xl font-black text-[#0d0e0e] tracking-tight">Lists</h1>
                                         <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[8px] sm:text-[10px] font-black uppercase tracking-wider border border-emerald-100">Unified</span>
                                     </div>
-                                    <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Manage Mentors & Ventures</p>
+                                    <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Manage Mentors & Startups</p>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-2 sm:gap-3">
                                 <div className="hidden xs:flex flex-col items-end">
                                     <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Module</span>
-                                    <span className="text-[10px] sm:text-sm font-bold text-[#0d0e0e]">{activeList === 'mentors' ? 'Mentors' : 'Ventures'}</span>
+                                    <span className="text-[10px] sm:text-sm font-bold text-[#0d0e0e]">{activeList === 'mentors' ? 'Mentors' : 'Startups'}</span>
                                 </div>
                                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300">
                                     <Settings size={16} />
@@ -67,17 +67,17 @@ const ListsManager = () => {
                                     <span>Mentors</span>
                                 </button>
                                 <button
-                                    onClick={() => setActiveList('ventures')}
-                                    className={`flex-1 sm:flex-none px-4 sm:px-10 py-2 sm:py-3 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 sm:gap-3 transition-all duration-300 ${activeList === 'ventures'
+                                    onClick={() => setActiveList('Startups')}
+                                    className={`flex-1 sm:flex-none px-4 sm:px-10 py-2 sm:py-3 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 sm:gap-3 transition-all duration-300 ${activeList === 'Startups'
                                         ? 'bg-white text-[#059669] shadow-premium scale-[1.02] ring-1 ring-black/5'
                                         : 'text-slate-400 hover:text-slate-600'
                                         }`}
                                 >
-                                    <Rocket size={16} className={activeList === 'ventures' ? 'animate-bounce' : ''} />
-                                    <span>Ventures</span>
+                                    <Rocket size={16} className={activeList === 'Startups' ? 'animate-bounce' : ''} />
+                                    <span>Startups</span>
                                 </button>
                             </div>
-                            
+
                             <div className="hidden lg:flex items-center gap-6 text-slate-400">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>

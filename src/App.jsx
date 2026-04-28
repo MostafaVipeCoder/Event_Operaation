@@ -22,6 +22,8 @@ const GenericFormPortal = lazy(() => import('./components/GenericFormPortal'));
 const MarketingAnalytics = lazy(() => import('./components/MarketingAnalytics'));
 const MasterExpertsList = lazy(() => import('./components/MasterExpertsList'));
 const ListsManager = lazy(() => import('./components/ListsManager'));
+const LibraryManager = lazy(() => import('./components/LibraryManager'));
+const LibraryViewer = lazy(() => import('./components/LibraryViewer'));
 
 // ─── Prefetch helpers (call on hover to warm up JS chunks) ──────────────────
 // Each function triggers a dynamic import which caches the chunk immediately.
@@ -37,6 +39,7 @@ export const prefetch = {
   analytics: () => import('./components/MarketingAnalytics'),
   masterExperts: () => import('./components/MasterExpertsList'),
   lists: () => import('./components/ListsManager'),
+  library: () => import('./components/LibraryManager'),
 };
 
 import PublicLayout from './components/PublicLayout';
@@ -102,6 +105,12 @@ function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/library" element={
+              <ProtectedRoute>
+                <LibraryManager />
+              </ProtectedRoute>
+            } />
+
             {/* Event Hub */}
             <Route path="/event/:eventId" element={
               <ProtectedRoute>
@@ -148,6 +157,12 @@ function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/event/:eventId/library" element={
+              <ProtectedRoute>
+                <LibraryManager />
+              </ProtectedRoute>
+            } />
+
 
             <Route path="/event/:eventId/selection" element={
               <ProtectedRoute>
@@ -166,6 +181,7 @@ function App() {
               <Route path="/agenda/:eventId" element={<ViewerWrapper />} />
               <Route path="/view/:eventId/experts" element={<ExpertViewer />} />
               <Route path="/view/:eventId/startups" element={<StartupViewer />} />
+              <Route path="/view/:eventId/library" element={<LibraryViewer />} />
             </Route>
 
             {/* Registration Portals (No Authentication Required, No Layout/Nav) */}

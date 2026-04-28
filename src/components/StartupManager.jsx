@@ -6,8 +6,8 @@ import SyncButton from './SyncButton';
 import LazyImage from './LazyImage';
 import { getGoogleDriveFallbackUrls } from '../lib/utils';
 import { getCompanies, createCompany, updateCompany, deleteCompany, uploadImage, getSubmissions, approveSubmission, rejectSubmission, bulkUpdateCompanies, getFormConfig, saveFormConfig } from '../lib/api';
-import { 
-    DndContext, 
+import {
+    DndContext,
     closestCenter,
     KeyboardSensor,
     PointerSensor,
@@ -61,12 +61,18 @@ const StartupManager = ({ isEmbedded = false }) => {
     // Form State
     const [formData, setFormData] = useState({
         name: '',
+        name_ar: '',
         founder: '',
+        founder_ar: '',
         role: '',
         industry: '',
+        industry_ar: '',
         stage: '',
         governorate: '',
+        governorate_ar: '',
+        location_ar: '',
         description: '',
+        description_ar: '',
         links: [],
         logo_url: '',
         display_config: {
@@ -109,14 +115,14 @@ const StartupManager = ({ isEmbedded = false }) => {
 
     const handleEdit = (company) => {
         setEditingCompany(company);
-        
+
         // Normalize links: support legacy website_url and new links array
         let links = [];
         let parsedLinks = company.links;
         if (typeof parsedLinks === 'string') {
-            try { parsedLinks = JSON.parse(parsedLinks); } catch(e) { parsedLinks = []; }
+            try { parsedLinks = JSON.parse(parsedLinks); } catch (e) { parsedLinks = []; }
         }
-        
+
         if (Array.isArray(parsedLinks) && parsedLinks.length > 0) {
             links = parsedLinks.map(l => ({ ...l, icon: l.icon || 'globe' }));
         } else if (company.website_url) {
@@ -125,12 +131,18 @@ const StartupManager = ({ isEmbedded = false }) => {
 
         setFormData({
             name: company.name || '',
+            name_ar: company.name_ar || '',
             founder: company.founder || '',
+            founder_ar: company.founder_ar || '',
             role: company.role || '',
             industry: company.industry || '',
+            industry_ar: company.industry_ar || '',
             stage: company.stage || '',
             governorate: company.governorate || '',
+            governorate_ar: company.governorate_ar || '',
+            location_ar: company.location_ar || '',
             description: company.description || '',
+            description_ar: company.description_ar || '',
             links,
             logo_url: company.logo_url || '',
             display_config: company.display_config || {
@@ -226,15 +238,21 @@ const StartupManager = ({ isEmbedded = false }) => {
             }
             setShowAddModal(false);
             setEditingCompany(null);
-            setFormData({ 
-                name: '', 
-                founder: '', 
-                role: '', 
-                industry: '', 
-                stage: '', 
-                governorate: '', 
-                description: '', 
-                links: [], 
+            setFormData({
+                name: '',
+                name_ar: '',
+                founder: '',
+                founder_ar: '',
+                role: '',
+                industry: '',
+                industry_ar: '',
+                stage: '',
+                governorate: '',
+                governorate_ar: '',
+                location_ar: '',
+                description: '',
+                description_ar: '',
+                links: [],
                 logo_url: '',
                 display_config: {
                     show_founder: true,
@@ -343,7 +361,7 @@ const StartupManager = ({ isEmbedded = false }) => {
                 <Search className={`absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#059669] transition-colors ${isSearchExpanded ? 'block' : 'hidden sm:block'}`} size={18} />
                 <input
                     type="text"
-                    placeholder="Find ventures..."
+                    placeholder="Find Startups..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onBlur={() => { if (!searchTerm) setIsSearchExpanded(false) }}
@@ -521,14 +539,14 @@ const StartupManager = ({ isEmbedded = false }) => {
                     </div>
                 ) : activeTab === 'curated' ? (
                     filteredCompanies.length > 0 ? (
-                        <DndContext 
+                        <DndContext
                             sensors={sensors}
                             collisionDetection={closestCenter}
                             onDragStart={handleDragStart}
                             onDragEnd={handleDragEnd}
                             modifiers={[restrictToFirstScrollableAncestor]}
                         >
-                            <SortableContext 
+                            <SortableContext
                                 items={filteredCompanies.map(c => c.company_id || c.id)}
                                 strategy={rectSortingStrategy}
                                 disabled={searchTerm.length > 0}
@@ -545,7 +563,7 @@ const StartupManager = ({ isEmbedded = false }) => {
                                     ))}
                                 </div>
                             </SortableContext>
-                            
+
                             <DragOverlay dropAnimation={{
                                 sideEffects: defaultDropAnimationSideEffects({
                                     styles: {
@@ -557,8 +575,8 @@ const StartupManager = ({ isEmbedded = false }) => {
                             }}>
                                 {activeId ? (
                                     <div className="w-full max-w-sm opacity-80 pointer-events-none scale-105 transition-transform duration-300">
-                                        <CompanyCard 
-                                            company={companies.find(c => (c.company_id || c.id) === activeId)} 
+                                        <CompanyCard
+                                            company={companies.find(c => (c.company_id || c.id) === activeId)}
                                             config={formConfig}
                                             previewMode={true}
                                         />
@@ -572,7 +590,7 @@ const StartupManager = ({ isEmbedded = false }) => {
                                 <Database size={32} />
                             </div>
                             <h3 className="text-xl font-black text-[#0d0e0e] tracking-tight mb-2 uppercase">Zero Signal</h3>
-                            <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No ventures detected in this quadrant.</p>
+                            <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No Startups detected in this quadrant.</p>
                         </div>
                     )
                 ) : (
@@ -654,7 +672,7 @@ const StartupManager = ({ isEmbedded = false }) => {
                                     <Inbox size={32} />
                                 </div>
                                 <h3 className="text-xl font-black text-[#0d0e0e] tracking-tight mb-2 uppercase">Inbox Balanced</h3>
-                                <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No pending ventures awaiting your signal.</p>
+                                <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No pending Startups awaiting your signal.</p>
                             </div>
                         )}
                     </div>
@@ -669,12 +687,12 @@ const StartupManager = ({ isEmbedded = false }) => {
                             onClick={() => {
                                 setShowAddModal(false);
                                 setEditingCompany(null);
-                                setFormData({ 
-                                    startup_name: '', 
-                                    industry: '', 
-                                    stage: '', 
-                                    governorate: '', 
-                                    description: '', 
+                                setFormData({
+                                    startup_name: '',
+                                    industry: '',
+                                    stage: '',
+                                    governorate: '',
+                                    description: '',
                                     logo_url: '',
                                     links: [],
                                     display_config: {
@@ -717,6 +735,17 @@ const StartupManager = ({ isEmbedded = false }) => {
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 font-arabic">اسم الشركة (بالعربية)</label>
+                                    <input
+                                        type="text"
+                                        dir="rtl"
+                                        placeholder="اسم الشركة"
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium font-arabic"
+                                        value={formData.name_ar}
+                                        onChange={e => setFormData({ ...formData, name_ar: e.target.value })}
+                                    />
+                                </div>
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Industry / Sector {isFieldRequired('industry') && '*'}</label>
@@ -729,15 +758,26 @@ const StartupManager = ({ isEmbedded = false }) => {
                                             onChange={e => setFormData({ ...formData, industry: e.target.value })}
                                         />
                                     </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 font-arabic">القطاع / الصناعة (بالعربية)</label>
+                                        <input
+                                            type="text"
+                                            dir="rtl"
+                                            placeholder="مثال: التكنولوجيا المالية، الذكاء الاصطناعي"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium font-arabic"
+                                            value={formData.industry_ar}
+                                            onChange={e => setFormData({ ...formData, industry_ar: e.target.value })}
+                                        />
+                                    </div>
                                     <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
                                         <div className="relative">
                                             <input
                                                 type="checkbox"
                                                 className="sr-only peer"
                                                 checked={formData.display_config?.show_industry !== false}
-                                                onChange={e => setFormData({ 
-                                                    ...formData, 
-                                                    display_config: { ...formData.display_config, show_industry: e.target.checked } 
+                                                onChange={e => setFormData({
+                                                    ...formData,
+                                                    display_config: { ...formData.display_config, show_industry: e.target.checked }
                                                 })}
                                             />
                                             <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
@@ -761,15 +801,26 @@ const StartupManager = ({ isEmbedded = false }) => {
                                             onChange={e => setFormData({ ...formData, founder: e.target.value })}
                                         />
                                     </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 font-arabic">اسم المؤسس (بالعربية)</label>
+                                        <input
+                                            type="text"
+                                            dir="rtl"
+                                            placeholder="اسم المؤسس"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium font-arabic"
+                                            value={formData.founder_ar}
+                                            onChange={e => setFormData({ ...formData, founder_ar: e.target.value })}
+                                        />
+                                    </div>
                                     <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
                                         <div className="relative">
                                             <input
                                                 type="checkbox"
                                                 className="sr-only peer"
                                                 checked={formData.display_config?.show_founder !== false}
-                                                onChange={e => setFormData({ 
-                                                    ...formData, 
-                                                    display_config: { ...formData.display_config, show_founder: e.target.checked } 
+                                                onChange={e => setFormData({
+                                                    ...formData,
+                                                    display_config: { ...formData.display_config, show_founder: e.target.checked }
                                                 })}
                                             />
                                             <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
@@ -796,9 +847,9 @@ const StartupManager = ({ isEmbedded = false }) => {
                                                 type="checkbox"
                                                 className="sr-only peer"
                                                 checked={formData.display_config?.show_role !== false}
-                                                onChange={e => setFormData({ 
-                                                    ...formData, 
-                                                    display_config: { ...formData.display_config, show_role: e.target.checked } 
+                                                onChange={e => setFormData({
+                                                    ...formData,
+                                                    display_config: { ...formData.display_config, show_role: e.target.checked }
                                                 })}
                                             />
                                             <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
@@ -834,9 +885,9 @@ const StartupManager = ({ isEmbedded = false }) => {
                                                 type="checkbox"
                                                 className="sr-only peer"
                                                 checked={formData.display_config?.show_stage !== false}
-                                                onChange={e => setFormData({ 
-                                                    ...formData, 
-                                                    display_config: { ...formData.display_config, show_stage: e.target.checked } 
+                                                onChange={e => setFormData({
+                                                    ...formData,
+                                                    display_config: { ...formData.display_config, show_stage: e.target.checked }
                                                 })}
                                             />
                                             <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
@@ -890,9 +941,9 @@ const StartupManager = ({ isEmbedded = false }) => {
                                                 type="checkbox"
                                                 className="sr-only peer"
                                                 checked={formData.display_config?.show_governorate !== false}
-                                                onChange={e => setFormData({ 
-                                                    ...formData, 
-                                                    display_config: { ...formData.display_config, show_governorate: e.target.checked } 
+                                                onChange={e => setFormData({
+                                                    ...formData,
+                                                    display_config: { ...formData.display_config, show_governorate: e.target.checked }
                                                 })}
                                             />
                                             <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
@@ -914,15 +965,25 @@ const StartupManager = ({ isEmbedded = false }) => {
                                         onChange={e => setFormData({ ...formData, description: e.target.value })}
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 font-arabic">الوصف / السيرة الذاتية (بالعربية)</label>
+                                    <textarea
+                                        dir="rtl"
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#059669]/5 focus:border-[#059669] transition-premium min-h-[120px] font-arabic"
+                                        placeholder="وصف الشركة..."
+                                        value={formData.description_ar}
+                                        onChange={e => setFormData({ ...formData, description_ar: e.target.value })}
+                                    />
+                                </div>
                                 <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
                                     <div className="relative">
                                         <input
                                             type="checkbox"
                                             className="sr-only peer"
                                             checked={formData.display_config?.show_description !== false}
-                                            onChange={e => setFormData({ 
-                                                ...formData, 
-                                                display_config: { ...formData.display_config, show_description: e.target.checked } 
+                                            onChange={e => setFormData({
+                                                ...formData,
+                                                display_config: { ...formData.display_config, show_description: e.target.checked }
                                             })}
                                         />
                                         <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
@@ -932,8 +993,8 @@ const StartupManager = ({ isEmbedded = false }) => {
                                 </label>
                             </div>
 
-                             {/* Dynamic Links */}
-                             <div className="space-y-4">
+                            {/* Dynamic Links */}
+                            <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Links / روابط</label>
@@ -943,9 +1004,9 @@ const StartupManager = ({ isEmbedded = false }) => {
                                                     type="checkbox"
                                                     className="sr-only peer"
                                                     checked={formData.display_config?.show_links !== false}
-                                                    onChange={e => setFormData({ 
-                                                        ...formData, 
-                                                        display_config: { ...formData.display_config, show_links: e.target.checked } 
+                                                    onChange={e => setFormData({
+                                                        ...formData,
+                                                        display_config: { ...formData.display_config, show_links: e.target.checked }
                                                     })}
                                                 />
                                                 <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#059669] transition-all duration-300"></div>
@@ -1034,24 +1095,24 @@ const StartupManager = ({ isEmbedded = false }) => {
                                             value={formData.logo_url}
                                             onChange={e => setFormData({ ...formData, logo_url: e.target.value })}
                                         />
-                                            {formData.logo_url && (
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-                                                    <Check size={12} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <label className="shrink-0 flex items-center justify-center w-14 h-14 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-[#059669] hover:border-[#059669] cursor-pointer transition-premium">
-                                            <input
-                                                type="file"
-                                                className="hidden"
-                                                accept="image/*"
-                                                onChange={handleFileChange}
-                                                disabled={isUploading}
-                                            />
-                                            {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
-                                        </label>
+                                        {formData.logo_url && (
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                                                <Check size={12} />
+                                            </div>
+                                        )}
                                     </div>
+                                    <label className="shrink-0 flex items-center justify-center w-14 h-14 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-[#059669] hover:border-[#059669] cursor-pointer transition-premium">
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                            disabled={isUploading}
+                                        />
+                                        {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                                    </label>
                                 </div>
+                            </div>
 
                             <div className="pt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
                                 <button
@@ -1115,7 +1176,7 @@ const StartupManager = ({ isEmbedded = false }) => {
                                     <Clock size={14} /> Submitting Pulse from Form Link
                                 </p>
                             </div>
-                             <div className="space-y-6 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar mb-10">
+                            <div className="space-y-6 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar mb-10">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-6 bg-slate-50 rounded-2xl col-span-2">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Company Persona / Description</p>

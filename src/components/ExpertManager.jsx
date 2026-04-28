@@ -57,9 +57,13 @@ const ExpertManager = ({ isEmbedded = false }) => {
     // Form State
     const [formData, setFormData] = useState({
         name: '',
+        name_ar: '',
         title: '',
+        title_ar: '',
         company: '',
+        company_ar: '',
         bio: '',
+        bio_ar: '',
         linkedin_url: '',
         photo_url: '',
         display_config: {
@@ -114,9 +118,13 @@ const ExpertManager = ({ isEmbedded = false }) => {
         setEditingExpert(expert);
         setFormData({
             name: expert.name || '',
+            name_ar: expert.name_ar || '',
             title: expert.title || '',
+            title_ar: expert.title_ar || '',
             company: expert.company || '',
+            company_ar: expert.company_ar || '',
             bio: expert.bio || '',
+            bio_ar: expert.bio_ar || '',
             linkedin_url: expert.linkedin_url || '',
             photo_url: expert.photo_url || '',
             display_config: (typeof expert.display_config === 'string' ? JSON.parse(expert.display_config) : expert.display_config) || {
@@ -202,9 +210,13 @@ const ExpertManager = ({ isEmbedded = false }) => {
 
             await createExpert({
                 name: masterExpert.name,
+                name_ar: masterExpert.name_ar,
                 title: masterExpert.title,
+                title_ar: masterExpert.title_ar,
                 company: masterExpert.company,
+                company_ar: masterExpert.company_ar,
                 bio: masterExpert.bio,
+                bio_ar: masterExpert.bio_ar,
                 photo_url: masterExpert.photo_url,
                 linkedin_url: masterExpert.linkedin_url,
                 event_id: eventId,
@@ -242,9 +254,13 @@ const ExpertManager = ({ isEmbedded = false }) => {
             setEditingExpert(null);
             setFormData({ 
                 name: '', 
+                name_ar: '',
                 title: '', 
+                title_ar: '',
                 company: '', 
+                company_ar: '',
                 bio: '', 
+                bio_ar: '',
                 linkedin_url: '', 
                 photo_url: '',
                 display_config: {
@@ -670,9 +686,13 @@ const ExpertManager = ({ isEmbedded = false }) => {
                                 setEditingExpert(null);
                                 setFormData({ 
                                     name: '', 
+                                    name_ar: '',
                                     title: '', 
+                                    title_ar: '',
                                     company: '', 
+                                    company_ar: '',
                                     bio: '', 
+                                    bio_ar: '',
                                     linkedin_url: '', 
                                     photo_url: '',
                                     display_config: {
@@ -714,6 +734,17 @@ const ExpertManager = ({ isEmbedded = false }) => {
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 font-arabic">اسم الخبير (بالعربية)</label>
+                                    <input
+                                        type="text"
+                                        dir="rtl"
+                                        placeholder="اسم الخبير..."
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium font-arabic"
+                                        value={formData.name_ar}
+                                        onChange={e => setFormData({ ...formData, name_ar: e.target.value })}
+                                    />
+                                </div>
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Title / Role {isFieldRequired('title') && '*'}</label>
@@ -724,6 +755,17 @@ const ExpertManager = ({ isEmbedded = false }) => {
                                             className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium"
                                             value={formData.title}
                                             onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 font-arabic">المسمى الوظيفي (بالعربية)</label>
+                                        <input
+                                            type="text"
+                                            dir="rtl"
+                                            placeholder="المسمى الوظيفي..."
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium font-arabic"
+                                            value={formData.title_ar}
+                                            onChange={e => setFormData({ ...formData, title_ar: e.target.value })}
                                         />
                                     </div>
                                     <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
@@ -758,6 +800,17 @@ const ExpertManager = ({ isEmbedded = false }) => {
                                             onChange={e => setFormData({ ...formData, company: e.target.value })}
                                         />
                                     </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 font-arabic">الشركة (بالعربية)</label>
+                                        <input
+                                            type="text"
+                                            dir="rtl"
+                                            placeholder="الشركة..."
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium font-arabic"
+                                            value={formData.company_ar}
+                                            onChange={e => setFormData({ ...formData, company_ar: e.target.value })}
+                                        />
+                                    </div>
                                     <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">
                                         <div className="relative">
                                             <input
@@ -786,6 +839,16 @@ const ExpertManager = ({ isEmbedded = false }) => {
                                         placeholder="Write a brief brief pulse on their history..."
                                         value={formData.bio}
                                         onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 font-arabic">السيرة الذاتية (بالعربية)</label>
+                                    <textarea
+                                        dir="rtl"
+                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#1a27c9]/5 focus:border-[#1a27c9] transition-premium min-h-[120px] font-arabic"
+                                        placeholder="اكتب نبذة مختصرة..."
+                                        value={formData.bio_ar}
+                                        onChange={e => setFormData({ ...formData, bio_ar: e.target.value })}
                                     />
                                 </div>
                                 <label className="flex items-center gap-3 px-2 cursor-pointer group/toggle">

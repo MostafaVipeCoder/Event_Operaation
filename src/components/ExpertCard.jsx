@@ -6,6 +6,7 @@ import { CSS } from '@dnd-kit/utilities';
 import LazyImage from './LazyImage';
 import ExpandableText from './ExpandableText';
 import { useState } from 'react';
+import { translations } from '../lib/translations';
 
 const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid', onEdit, onDelete, previewMode = false, priority = false }) => {
     const [expanded, setExpanded] = useState(false);
@@ -35,18 +36,9 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
     const lang = searchParams.get('lang') === 'ar' ? 'ar' : 'en';
     const isRtl = lang === 'ar';
 
-    const translations = {
-        en: {
-            organization: "Organization",
-            fallbackBio: "Architecting the future through strategic visionary leadership and sector-defining disruption."
-        },
-        ar: {
-            organization: "المؤسسة",
-            fallbackBio: "بناء المستقبل من خلال القيادة الاستراتيجية المبتكرة وإحداث تغيير جذري في القطاع."
-        }
-    };
+    
 
-    const t = translations[lang];
+    const t = translations.ExpertCard[lang];
 
     // Data Sanitization
     const sanitizeName = (str) => {
@@ -58,7 +50,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
         return cleaned;
     };
 
-    const name = sanitizeName(expert.name);
+    const name = sanitizeName(isRtl && expert.name_ar ? expert.name_ar : expert.name);
     
     // Default visibility logic from global config
     const displayConfig = (() => {
@@ -151,7 +143,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                             </h3>
                             {show_title && (
                                 <p className={`text-[#1a27c9] text-sm md:text-base font-black opacity-80 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
-                                    {expert.title}
+                                    {isRtl && expert.title_ar ? expert.title_ar : expert.title}
                                 </p>
                             )}
                         </div>
@@ -171,7 +163,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
 
                     {show_bio && (
                         <ExpandableText 
-                            text={expert.bio || t.fallbackBio}
+                            text={isRtl && expert.bio_ar ? expert.bio_ar : expert.bio || t.fallbackBio}
                             lines={4}
                             lang={lang}
                             color={customColor}
@@ -185,7 +177,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                                 <Briefcase size={20} className="text-slate-400" />
                                 <div className={isRtl ? 'text-right' : 'text-left'}>
                                     <span className="block text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">{t.organization}</span>
-                                    <span className="text-sm font-black text-[#0d0e0e] uppercase">{expert.company || 'Not Specified'}</span>
+                                    <span className="text-sm font-black text-[#0d0e0e] uppercase">{isRtl && expert.company_ar ? expert.company_ar : expert.company || 'Not Specified'}</span>
                                 </div>
                             </div>
                         </div>
@@ -331,7 +323,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                             onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
                             className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-[#1a27c9] rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 border border-slate-100 transition-colors"
                         >
-                            Read More <ChevronDown size={14} />
+                            {t.readMore} <ChevronDown size={14} />
                         </button>
                     ) : null}
                 </div>
@@ -343,7 +335,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                     </h3>
                     {show_title && (
                         <p className={`text-[#1a27c9] text-[9px] md:text-[10px] font-black opacity-80 mb-2 drop-shadow-sm ${isRtl ? '' : 'uppercase tracking-[0.3em]'}`}>
-                            {expert.title}
+                            {isRtl && expert.title_ar ? expert.title_ar : expert.title}
                         </p>
                     )}
                 </div>
@@ -352,7 +344,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
             <div className={`flex-1 px-2 md:px-4 z-10 w-full flex-col justify-between ${expanded ? 'flex' : 'hidden md:flex'}`}>
                 {show_bio && (
                     <ExpandableText 
-                        text={expert.bio || t.fallbackBio}
+                        text={isRtl && expert.bio_ar ? expert.bio_ar : expert.bio || t.fallbackBio}
                         lines={4}
                         lang={lang}
                         color={customColor}
@@ -367,7 +359,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                                 <Briefcase size={12} className="md:w-[14px] md:h-[14px]" />
                                 <span className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-slate-400">{t.organization}</span>
                             </div>
-                            <p className="text-[9px] md:text-[10px] font-black text-[#0d0e0e] uppercase truncate">{expert.company || 'Not Specified'}</p>
+                            <p className="text-[9px] md:text-[10px] font-black text-[#0d0e0e] uppercase truncate">{isRtl && expert.company_ar ? expert.company_ar : expert.company || 'Not Specified'}</p>
                         </div>
                     </div>
                 )}
@@ -377,7 +369,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                         onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
                         className="md:hidden w-full mt-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 border border-slate-100 transition-colors"
                     >
-                        Show Less <ChevronUp size={14} />
+                        {t.showLess} <ChevronUp size={14} />
                     </button>
                 )}
             </div>

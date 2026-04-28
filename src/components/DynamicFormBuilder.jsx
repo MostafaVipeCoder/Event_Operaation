@@ -16,9 +16,10 @@ import { Upload, AlertCircle } from 'lucide-react';
  */
 const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, onFileUpload }) => {
     const [uploadingFields, setUploadingFields] = useState({});
+    const [searchParams] = useSearchParams();
+    const isArabic = searchParams.get('lang') === 'ar';
 
     // Pre-fill any fields whose field_name matches a URL search param
-    const [searchParams] = useSearchParams();
     useEffect(() => {
         if (!fields.length) return;
         if (!searchParams.toString()) return;
@@ -59,11 +60,14 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
         const {
             field_name,
             field_label,
+            field_label_ar,
             field_type,
             field_options = [],
             is_required,
             placeholder,
+            placeholder_ar,
             help_text,
+            help_text_ar,
             validation_rules: raw_validation_rules = {}
         } = field;
 
@@ -73,17 +77,38 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
         const error = errors[field_name];
         const isUploading = uploadingFields[field_name];
 
+        const displayLabel = (isArabic && field_label_ar) ? field_label_ar : field_label;
+        const displayPlaceholder = (isArabic && placeholder_ar) ? placeholder_ar : placeholder;
+        const displayHelpText = (isArabic && help_text_ar) ? help_text_ar : help_text;
+
         // Base field wrapper classes
-        const wrapperClasses = "mb-6";
-        const labelClasses = `block text-sm font-bold text-slate-700 mb-2 ${is_required ? 'required' : ''}`;
-        const inputBaseClasses = "w-full px-4 py-3 rounded-2xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-100";
+        const wrapperClasses = `mb-6 ${isArabic ? 'text-right' : 'text-left'}`;
+        const labelClasses = `block text-sm font-bold text-slate-700 mb-2 ${isArabic ? 'font-arabic' : 'font-manrope'}`;
+        const inputBaseClasses = `w-full px-4 py-3 rounded-2xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-100 ${isArabic ? 'font-arabic' : 'font-manrope'}`;
         const inputClasses = error
             ? `${inputBaseClasses} border-red-300 focus:border-red-500`
             : `${inputBaseClasses} border-slate-200 focus:border-blue-500`;
 
+        const renderLabel = () => (
+            <label htmlFor={field_name} className={labelClasses}>
+                {displayLabel}
+                {is_required && <span className="text-red-500 mx-1">*</span>}
+            </label>
+        );
+
+        const renderError = () => error && (
+            <div className={`flex items-center gap-1 text-xs text-red-600 mt-1 ${isArabic ? 'flex-row-reverse' : 'flex-row'}`}>
+                <AlertCircle size={12} />
+                <span>{error}</span>
+            </div>
+        );
+
+        const renderHelp = () => displayHelpText && (
+            <p className="text-xs text-slate-500 mt-1">{displayHelpText}</p>
+        );
+
         switch (field_type) {
             case 'hidden':
-                // Hidden fields are invisible to the user but their value is submitted
                 return (
                     <input
                         key={field_name}
@@ -101,93 +126,66 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
             case 'number':
                 return (
                     <div key={field_name} className={wrapperClasses}>
-                        <label htmlFor={field_name} className={labelClasses}>
-                            {field_label}
-                            {is_required && <span className="text-red-500 ml-1">*</span>}
-                        </label>
+                        {renderLabel()}
                         <input
                             id={field_name}
                             type={field_type}
                             value={value}
+                            dir={isArabic ? 'rtl' : 'ltr'}
                             onChange={(e) => handleFieldChange(field_name, e.target.value)}
-                            placeholder={placeholder}
+                            placeholder={displayPlaceholder}
                             className={inputClasses}
                             required={is_required}
                             {...(validation_rules.minLength && { minLength: validation_rules.minLength })}
                             {...(validation_rules.maxLength && { maxLength: validation_rules.maxLength })}
                             {...(validation_rules.pattern && { pattern: validation_rules.pattern })}
                         />
-                        {help_text && (
-                            <p className="text-xs text-slate-500 mt-1">{help_text}</p>
-                        )}
-                        {error && (
-                            <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
-                                <AlertCircle size={12} />
-                                <span>{error}</span>
-                            </div>
-                        )}
+                        {renderHelp()}
+                        {renderError()}
                     </div>
                 );
 
             case 'textarea':
                 return (
                     <div key={field_name} className={wrapperClasses}>
-                        <label htmlFor={field_name} className={labelClasses}>
-                            {field_label}
-                            {is_required && <span className="text-red-500 ml-1">*</span>}
-                        </label>
+                        {renderLabel()}
                         <textarea
                             id={field_name}
                             value={value}
+                            dir={isArabic ? 'rtl' : 'ltr'}
                             onChange={(e) => handleFieldChange(field_name, e.target.value)}
-                            placeholder={placeholder}
+                            placeholder={displayPlaceholder}
                             className={`${inputClasses} min-h-[120px] resize-y`}
                             required={is_required}
                             {...(validation_rules.minLength && { minLength: validation_rules.minLength })}
                             {...(validation_rules.maxLength && { maxLength: validation_rules.maxLength })}
                         />
-                        {help_text && (
-                            <p className="text-xs text-slate-500 mt-1">{help_text}</p>
-                        )}
-                        {error && (
-                            <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
-                                <AlertCircle size={12} />
-                                <span>{error}</span>
-                            </div>
-                        )}
+                        {renderHelp()}
+                        {renderError()}
                     </div>
                 );
 
             case 'select':
                 return (
                     <div key={field_name} className={wrapperClasses}>
-                        <label htmlFor={field_name} className={labelClasses}>
-                            {field_label}
-                            {is_required && <span className="text-red-500 ml-1">*</span>}
-                        </label>
+                        {renderLabel()}
                         <select
                             id={field_name}
                             value={value}
+                            dir={isArabic ? 'rtl' : 'ltr'}
                             onChange={(e) => handleFieldChange(field_name, e.target.value)}
                             className={inputClasses}
                             required={is_required}
                         >
-                            <option value="">{placeholder || 'Select an option...'}</option>
+                            <option value="">{displayPlaceholder || (isArabic ? 'اختر خياراً...' : 'Select an option...')}</option>
                             {field_options.map((option) => (
                                 <option key={option.value || option} value={option.value || option}>
-                                    {option.label || option}
+                                    {(isArabic && option.label_ar) ? option.label_ar : (option.label || option)}
                                 </option>
                             ))}
                         </select>
-                        {help_text && (
-                            <p className="text-xs text-slate-500 mt-1">{help_text}</p>
-                        )}
-                        {error && (
-                            <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
-                                <AlertCircle size={12} />
-                                <span>{error}</span>
-                            </div>
-                        )}
+                        {renderHelp()}
+                        {renderError()}
                     </div>
                 );
 
@@ -195,18 +193,15 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
                 const selectedValues = Array.isArray(value) ? value : [];
                 return (
                     <div key={field_name} className={wrapperClasses}>
-                        <label className={labelClasses}>
-                            {field_label}
-                            {is_required && <span className="text-red-500 ml-1">*</span>}
-                        </label>
+                        {renderLabel()}
                         <div className="space-y-2">
                             {field_options.map((option) => {
                                 const optionValue = option.value || option;
-                                const optionLabel = option.label || option;
+                                const optionLabel = (isArabic && option.label_ar) ? option.label_ar : (option.label || option);
                                 const isChecked = selectedValues.includes(optionValue);
 
                                 return (
-                                    <label key={optionValue} className="flex items-center gap-3 cursor-pointer group">
+                                    <label key={optionValue} className={`flex items-center gap-3 cursor-pointer group ${isArabic ? 'flex-row-reverse' : 'flex-row'}`}>
                                         <input
                                             type="checkbox"
                                             checked={isChecked}
@@ -218,32 +213,22 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
                                             }}
                                             className="w-5 h-5 rounded border-2 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-100"
                                         />
-                                        <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
+                                        <span className={`text-sm text-slate-700 group-hover:text-slate-900 transition-colors ${isArabic ? 'font-arabic' : 'font-manrope'}`}>
                                             {optionLabel}
                                         </span>
                                     </label>
                                 );
                             })}
                         </div>
-                        {help_text && (
-                            <p className="text-xs text-slate-500 mt-1">{help_text}</p>
-                        )}
-                        {error && (
-                            <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
-                                <AlertCircle size={12} />
-                                <span>{error}</span>
-                            </div>
-                        )}
+                        {renderHelp()}
+                        {renderError()}
                     </div>
                 );
 
             case 'file':
                 return (
                     <div key={field_name} className={wrapperClasses}>
-                        <label htmlFor={field_name} className={labelClasses}>
-                            {field_label}
-                            {is_required && <span className="text-red-500 ml-1">*</span>}
-                        </label>
+                        {renderLabel()}
                         <div className="relative">
                             <input
                                 id={field_name}
@@ -256,28 +241,21 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
                             <label
                                 htmlFor={field_name}
                                 className={`${inputClasses} flex items-center justify-center gap-3 cursor-pointer hover:bg-slate-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                                    }`}
+                                    } ${isArabic ? 'flex-row-reverse' : 'flex-row'}`}
                             >
                                 <Upload size={20} className="text-slate-400" />
                                 <span className="text-slate-600">
-                                    {isUploading ? 'Uploading...' : value ? 'Change file' : 'Choose file'}
+                                    {isUploading ? (isArabic ? 'جاري الرفع...' : 'Uploading...') : value ? (isArabic ? 'تغيير الملف' : 'Change file') : (isArabic ? 'اختر ملفاً' : 'Choose file')}
                                 </span>
                             </label>
                             {value && !isUploading && (
-                                <div className="mt-2">
+                                <div className={`mt-2 flex ${isArabic ? 'justify-end' : 'justify-start'}`}>
                                     <img src={value} alt="Preview" className="h-20 w-20 object-cover rounded-lg border-2 border-slate-200" />
                                 </div>
                             )}
                         </div>
-                        {help_text && (
-                            <p className="text-xs text-slate-500 mt-1">{help_text}</p>
-                        )}
-                        {error && (
-                            <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
-                                <AlertCircle size={12} />
-                                <span>{error}</span>
-                            </div>
-                        )}
+                        {renderHelp()}
+                        {renderError()}
                     </div>
                 );
 
@@ -292,7 +270,7 @@ const DynamicFormBuilder = ({ fields = [], values = {}, onChange, errors = {}, o
     );
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4" dir={isArabic ? 'rtl' : 'ltr'}>
             {sortedFields.map(renderField)}
         </div>
     );

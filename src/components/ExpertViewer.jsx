@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getEvent, getExperts, getFormConfig } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 import ExpertCard from './ExpertCard';
+import { translations } from '../lib/translations';
 
 export default function ExpertViewer() {
     const [event, setEvent] = useState(null);
@@ -20,26 +21,9 @@ export default function ExpertViewer() {
     const lang = searchParams.get('lang') === 'ar' ? 'ar' : 'en';
     const isRtl = lang === 'ar';
 
-    const translations = {
-        en: {
-            loading: "Establishing Signal",
-            errorTitle: "Event Terminated",
-            errorDesc: "We couldn't locate the event blueprint you're looking for.",
-            retry: "Return to Base",
-            experts: "Expert",
-            list: "List"
-        },
-        ar: {
-            loading: "جاري تحميل البيانات...",
-            errorTitle: "الفعالية غير متوفرة",
-            errorDesc: "لم نتمكن من العثور على بيانات الحدث المطلوب.",
-            retry: "العودة للرئيسية",
-            experts: "قائمة",
-            list: "الخبراء"
-        }
-    };
+    
 
-    const t = translations[lang];
+    const t = translations.ExpertViewer[lang];
 
     useEffect(() => {
         const loadData = async () => {
@@ -121,7 +105,7 @@ export default function ExpertViewer() {
                             {t.experts} <span className="text-[#1a27c9]">{t.list}</span>
                         </h1>
                         <p className="text-slate-400 text-lg md:text-xl font-medium max-w-2xl leading-relaxed">
-                            {event?.event_name}
+                            {isRtl && event?.event_name_ar ? event.event_name_ar : event?.event_name}
                         </p>
                     </div>
                 </div>

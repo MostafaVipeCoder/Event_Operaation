@@ -232,14 +232,14 @@ export const deleteMasterExpert = async (id) => {
 };
 
 export const createExpert = async (expertData) => {
-    const { name, title, company, bio, linkedin_url, photo_url, event_id, sort_order } = expertData;
+    const { name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url, event_id, sort_order } = expertData;
     let { master_id } = expertData;
 
     // 1. If no master_id, create or find in hub
     if (!master_id) {
         const { data: hubExpert, error: hubError } = await supabase
             .from('master_experts')
-            .upsert({ name, title, company, bio, linkedin_url, photo_url }, { onConflict: 'name,linkedin_url' })
+            .upsert({ name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url }, { onConflict: 'name,linkedin_url' })
             .select()
             .single();
         
@@ -251,19 +251,19 @@ export const createExpert = async (expertData) => {
     // 2. Insert local expert
     const { data, error } = await supabase
         .from('experts')
-        .insert({ name, title, company, bio, linkedin_url, photo_url, event_id, sort_order, master_id })
+        .insert({ name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url, event_id, sort_order, master_id })
         .select()
         .single();
     if (error) throw error; return data;
 };
 
 export const updateExpert = async (expertId, expertData) => {
-    const { name, title, company, bio, linkedin_url, photo_url, event_id, sort_order, master_id } = expertData;
+    const { name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url, event_id, sort_order, master_id } = expertData;
     
     // 1. Update local expert
     const { data, error } = await supabase
         .from('experts')
-        .update({ name, title, company, bio, linkedin_url, photo_url, event_id, sort_order, master_id })
+        .update({ name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url, event_id, sort_order, master_id })
         .eq('expert_id', expertId)
         .select()
         .single();
@@ -273,7 +273,7 @@ export const updateExpert = async (expertId, expertData) => {
     if (master_id) {
         await supabase
             .from('master_experts')
-            .update({ name, title, company, bio, linkedin_url, photo_url })
+            .update({ name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url })
             .eq('id', master_id);
     }
 
@@ -335,6 +335,7 @@ export const createDay = async (dayData) => {
             event_id: dayData.event_id,
             day_number: dayData.day_number,
             day_name: dayData.day_name,
+            day_name_ar: dayData.day_name_ar,
             day_date: dayData.day_date
         })
         .select()
@@ -392,7 +393,11 @@ export const createSlot = async (slotData) => {
             start_time: slotData.start_time,
             end_time: slotData.end_time,
             slot_title: slotData.slot_title,
+            slot_title_ar: slotData.slot_title_ar,
             presenter_name: slotData.presenter_name || '',
+            presenter_name_ar: slotData.presenter_name_ar || '',
+            bullet_points: slotData.bullet_points || [],
+            bullet_points_ar: slotData.bullet_points_ar || [],
             sort_order: slotData.sort_order || 999
         })
         .select()
@@ -443,6 +448,94 @@ export const uploadImage = async (file, path = 'covers') => {
 
     return data.publicUrl;
 };
+
+// ==========================================
+// LIBRARY (مكتبة) APIs
+// ==========================================
+
+export const getLibrarySections = (eventId) => withCache(`library_sections_${eventId || 'global'}`, async () => {
+    let query = supabase.from('library_sections').select('*');
+    if (eventId && eventId !== 'undefined') {
+        query = query.or(`event_id.eq.${eventId},is_central.eq.true`);
+    } else {
+        query = query.eq('is_central', true);
+    }
+    const { data, error } = await query.order('sort_order', { ascending: true });
+    if (error) throw error; return data;
+});
+
+export const createLibrarySection = async (sectionData) => {
+    const { data, error } = await supabase
+        .from('library_sections')
+        .insert(sectionData)
+        .select()
+        .single();
+    if (error) throw error; return data;
+};
+
+export const updateLibrarySection = async (sectionId, updates) => {
+    const { data, error } = await supabase
+        .from('library_sections')
+        .update(updates)
+        .eq('section_id', sectionId)
+        .select()
+        .single();
+    if (error) throw error; return data;
+};
+
+export const deleteLibrarySection = async (sectionId) => {
+    const { error } = await supabase
+        .from('library_sections')
+        .delete()
+        .eq('section_id', sectionId);
+    if (error) throw error; return { success: true };
+};
+
+export const getLibraryResources = (eventId) => withCache(`library_resources_${eventId || 'global'}`, async () => {
+    let query = supabase.from('library_resources').select('*');
+    if (eventId && eventId !== 'undefined') {
+        query = query.or(`event_id.eq.${eventId},is_central.eq.true`);
+    } else {
+        query = query.eq('is_central', true);
+    }
+    const { data, error } = await query.order('sort_order', { ascending: true });
+    if (error) throw error; return data;
+});
+
+export const createLibraryResource = async (resourceData) => {
+    const { data, error } = await supabase
+        .from('library_resources')
+        .insert(resourceData)
+        .select()
+        .single();
+    if (error) throw error; return data;
+};
+
+export const updateLibraryResource = async (resourceId, updates) => {
+    const { data, error } = await supabase
+        .from('library_resources')
+        .update(updates)
+        .eq('resource_id', resourceId)
+        .select()
+        .single();
+    if (error) throw error; return data;
+};
+
+export const deleteLibraryResource = async (resourceId) => {
+    const { error } = await supabase
+        .from('library_resources')
+        .delete()
+        .eq('resource_id', resourceId);
+    if (error) throw error; return { success: true };
+};
+
+export const getLibraryData = (eventId) => withCache(`library_data_${eventId}`, async () => {
+    const [sections, resources] = await Promise.all([
+        getLibrarySections(eventId),
+        getLibraryResources(eventId)
+    ]);
+    return { sections, resources };
+});
 
 /**
  * Bulk imports agenda data (days and slots) for an event.

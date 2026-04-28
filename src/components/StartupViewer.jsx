@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getEvent, getCompanies, getFormConfig } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 import CompanyCard from './CompanyCard';
+import { translations } from '../lib/translations';
 
 export default function StartupViewer() {
     const [event, setEvent] = useState(null);
@@ -20,26 +21,9 @@ export default function StartupViewer() {
     const lang = searchParams.get('lang') === 'ar' ? 'ar' : 'en';
     const isRtl = lang === 'ar';
 
-    const translations = {
-        en: {
-            loading: "Scanning Ecosystem",
-            errorTitle: "Engine Offline",
-            errorDesc: "The startup data stream for this event could not be found.",
-            retry: "Return to Base",
-            startup: "STARTUPS",
-            list: "LIST"
-        },
-        ar: {
-            loading: "جاري فحص الشركات...",
-            errorTitle: "النظام غير متاح",
-            errorDesc: "تعذر العثور على قائمة الشركات لهذا الحدث.",
-            retry: "العودة للرئيسية",
-            startup: "قائمة",
-            list: "الشركات"
-        }
-    };
+    
 
-    const t = translations[lang];
+    const t = translations.StartupViewer[lang];
 
     useEffect(() => {
         const loadData = async () => {
@@ -119,11 +103,11 @@ export default function StartupViewer() {
                 <div className="mb-2 text-center relative group">
                     <div className="flex flex-col items-center">
 
-                        <h1 className="text-3xl md:text-5xl font-black text-[#0d0e0e] tracking-tighter mb-1 leading-none uppercase">
+                        <h1 className={`text-3xl md:text-5xl font-black text-[#0d0e0e] tracking-tighter mb-1 leading-none ${!isRtl ? 'uppercase' : ''}`}>
                             {t.startup} <span className="text-[#1a27c9]">{t.list}</span>
                         </h1>
                         <p className="text-slate-400 text-lg md:text-xl font-medium max-w-2xl leading-relaxed">
-                            {event?.event_name}
+                            {isRtl && event?.event_name_ar ? event.event_name_ar : event?.event_name}
                         </p>
                     </div>
                 </div>

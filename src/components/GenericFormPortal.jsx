@@ -5,10 +5,13 @@ import { getEvent, getEventFormById, getFormConfigById, submitToForm } from '../
 import { uploadImage } from '../lib/api';
 import { getGoogleDriveDirectLink } from '../lib/utils';
 import DynamicFormBuilder from './DynamicFormBuilder';
+import { translations } from '../lib/translations';
 
 export default function GenericFormPortal() {
     const { eventId, formId } = useParams();
     const [searchParams] = useSearchParams();
+    const isArabic = searchParams.get('lang') === 'ar';
+
     // Tracking params captured from URL (e.g. ?source=facebook&utm_campaign=spring)
     const TRACKING_KEYS = ['source', 'utm_source', 'utm_medium', 'utm_campaign', 'channel', 'ref', 'from'];
     const trackingData = Object.fromEntries(
@@ -24,6 +27,10 @@ export default function GenericFormPortal() {
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState(null);
 
+    
+
+    const t = isArabic ? translations.ar : translations.en;
+
     useEffect(() => {
         const load = async () => {
             try {
@@ -38,6 +45,13 @@ export default function GenericFormPortal() {
                 try {
                     const eventData = await getEvent(eventId);
                     setEvent(eventData);
+                    
+                    // Update Page Title
+                    const eventName = (isArabic && eventData?.event_name_ar) ? eventData.event_name_ar : eventData?.event_name;
+                    const formName = (isArabic && meta?.form_name_ar) ? meta.form_name_ar : meta?.form_name;
+                    if (eventName && formName) {
+                        document.title = `Athar Programs | ${formName} - ${eventName}`;
+                    }
                 } catch (e) {
                     console.error('Failed to load event metadata');
                 }
@@ -73,7 +87,7 @@ export default function GenericFormPortal() {
 
                 setFormValues(initial);
             } catch (err) {
-                setError('Form not found or no longer available.');
+                setError(t.notFoundError);
             } finally {
                 setLoading(false);
             }
@@ -85,7 +99,8 @@ export default function GenericFormPortal() {
         const errs = {};
         fields.forEach(field => {
             if (field.is_required && !formValues[field.field_name]) {
-                errs[field.field_name] = `${field.field_label} is required.`;
+                const fieldLabel = (isArabic && field.field_label_ar) ? field.field_label_ar : field.field_label;
+                errs[field.field_name] = isArabic ? `${fieldLabel} ${t.isRequired}` : `${fieldLabel} ${t.isRequired}`;
             }
         });
         setErrors(errs);
@@ -117,7 +132,7 @@ export default function GenericFormPortal() {
             await submitToForm(formId, eventId, formMeta.target_module, enrichedFormValues);
             setSubmitted(true);
         } catch (err) {
-            setError('Submission failed. Please try again.');
+            setError(t.submitError);
         } finally {
             setSubmitting(false);
         }
@@ -129,10 +144,10 @@ export default function GenericFormPortal() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className={`min-h-screen bg-gray-50 flex items-center justify-center ${isArabic ? 'font-arabic' : 'font-manrope'}`}>
                 <div className="text-center">
                     <Loader className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" />
-                    <p className="text-slate-500 font-medium">Loading form...</p>
+                    <p className="text-slate-500 font-medium">{t.loading}</p>
                 </div>
             </div>
         );
@@ -140,12 +155,12 @@ export default function GenericFormPortal() {
 
     if (error && !formMeta) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className={`min-h-screen bg-gray-50 flex items-center justify-center p-4 ${isArabic ? 'font-arabic' : 'font-manrope'}`} dir={isArabic ? 'rtl' : 'ltr'}>
                 <div className="text-center max-w-md">
                     <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <AlertCircle className="text-red-500" size={28} />
                     </div>
-                    <h2 className="text-xl font-black text-slate-800 mb-2">Form Unavailable</h2>
+                    <h2 className="text-xl font-black text-slate-800 mb-2">{t.unavailableTitle}</h2>
                     <p className="text-slate-500">{error}</p>
                 </div>
             </div>
@@ -154,13 +169,13 @@ export default function GenericFormPortal() {
 
     if (!formMeta?.is_active) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className={`min-h-screen bg-gray-50 flex items-center justify-center p-4 ${isArabic ? 'font-arabic' : 'font-manrope'}`} dir={isArabic ? 'rtl' : 'ltr'}>
                 <div className="text-center max-w-md">
                     <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <AlertCircle className="text-amber-500" size={28} />
                     </div>
-                    <h2 className="text-xl font-black text-slate-800 mb-2">Form Closed</h2>
-                    <p className="text-slate-500">This registration form is currently not accepting submissions.</p>
+                    <h2 className="text-xl font-black text-slate-800 mb-2">{t.closedTitle}</h2>
+                    <p className="text-slate-500">{t.closedDesc}</p>
                 </div>
             </div>
         );
@@ -168,20 +183,22 @@ export default function GenericFormPortal() {
 
     if (submitted) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className={`min-h-screen bg-gray-50 flex items-center justify-center p-4 ${isArabic ? 'font-arabic' : 'font-manrope'}`} dir={isArabic ? 'rtl' : 'ltr'}>
                 <div className="text-center max-w-md">
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle className="text-green-500" size={36} />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-3">Submitted Successfully!</h2>
-                    <p className="text-slate-500 text-lg">Thank you for submitting. We'll be in touch soon.</p>
+                    <h2 className="text-2xl font-black text-slate-800 mb-3">{t.submittedTitle}</h2>
+                    <p className="text-slate-500 text-lg">{t.submittedDesc}</p>
                 </div>
             </div>
         );
     }
 
+    const displayFormName = (isArabic && formMeta?.form_name_ar) ? formMeta.form_name_ar : formMeta?.form_name;
+
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 font-manrope">
+        <div className={`min-h-screen bg-gray-50 py-12 px-4 ${isArabic ? 'font-arabic' : 'font-manrope'}`} dir={isArabic ? 'rtl' : 'ltr'}>
             <div className="max-w-2xl mx-auto">
                 {/* Header Section */}
                 {event?.form_cover_image_url && (
@@ -194,13 +211,13 @@ export default function GenericFormPortal() {
                     </div>
                 )}
 
-                <div className="mb-8">
-                    <h1 className="text-3xl font-black text-slate-900">{formMeta?.form_name}</h1>
-                    <p className="text-slate-500 mt-1">Please fill out all required fields below.</p>
+                <div className="mb-8 text-center">
+                    <h1 className="text-3xl font-black text-slate-900">{displayFormName}</h1>
+                    <p className="text-slate-500 mt-2">{t.fillFields}</p>
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-2xl flex items-center gap-3 border border-red-200">
+                    <div className={`mb-6 p-4 bg-red-100 text-red-700 rounded-2xl flex items-center gap-3 border border-red-200 ${isArabic ? 'text-right' : 'text-left'}`}>
                         <AlertCircle size={18} /><span className="font-bold">{error}</span>
                     </div>
                 )}
@@ -218,12 +235,12 @@ export default function GenericFormPortal() {
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="mt-8 w-full py-4 bg-[#0d0e0e] text-white rounded-2xl font-black text-lg hover:bg-[#1a27c9] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                            className={`mt-8 w-full py-4 bg-[#0d0e0e] text-white rounded-2xl font-black text-lg hover:bg-[#1a27c9] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 ${isArabic ? 'flex-row-reverse' : ''}`}
                         >
                             {submitting ? (
-                                <><Loader size={20} className="animate-spin" /> Submitting...</>
+                                <><Loader size={20} className="animate-spin" /> {t.submitting}</>
                             ) : (
-                                'Submit Registration'
+                                t.submitBtn
                             )}
                         </button>
                     </form>

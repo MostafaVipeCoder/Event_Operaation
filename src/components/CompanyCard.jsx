@@ -6,6 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 import { getGoogleDriveFallbackUrls } from '../lib/utils';
 import LazyImage from './LazyImage';
 import ExpandableText from './ExpandableText';
+import { translations } from '../lib/translations';
 
 const LinkIcon = ({ type, ...props }) => {
   switch (type) {
@@ -48,45 +49,18 @@ const CompanyCard = ({ company, config, customColor = '#1a27c9', viewMode = 'gri
   const lang = searchParams.get('lang') === 'ar' ? 'ar' : 'en';
   const isRtl = lang === 'ar';
 
-  const translations = {
-    en: {
-      sector: "Sector",
-      location: "Location",
-      identity: "Identity",
-      stage: "Stage",
-      Links: "Links",
-      growth: "Growth",
-      strategic: "Strategic Builder",
-      link: "Link",
-      notSpecified: "Not Specified",
-      readMore: "Read More",
-      showLess: "Show Less"
-    },
-    ar: {
-      sector: "القطاع",
-      location: "الموقع",
-      identity: "الهوية",
-      stage: "المرحلة",
-      Links: "روابط",
-      growth: "نمو",
-      strategic: "بناء استراتيجي",
-      link: "رابط",
-      notSpecified: "غير محدد",
-      readMore: "عرض المزيد",
-      showLess: "عرض أقل"
-    }
-  };
+  
 
-  const t = translations[lang];
+  const t = translations.CompanyCard[lang];
   // Support both database schema and legacy mock data
-  const name = company.startup_name || company.name || 'Unknown Builder';
+  const name = isRtl && company.startup_name_ar ? company.startup_name_ar : company.startup_name || company.name || 'Unknown Builder';
   const logo = company.logo_url || company.logoUrl;
-  const industry = company.industry || company.sector || 'Ecosystem';
-  const location = company.location || company.governorate || 'Global';
-  const governorate = company.governorate || company.location || '';
-  const founder = company.founder || '';
+  const industry = isRtl && company.industry_ar ? company.industry_ar : company.industry || company.sector || 'Ecosystem';
+  const location = isRtl && company.location_ar ? company.location_ar : company.location || company.governorate || 'Global';
+  const governorate = isRtl && company.location_ar ? company.location_ar : company.governorate || company.location || '';
+  const founder = isRtl && company.founder_ar ? company.founder_ar : company.founder || '';
   const role = company.role || '';
-  const description = company.description || company.bio || '';
+  const description = isRtl && company.description_ar ? company.description_ar : company.description || company.bio || '';
   const stage = company.stage ? company.stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
   // Normalize links: support new links[] array and legacy website_url
   const links = (() => {

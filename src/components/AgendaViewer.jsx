@@ -5,6 +5,7 @@ import { getFullAgenda } from '../lib/api';
 import { formatDate, formatTime, getGoogleDriveDirectLink } from '../lib/utils';
 import { getExperts } from '../lib/api';
 import { Linkedin } from 'lucide-react';
+import { translations } from '../lib/translations';
 
 export default function AgendaViewer({ eventId }) {
     const [agenda, setAgenda] = useState(null);
@@ -18,34 +19,9 @@ export default function AgendaViewer({ eventId }) {
     const lang = searchParams.get('lang') === 'ar' ? 'ar' : 'en';
     const isRtl = lang === 'ar';
 
-    const translations = {
-        en: {
-            loading: "Syncing Event Pulse...",
-            errorTitle: "Sync Error",
-            retry: "Retry Pulse",
-            notFound: "Agenda not found",
-            day: "Day",
-            noSessions: "No Scheduled Pulses",
-            experts: "Experts",
-            companies: "Companies",
-            from: "from",
-            to: "to"
-        },
-        ar: {
-            loading: "جاري تحميل الأجندة...",
-            errorTitle: "خطأ في التحميل",
-            retry: "إعادة المحاولة",
-            notFound: "لم يتم العثور على الأجندة",
-            day: "اليوم",
-            noSessions: "لا توجد جلسات حالياً",
-            experts: "الخبراء",
-            companies: "الشركات",
-            from: "من",
-            to: "إلى"
-        }
-    };
+    
 
-    const t = translations[lang];
+    const t = translations.AgendaViewer[lang];
     const [headerSettings, setHeaderSettings] = useState({
         visible: true,
         type: 'image',
@@ -230,7 +206,7 @@ export default function AgendaViewer({ eventId }) {
                                     fontWeight: headerSettings.titleWeight || '900',
                                 }}
                             >
-                                {event.event_name}
+                                {isRtl && event.event_name_ar ? event.event_name_ar : event.event_name}
                             </h1>
                             {headerSettings.titleDescription && (
                                 <div className="h-0.5 w-12 bg-current opacity-30 mb-6" />
@@ -269,7 +245,7 @@ export default function AgendaViewer({ eventId }) {
                                     {t.day} {index + 1}
                                 </span>
                                 {event.show_day_names !== false && (
-                                    <span className="font-black text-[9px] sm:text-base tracking-tighter sm:tracking-tight leading-tight whitespace-nowrap">{day.day_name}</span>
+                                    <span className="font-black text-[9px] sm:text-base tracking-tighter sm:tracking-tight leading-tight whitespace-nowrap">{isRtl && day.day_name_ar ? day.day_name_ar : day.day_name}</span>
                                 )}
                             </button>
                         ))}
@@ -281,7 +257,7 @@ export default function AgendaViewer({ eventId }) {
                     <div className="text-center mb-16 animate-fadeIn">
                         <div className="inline-flex flex-col items-center">
                             <h2 className="text-3xl sm:text-4xl font-black text-[#0d0e0e] tracking-tight leading-none mb-3">
-                                {event.show_day_names !== false ? currentDay.day_name : `${t.day} ${selectedDay + 1}`}
+                                {event.show_day_names !== false ? (isRtl && currentDay.day_name_ar ? currentDay.day_name_ar : currentDay.day_name) : `${t.day} ${selectedDay + 1}`}
                             </h2>
                             {currentDay.day_date && (
                                 <div className="flex items-center gap-2">
@@ -324,11 +300,11 @@ export default function AgendaViewer({ eventId }) {
                                                     fontWeight: headerSettings.contentWeight || '900'
                                                 }}
                                             >
-                                                {slot.slot_title}
+                                                {isRtl && slot.slot_title_ar ? slot.slot_title_ar : slot.slot_title}
                                             </h3>
                                             {slot.bullet_points?.length > 0 && (
                                                 <ul className={`space-y-1.5 ${isRtl ? 'pr-1' : 'pl-1'}`}>
-                                                    {slot.bullet_points.map((point, i) => (
+                                                    {((isRtl && slot.bullet_points_ar?.length > 0) ? slot.bullet_points_ar : slot.bullet_points)?.map((point, i) => (
                                                         <li key={i} className="flex items-start gap-2.5 animate-fadeIn">
                                                             <div className="mt-[7px] h-1.5 w-1.5 rounded-full bg-indigo-300 shrink-0" />
                                                             <span className="text-slate-500 font-medium leading-relaxed" style={{ fontSize: '0.88rem' }}>
@@ -343,7 +319,7 @@ export default function AgendaViewer({ eventId }) {
                                                     <div className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
                                                     <span className="flex items-center gap-2 text-slate-400 text-xs font-black uppercase tracking-widest">
                                                         <User size={12} className="text-slate-300" />
-                                                        {slot.presenter_name}
+                                                        {isRtl && slot.presenter_name_ar ? slot.presenter_name_ar : slot.presenter_name}
                                                     </span>
                                                 </div>
                                             )}
@@ -399,7 +375,7 @@ export default function AgendaViewer({ eventId }) {
                                 {headerSettings?.showTitle && (
                                     <div className="absolute inset-0 z-10 text-center px-6 mx-auto flex flex-col items-center justify-center">
                                         <h1 className="font-black pt-4 mb-2 drop-shadow-sm" style={{ color: headerSettings.titleColor || '#0d0e0e', fontSize: headerSettings.titleSize || '3rem', fontWeight: headerSettings.titleWeight || '900' }}>
-                                            {event.event_name}
+                                            {isRtl && event.event_name_ar ? event.event_name_ar : event.event_name}
                                         </h1>
                                         {headerSettings.titleDescription && (
                                             <p className="text-xl opacity-90 font-bold" style={{ color: headerSettings.titleColor || '#0d0e0e' }}>
@@ -415,7 +391,7 @@ export default function AgendaViewer({ eventId }) {
                         <div className="max-w-4xl mx-auto px-8 pt-8 pb-12 print-content-scale">
                             <div className="mb-8 border-b-2 border-slate-100 pb-4">
                                 <h2 className="text-4xl font-black text-[#0d0e0e] tracking-tight mb-2">
-                                    {event.show_day_names !== false ? day.day_name : `${t.day} ${index + 1}`}
+                                    {event.show_day_names !== false ? (isRtl && day.day_name_ar ? day.day_name_ar : day.day_name) : `${t.day} ${index + 1}`}
                                 </h2>
                                 {day.day_date && (
                                     <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">
@@ -436,10 +412,10 @@ export default function AgendaViewer({ eventId }) {
                                             </div>
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="text-xl text-[#0d0e0e] font-black tracking-tight mb-1">{slot.slot_title}</h3>
+                                            <h3 className="text-xl text-[#0d0e0e] font-black tracking-tight mb-1">{isRtl && slot.slot_title_ar ? slot.slot_title_ar : slot.slot_title}</h3>
                                             {slot.bullet_points?.length > 0 && (
                                                 <ul className="space-y-1 mt-2">
-                                                    {slot.bullet_points.map((point, i) => (
+                                                    {((isRtl && slot.bullet_points_ar?.length > 0) ? slot.bullet_points_ar : slot.bullet_points)?.map((point, i) => (
                                                         <li key={`p-${i}`} className="flex flex-row items-start gap-2">
                                                             <div className="mt-2 h-1 w-1 rounded-full bg-slate-400 shrink-0" />
                                                             <span className="text-slate-600 font-medium text-sm">{point}</span>
@@ -450,7 +426,7 @@ export default function AgendaViewer({ eventId }) {
                                             {slot.presenter_name && slot.show_presenter && (
                                                 <div className="flex items-center gap-2 mt-3 text-slate-500 text-xs font-black uppercase tracking-widest">
                                                     <User size={14} />
-                                                    {slot.presenter_name}
+                                                    {isRtl && slot.presenter_name_ar ? slot.presenter_name_ar : slot.presenter_name}
                                                 </div>
                                             )}
                                         </div>

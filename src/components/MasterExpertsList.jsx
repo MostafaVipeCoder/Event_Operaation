@@ -385,6 +385,17 @@ function ExpertEditModal({ expert, onClose, onSave }) {
                             onChange={(e) => setFormData({...formData, name: e.target.value})}
                         />
                     </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 font-arabic">اسم الخبير (بالعربية)</label>
+                        <input 
+                            type="text" 
+                            dir="rtl"
+                            className="w-full px-5 py-4 bg-muted border border-transparent rounded-2xl focus:border-athar-blue focus:ring-4 focus:ring-athar-blue/5 outline-none transition-all font-bold font-arabic"
+                            value={formData.name_ar}
+                            onChange={(e) => setFormData({...formData, name_ar: e.target.value})}
+                        />
+                    </div>
                     
                     <div className="space-y-2">
                         <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Photo URL</label>
@@ -394,6 +405,10 @@ function ExpertEditModal({ expert, onClose, onSave }) {
                             value={formData.photo_url}
                             onChange={(e) => setFormData({...formData, photo_url: e.target.value})}
                         />
+                    </div>
+
+                    <div className="space-y-2 hidden md:block">
+                        {/* Spacer for alignment */}
                     </div>
 
                     <div className="space-y-2">
@@ -407,12 +422,34 @@ function ExpertEditModal({ expert, onClose, onSave }) {
                     </div>
 
                     <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 font-arabic">المسمى الوظيفي (بالعربية)</label>
+                        <input 
+                            type="text" 
+                            dir="rtl"
+                            className="w-full px-5 py-4 bg-muted border border-transparent rounded-2xl focus:border-athar-blue focus:ring-4 focus:ring-athar-blue/5 outline-none transition-all font-bold font-arabic"
+                            value={formData.title_ar}
+                            onChange={(e) => setFormData({...formData, title_ar: e.target.value})}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
                         <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Company</label>
                         <input 
                             type="text" 
                             className="w-full px-5 py-4 bg-muted border border-transparent rounded-2xl focus:border-athar-blue focus:ring-4 focus:ring-athar-blue/5 outline-none transition-all font-bold"
                             value={formData.company}
                             onChange={(e) => setFormData({...formData, company: e.target.value})}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 font-arabic">الشركة (بالعربية)</label>
+                        <input 
+                            type="text" 
+                            dir="rtl"
+                            className="w-full px-5 py-4 bg-muted border border-transparent rounded-2xl focus:border-athar-blue focus:ring-4 focus:ring-athar-blue/5 outline-none transition-all font-bold font-arabic"
+                            value={formData.company_ar}
+                            onChange={(e) => setFormData({...formData, company_ar: e.target.value})}
                         />
                     </div>
 
@@ -426,13 +463,24 @@ function ExpertEditModal({ expert, onClose, onSave }) {
                         />
                     </div>
 
-                    <div className="col-span-full space-y-2">
+                    <div className="space-y-2">
                         <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Biography</label>
                         <textarea 
                             rows={4}
                             className="w-full px-5 py-4 bg-muted border border-transparent rounded-2xl focus:border-athar-blue focus:ring-4 focus:ring-athar-blue/5 outline-none transition-all font-bold resize-none"
                             value={formData.bio}
                             onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 font-arabic">السيرة الذاتية (بالعربية)</label>
+                        <textarea 
+                            dir="rtl"
+                            rows={4}
+                            className="w-full px-5 py-4 bg-muted border border-transparent rounded-2xl focus:border-athar-blue focus:ring-4 focus:ring-athar-blue/5 outline-none transition-all font-bold resize-none font-arabic"
+                            value={formData.bio_ar}
+                            onChange={(e) => setFormData({...formData, bio_ar: e.target.value})}
                         />
                     </div>
                 </div>

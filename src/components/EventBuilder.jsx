@@ -189,6 +189,7 @@ export default function EventBuilder({ event, onBack }) {
 
     // Form states
     const [newDayName, setNewDayName] = useState('');
+    const [newDayNameAr, setNewDayNameAr] = useState('');
     const [newDayDate, setNewDayDate] = useState('');
     const [selectedDay, setSelectedDay] = useState(null);
     const [dayError, setDayError] = useState(false);
@@ -201,8 +202,11 @@ export default function EventBuilder({ event, onBack }) {
         startTime: '09:00',
         endTime: '10:00',
         title: '',
+        titleAr: '',
         presenter: '',
+        presenterAr: '',
         bulletPoints: [],
+        bulletPointsAr: [],
         saving: false
     });
     const [eventDetails, setEventDetails] = useState(event);
@@ -211,6 +215,7 @@ export default function EventBuilder({ event, onBack }) {
     // Day Editing State
     const [editingDayId, setEditingDayId] = useState(null);
     const [editDayName, setEditDayName] = useState('');
+    const [editDayNameAr, setEditDayNameAr] = useState('');
     const [editDayDate, setEditDayDate] = useState('');
 
     const [isUploading, setIsUploading] = useState(false);
@@ -244,6 +249,7 @@ export default function EventBuilder({ event, onBack }) {
         // Normalize days: pick only fields that affect the data, sort for stability
         const nDays = (days || []).map(d => ({
             day_name: (d.day_name || '').trim(),
+            day_name_ar: (d.day_name_ar || '').trim(),
             day_date: d.day_date,
             day_number: Number(d.day_number)
         }));
@@ -257,9 +263,12 @@ export default function EventBuilder({ event, onBack }) {
                 start_time: normalizeTime(s.start_time),
                 end_time: normalizeTime(s.end_time),
                 slot_title: (s.slot_title || '').trim(),
+                slot_title_ar: (s.slot_title_ar || '').trim(),
                 presenter_name: (s.presenter_name || '').trim(),
+                presenter_name_ar: (s.presenter_name_ar || '').trim(),
                 show_presenter: !!s.show_presenter,
-                bullet_points: (s.bullet_points || []).map(b => b.trim()).filter(Boolean)
+                bullet_points: (s.bullet_points || []).map(b => b.trim()).filter(Boolean),
+                bullet_points_ar: (s.bullet_points_ar || []).map(b => b.trim()).filter(Boolean)
             }));
         });
 
@@ -439,6 +448,7 @@ export default function EventBuilder({ event, onBack }) {
         const newDay = {
             day_id: tempId,
             day_name: newDayName,
+            day_name_ar: newDayNameAr,
             day_date: newDayDate || new Date().toISOString().split('T')[0],
             day_number: days.length + 1,
             event_id: event.event_id,
@@ -450,6 +460,7 @@ export default function EventBuilder({ event, onBack }) {
         
         // Clear inputs immediately
         setNewDayName('');
+        setNewDayNameAr('');
         setNewDayDate(new Date().toISOString().split('T')[0]);
         setDayError(false);
         showToast('تم إضافة اليوم إلى المسودة');
@@ -464,7 +475,11 @@ export default function EventBuilder({ event, onBack }) {
             startTime: '09:00',
             endTime: '10:00',
             title: '',
+            titleAr: '',
             presenter: '',
+            presenterAr: '',
+            bulletPoints: [],
+            bulletPointsAr: [],
             saving: false
         });
     };
@@ -478,17 +493,21 @@ export default function EventBuilder({ event, onBack }) {
             startTime: slot.start_time,
             endTime: slot.end_time,
             title: slot.slot_title,
+            titleAr: slot.slot_title_ar || '',
             presenter: slot.presenter_name || '',
+            presenterAr: slot.presenter_name_ar || '',
             bulletPoints: slot.bullet_points || [],
+            bulletPointsAr: slot.bullet_points_ar || [],
             saving: false
         });
     };
 
     const handleSaveSlot = async () => {
-        const { dayId, startTime, endTime, title, presenter, bulletPoints, isEditing, slotId } = slotModal;
+        const { dayId, startTime, endTime, title, titleAr, presenter, presenterAr, bulletPoints, bulletPointsAr, isEditing, slotId } = slotModal;
         if (!startTime || !endTime || !title) return;
         // Filter out empty bullet points before saving
         const cleanBullets = (bulletPoints || []).filter(b => b.trim() !== '');
+        const cleanBulletsAr = (bulletPointsAr || []).filter(b => b.trim() !== '');
 
         try {
             // Store previous state for rollback
@@ -503,8 +522,11 @@ export default function EventBuilder({ event, onBack }) {
                         start_time: startTime,
                         end_time: endTime,
                         slot_title: title,
+                        slot_title_ar: titleAr,
                         presenter_name: presenter,
-                        bullet_points: cleanBullets
+                        presenter_name_ar: presenterAr,
+                        bullet_points: cleanBullets,
+                        bullet_points_ar: cleanBulletsAr
                     } : s)
                 }));
             } else {
@@ -515,9 +537,12 @@ export default function EventBuilder({ event, onBack }) {
                     start_time: startTime,
                     end_time: endTime,
                     slot_title: title,
+                    slot_title_ar: titleAr,
                     presenter_name: presenter,
-                    show_presenter: !!presenter,
+                    presenter_name_ar: presenterAr,
+                    show_presenter: !!presenter || !!presenterAr,
                     bullet_points: cleanBullets,
+                    bullet_points_ar: cleanBulletsAr,
                     isOptimistic: true
                 };
                 setSlots(prev => ({
@@ -586,6 +611,7 @@ export default function EventBuilder({ event, onBack }) {
     const handleStartEditDay = (day) => {
         setEditingDayId(day.day_id);
         setEditDayName(day.day_name);
+        setEditDayNameAr(day.day_name_ar || '');
         setEditDayDate(day.day_date);
     };
 
@@ -594,10 +620,11 @@ export default function EventBuilder({ event, onBack }) {
 
         setDays(prev => prev.map(d => 
             d.day_id === editingDayId 
-                ? { ...d, day_name: editDayName, day_date: editDayDate } 
+                ? { ...d, day_name: editDayName, day_name_ar: editDayNameAr, day_date: editDayDate } 
                 : d
         ));
 
+        setEditingDayId(null);
         showToast('تم تحديث بيانات اليوم في المسودة');
     };
 
@@ -777,6 +804,7 @@ export default function EventBuilder({ event, onBack }) {
                     const newDay = await createDay({
                         event_id: day.event_id,
                         day_name: day.day_name,
+                        day_name_ar: day.day_name_ar,
                         day_date: day.day_date,
                         day_number: day.day_number
                     });
@@ -785,6 +813,7 @@ export default function EventBuilder({ event, onBack }) {
                     // Update existing day if needed (currently we don't track day edits specifically, so we'll just skip or update all)
                     await updateDay(day.day_id, {
                         day_name: day.day_name,
+                        day_name_ar: day.day_name_ar,
                         day_date: day.day_date,
                         day_number: day.day_number
                     });
@@ -1119,20 +1148,32 @@ export default function EventBuilder({ event, onBack }) {
                                     </div>
 
                                     <div className="flex flex-col gap-3">
-                                        <div className="flex-1 relative">
-                                            <input
-                                                type="text"
-                                                value={newDayName}
-                                                onChange={(e) => {
-                                                    setNewDayName(e.target.value);
-                                                    if (e.target.value.trim()) setDayError(false);
-                                                }}
-                                                placeholder="Day Label"
-                                                className={`w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-slate-50 border rounded-xl sm:rounded-2xl text-xs sm:text-base font-medium placeholder-slate-400 focus:outline-none focus:ring-2 transition-premium ${dayError ? 'border-red-500 focus:ring-red-100' : 'border-slate-100 focus:ring-[#1a27c9] focus:bg-white'}`}
-                                            />
-                                            {dayError && (
-                                                <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-1.5 ml-2">Required</p>
-                                            )}
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                            <div className="flex-1 relative">
+                                                <input
+                                                    type="text"
+                                                    value={newDayName}
+                                                    onChange={(e) => {
+                                                        setNewDayName(e.target.value);
+                                                        if (e.target.value.trim()) setDayError(false);
+                                                    }}
+                                                    placeholder="Day Label (EN)"
+                                                    className={`w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-slate-50 border rounded-xl sm:rounded-2xl text-xs sm:text-base font-medium placeholder-slate-400 focus:outline-none focus:ring-2 transition-premium ${dayError ? 'border-red-500 focus:ring-red-100' : 'border-slate-100 focus:ring-[#1a27c9] focus:bg-white'}`}
+                                                />
+                                                {dayError && (
+                                                    <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-1.5 ml-2">Required</p>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 relative">
+                                                <input
+                                                    type="text"
+                                                    value={newDayNameAr}
+                                                    onChange={(e) => setNewDayNameAr(e.target.value)}
+                                                    placeholder="اسم اليوم (AR)"
+                                                    dir="rtl"
+                                                    className="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-xs sm:text-base font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium"
+                                                />
+                                            </div>
                                         </div>
                                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                                             <input
@@ -1166,13 +1207,24 @@ export default function EventBuilder({ event, onBack }) {
                                     <div className="p-3 sm:p-6 border-b border-slate-100 flex flex-row items-center justify-between gap-2 sm:gap-4 bg-slate-50/50">
                                         {editingDayId === day.day_id ? (
                                             <div className="flex flex-col md:flex-row flex-1 gap-3 md:items-center min-w-0">
-                                                <input
-                                                    type="text"
-                                                    value={editDayName}
-                                                    onChange={(e) => setEditDayName(e.target.value)}
-                                                    className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm sm:text-lg font-bold focus:ring-[#1a27c9] outline-none w-full"
-                                                    autoFocus
-                                                />
+                                                <div className="flex flex-col gap-2 w-full">
+                                                    <input
+                                                        type="text"
+                                                        value={editDayName}
+                                                        onChange={(e) => setEditDayName(e.target.value)}
+                                                        className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm sm:text-lg font-bold focus:ring-[#1a27c9] outline-none w-full"
+                                                        placeholder="Day Label (EN)"
+                                                        autoFocus
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={editDayNameAr}
+                                                        onChange={(e) => setEditDayNameAr(e.target.value)}
+                                                        className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm sm:text-lg font-bold focus:ring-[#1a27c9] outline-none w-full text-right"
+                                                        placeholder="اسم اليوم (AR)"
+                                                        dir="rtl"
+                                                    />
+                                                </div>
                                                 <input
                                                     type="date"
                                                     value={editDayDate.split('T')[0]}
@@ -1624,31 +1676,58 @@ export default function EventBuilder({ event, onBack }) {
                                         </select>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Session Title</label>
-                                    <input
-                                        type="text"
-                                        value={slotModal.title}
-                                        onChange={(e) => setSlotModal({ ...slotModal, title: e.target.value })}
-                                        placeholder="Headline of this slot..."
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-bold text-lg text-[#0d0e0e]"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Narrator / Lead</label>
-                                    <input
-                                        type="text"
-                                        value={slotModal.presenter}
-                                        onChange={(e) => setSlotModal({ ...slotModal, presenter: e.target.value })}
-                                        placeholder="Full name or team..."
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-bold text-slate-600"
-                                    />
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Session Title (EN)</label>
+                                        <input
+                                            type="text"
+                                            value={slotModal.title}
+                                            onChange={(e) => setSlotModal({ ...slotModal, title: e.target.value })}
+                                            placeholder="Headline of this slot..."
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-bold text-lg text-[#0d0e0e]"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1 text-right">عنوان الفقرة (AR)</label>
+                                        <input
+                                            type="text"
+                                            value={slotModal.titleAr}
+                                            onChange={(e) => setSlotModal({ ...slotModal, titleAr: e.target.value })}
+                                            placeholder="عنوان الفقرة بالعربي..."
+                                            dir="rtl"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-bold text-lg text-[#0d0e0e] text-right"
+                                        />
+                                    </div>
                                 </div>
 
-                                {/* Bullet Points Section */}
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Narrator / Lead (EN)</label>
+                                        <input
+                                            type="text"
+                                            value={slotModal.presenter}
+                                            onChange={(e) => setSlotModal({ ...slotModal, presenter: e.target.value })}
+                                            placeholder="Full name or team..."
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-bold text-slate-600"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1 text-right">المتحدث / القائم بالفقرة (AR)</label>
+                                        <input
+                                            type="text"
+                                            value={slotModal.presenterAr}
+                                            onChange={(e) => setSlotModal({ ...slotModal, presenterAr: e.target.value })}
+                                            placeholder="الاسم الكامل أو الفريق..."
+                                            dir="rtl"
+                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-bold text-slate-600 text-right"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Bullet Points Section (EN) */}
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Sub-Topics / Bullet Points</label>
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Sub-Topics / Bullet Points (EN)</label>
                                         <button
                                             type="button"
                                             onClick={() => setSlotModal(prev => ({ ...prev, bulletPoints: [...(prev.bulletPoints || []), ''] }))}
@@ -1659,7 +1738,7 @@ export default function EventBuilder({ event, onBack }) {
                                         </button>
                                     </div>
 
-                                    {slotModal.bulletPoints?.length > 0 ? (
+                                    {slotModal.bulletPoints?.length > 0 && (
                                         <div className="space-y-2">
                                             {slotModal.bulletPoints.map((point, index) => (
                                                 <div key={index} className="flex items-center gap-2">
@@ -1672,7 +1751,7 @@ export default function EventBuilder({ event, onBack }) {
                                                             updated[index] = e.target.value;
                                                             setSlotModal(prev => ({ ...prev, bulletPoints: updated }));
                                                         }}
-                                                        placeholder={`النقطة ${index + 1}...`}
+                                                        placeholder={`Point ${index + 1}...`}
                                                         className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-medium text-slate-700 text-sm"
                                                     />
                                                     <button
@@ -1688,9 +1767,51 @@ export default function EventBuilder({ event, onBack }) {
                                                 </div>
                                             ))}
                                         </div>
-                                    ) : (
-                                        <div className="py-4 border-2 border-dashed border-slate-100 rounded-2xl text-center">
-                                            <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">لا توجد نقاط — اضغط "Add Point" لإضافة واحدة</p>
+                                    )}
+                                </div>
+
+                                {/* Bullet Points Section (AR) */}
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1 text-right w-full">نقاط فرعية / تفاصيل (AR)</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSlotModal(prev => ({ ...prev, bulletPointsAr: [...(prev.bulletPointsAr || []), ''] }))}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-[#1a27c9] rounded-xl text-xs font-black hover:bg-indigo-100 transition-colors shrink-0"
+                                        >
+                                            <Plus size={14} />
+                                            إضافة نقطة
+                                        </button>
+                                    </div>
+
+                                    {slotModal.bulletPointsAr?.length > 0 && (
+                                        <div className="space-y-2" dir="rtl">
+                                            {slotModal.bulletPointsAr.map((point, index) => (
+                                                <div key={index} className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-indigo-300 shrink-0" />
+                                                    <input
+                                                        type="text"
+                                                        value={point}
+                                                        onChange={(e) => {
+                                                            const updated = [...slotModal.bulletPointsAr];
+                                                            updated[index] = e.target.value;
+                                                            setSlotModal(prev => ({ ...prev, bulletPointsAr: updated }));
+                                                        }}
+                                                        placeholder={`النقطة ${index + 1}...`}
+                                                        className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium font-medium text-slate-700 text-sm text-right"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const updated = slotModal.bulletPointsAr.filter((_, i) => i !== index);
+                                                            setSlotModal(prev => ({ ...prev, bulletPointsAr: updated }));
+                                                        }}
+                                                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors shrink-0"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X, Briefcase, ChevronDown, ChevronUp, Save } from 'lucide-react';
+import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X, Briefcase, ChevronDown, ChevronUp, Save, BookOpen } from 'lucide-react';
 import { getEvent, updateEvent } from '../lib/api';
 import { prefetch } from '../App';
 import SyncButton from './SyncButton';
@@ -159,6 +159,13 @@ export default function EventDashboard() {
             manageLink: `/event/${eventId}/selection`,
             prefetchKey: 'selection',
             accent: "hsl(var(--primary))",
+        },
+        {
+            title: "Library",
+            icon: <BookOpen size={32} className="text-blue-600" />,
+            manageLink: `/event/${eventId}/library`,
+            prefetchKey: 'library',
+            accent: "#2563eb",
         },
     ];
 
