@@ -88,12 +88,12 @@ export const getFullAgenda = (eventId) => withCache(`fullAgenda_${eventId}`, asy
     // Fetch event, experts, companies, and days ALL IN PARALLEL — eliminates waterfall
     const [
         { data: event, error: eventError },
-        { data: experts, error: expertsError },
+        { data: expertsRaw, error: expertsError },
         { data: companies, error: companiesError },
         { data: days, error: daysError },
     ] = await Promise.all([
         supabase.from('events').select('*').eq('event_id', eventId).single(),
-        supabase.from('experts').select('*').eq('event_id', eventId).order('sort_order', { ascending: true }),
+        supabase.from('experts').select('*, master:master_experts(*)').eq('event_id', eventId).order('sort_order', { ascending: true }),
         supabase.from('companies').select('*').eq('event_id', eventId),
         supabase.from('event_days').select('*').eq('event_id', eventId).order('day_number', { ascending: true }),
     ]);
@@ -102,6 +102,13 @@ export const getFullAgenda = (eventId) => withCache(`fullAgenda_${eventId}`, asy
     if (expertsError) throw expertsError;
     if (companiesError) throw companiesError;
     if (daysError) throw daysError;
+
+    // Flatten experts
+    const experts = (expertsRaw || []).map(exp => ({
+        ...exp.master,
+        ...exp,
+        master: undefined
+    }));
 
     // Slots depend on day IDs — only these wait for days to resolve
     const dayIds = days.map(d => d.day_id);
@@ -130,10 +137,16 @@ export const getFullAgenda = (eventId) => withCache(`fullAgenda_${eventId}`, asy
 export const getExperts = (eventId) => withCache(`experts_${eventId}`, async () => {
     const { data, error } = await supabase
         .from('experts')
-        .select('*')
+        .select('*, master:master_experts(*)')
         .eq('event_id', eventId)
         .order('sort_order', { ascending: true });
-    if (error) throw error; return data;
+    if (error) throw error; 
+    
+    return (data || []).map(exp => ({
+        ...exp.master,
+        ...exp,
+        master: undefined
+    }));
 });
 
 export const getCompanies = (eventId) => withCache(`companies_${eventId}`, async () => {
@@ -369,13 +382,26 @@ export const getMasterExperts = () => withCache('master_experts', async () => {
 });
 
 export const updateMasterExpert = async (id, data) => {
+    // 1. Update the master record
     const { data: updated, error } = await supabase
         .from('master_experts')
         .update(data)
         .eq('id', id)
         .select()
         .single();
-    if (error) throw error; return updated;
+    if (error) throw error;
+
+    // 2. Synchronize all local expert records that reference this master
+    // We only sync the profile fields, not sort_order or event_id
+    const { name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url } = updated;
+    const syncData = { name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url };
+    
+    await supabase
+        .from('experts')
+        .update(syncData)
+        .eq('master_id', id);
+
+    return updated;
 };
 
 export const deleteMasterExpert = async (id) => {
@@ -387,52 +413,103 @@ export const deleteMasterExpert = async (id) => {
 };
 
 export const createExpert = async (expertData) => {
-    const { name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url, event_id, sort_order } = expertData;
+    const { 
+        name, name_ar, title, title_ar, company, company_ar, 
+        bio, bio_ar, linkedin_url, photo_url, event_id, sort_order 
+    } = expertData;
     let { master_id } = expertData;
 
-    // 1. If no master_id, create or find in hub
+    // 1. If no master_id, find or create in hub
     if (!master_id) {
-        const { data: hubExpert, error: hubError } = await supabase
+        // Try to find by name first to avoid duplicates
+        const { data: existingMaster } = await supabase
             .from('master_experts')
-            .upsert({ name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url }, { onConflict: 'name,linkedin_url' })
-            .select()
-            .single();
-        
-        if (!hubError && hubExpert) {
-            master_id = hubExpert.id;
+            .select('*')
+            .eq('name', name)
+            .maybeSingle();
+
+        if (existingMaster) {
+            master_id = existingMaster.id;
+            // Update the master with any new info provided to keep it fresh
+            const updateData = { name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url };
+            await updateMasterExpert(master_id, updateData);
+        } else {
+            const { data: newMaster, error: masterError } = await supabase
+                .from('master_experts')
+                .insert({ name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url })
+                .select()
+                .single();
+            
+            if (masterError) throw masterError;
+            master_id = newMaster.id;
         }
     }
 
-    // 2. Insert local expert
+    // Fetch the latest master data to ensure local record is perfectly in sync
+    const { data: masterData } = await supabase
+        .from('master_experts')
+        .select('*')
+        .eq('id', master_id)
+        .single();
+
+    // 2. Insert local expert (populated with master data for redundancy/searchability)
     const { data, error } = await supabase
         .from('experts')
-        .insert({ name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url, event_id, sort_order, master_id })
-        .select()
+        .insert({ 
+            event_id, 
+            master_id, 
+            sort_order,
+            name: masterData.name,
+            name_ar: masterData.name_ar,
+            title: masterData.title,
+            title_ar: masterData.title_ar,
+            company: masterData.company,
+            company_ar: masterData.company_ar,
+            bio: masterData.bio,
+            bio_ar: masterData.bio_ar,
+            linkedin_url: masterData.linkedin_url,
+            photo_url: masterData.photo_url
+        })
+        .select('*, master:master_experts(*)')
         .single();
-    if (error) throw error; return data;
+
+    if (error) throw error; 
+    
+    return {
+        ...data.master,
+        ...data,
+        master: undefined
+    };
 };
 
 export const updateExpert = async (expertId, expertData) => {
-    const { name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url, event_id, sort_order, master_id } = expertData;
+    const { 
+        name, name_ar, title, title_ar, company, company_ar, 
+        bio, bio_ar, linkedin_url, photo_url, master_id, sort_order 
+    } = expertData;
     
-    // 1. Update local expert
-    const { data, error } = await supabase
+    // 1. Update local expert (sort_order etc)
+    const { data: localExpert, error: localError } = await supabase
         .from('experts')
-        .update({ name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url, event_id, sort_order, master_id })
+        .update({ sort_order })
         .eq('expert_id', expertId)
         .select()
         .single();
-    if (error) throw error;
+    if (localError) throw localError;
 
-    // 2. If linked to hub, update hub as well
+    // 2. Update master expert (profile data) -> This will trigger sync to all events via updateMasterExpert
     if (master_id) {
-        await supabase
-            .from('master_experts')
-            .update({ name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url })
-            .eq('id', master_id);
+        const updatedMaster = await updateMasterExpert(master_id, { 
+            name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url 
+        });
+        
+        return {
+            ...updatedMaster,
+            ...localExpert
+        };
     }
 
-    return data;
+    return localExpert;
 };
 
 export const deleteExpert = async (expertId) => {
@@ -1034,11 +1111,23 @@ export const approveSubmission = async (submissionId, entityType) => {
     }
 
     // Insert into target table
-    const { error: insertError } = await supabase
-        .from(targetTable)
-        .insert([targetData]);
-
-    if (insertError) throw insertError;
+    if (entityType === 'expert') {
+        // Use the centralized createExpert to ensure master linking and sync
+        await createExpert({
+            name: submission.expert_name,
+            photo_url: submission.photo_url,
+            title: submission.title,
+            company: submission.company,
+            bio: submission.bio,
+            event_id: submission.event_id,
+            ...submission.additional_data
+        });
+    } else {
+        const { error: insertError } = await supabase
+            .from(targetTable)
+            .insert([targetData]);
+        if (insertError) throw insertError;
+    }
 
     // Update submission status
     const { data: updated, error: updateError } = await supabase
