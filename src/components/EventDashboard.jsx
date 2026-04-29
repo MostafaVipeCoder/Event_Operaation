@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X, Briefcase, ChevronDown, ChevronUp, Save, BookOpen } from 'lucide-react';
-import { getEvent, updateEvent } from '../lib/api';
+import { Calendar, Users, Rocket, ArrowLeft, ExternalLink, Settings, LayoutGrid, Inbox, RefreshCw, FileSpreadsheet, Palette, ClipboardList, BarChart3, Edit2, Check, X, Briefcase, ChevronDown, ChevronUp, Save, BookOpen, Copy, Loader2 } from 'lucide-react';
+import { getEvent, updateEvent, duplicateEvent } from '../lib/api';
 import { prefetch } from '../App';
 import SyncButton from './SyncButton';
 import { usePresence } from '../hooks/usePresence';
@@ -29,6 +29,11 @@ export default function EventDashboard() {
     // Sync Metadata State
     const [gsheetsUrl, setGsheetsUrl] = useState('');
     const [isSavingUrl, setIsSavingUrl] = useState(false);
+
+    // Duplicate Event State
+    const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+    const [isDuplicating, setIsDuplicating] = useState(false);
+    const [newDuplicateName, setNewDuplicateName] = useState('');
 
 
     useEffect(() => {
@@ -79,6 +84,22 @@ export default function EventDashboard() {
             alert('Failed to save event name.');
         } finally {
             setIsSavingName(false);
+        }
+    };
+
+    const handleDuplicate = async () => {
+        if (!newDuplicateName.trim()) return;
+        try {
+            setIsDuplicating(true);
+            const newEvent = await duplicateEvent(eventId, newDuplicateName.trim());
+            setIsDuplicateModalOpen(false);
+            setNewDuplicateName('');
+            navigate(`/event/${newEvent.event_id}`);
+        } catch (error) {
+            console.error('Error duplicating event:', error);
+            alert('Failed to duplicate the event. Please try again.');
+        } finally {
+            setIsDuplicating(false);
         }
     };
 
@@ -230,6 +251,15 @@ export default function EventDashboard() {
                             
                             <div className="flex items-center gap-2 sm:gap-4 sm:border-l border-border sm:pl-6">
                                 <SyncButton eventId={eventId} onSyncComplete={() => window.location.reload()} />
+                                <button 
+                                    onClick={() => {
+                                        setNewDuplicateName(`${event.event_name} (Copy)`);
+                                        setIsDuplicateModalOpen(true);
+                                    }}
+                                    className="hidden sm:flex px-4 py-1.5 bg-background border border-border hover:bg-secondary text-foreground rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 items-center gap-2 tap-target"
+                                >
+                                    <Copy size={14} /> Duplicate
+                                </button>
                                 <div className={`hidden sm:block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border ${event.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'
                                     }`}>
                                     • {event.status || 'Active'}
@@ -510,6 +540,62 @@ export default function EventDashboard() {
 
 
             </div>
+
+            {/* Duplicate Event Modal */}
+            {isDuplicateModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-card border border-border shadow-2xl rounded-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
+                        <div className="p-6 border-b border-border">
+                            <h3 className="text-xl font-bold text-foreground">Duplicate Event</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                This will clone the event configuration, days, agenda, experts, companies, forms, and library.
+                            </p>
+                        </div>
+                        <div className="p-6">
+                            <label className="block text-sm font-semibold text-foreground mb-2">New Event Name</label>
+                            <input
+                                type="text"
+                                value={newDuplicateName}
+                                onChange={(e) => setNewDuplicateName(e.target.value)}
+                                className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                placeholder="Enter a name for the duplicated event"
+                                autoFocus
+                                disabled={isDuplicating}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleDuplicate();
+                                    if (e.key === 'Escape' && !isDuplicating) setIsDuplicateModalOpen(false);
+                                }}
+                            />
+                        </div>
+                        <div className="p-6 border-t border-border bg-secondary/50 flex items-center justify-end gap-3">
+                            <button
+                                onClick={() => setIsDuplicateModalOpen(false)}
+                                disabled={isDuplicating}
+                                className="px-5 py-2.5 rounded-lg text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDuplicate}
+                                disabled={isDuplicating || !newDuplicateName.trim()}
+                                className="px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isDuplicating ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        Duplicating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy size={16} />
+                                        Duplicate
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

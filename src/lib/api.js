@@ -201,6 +201,161 @@ export const deleteEvent = async (eventId) => {
     if (error) throw error; return { success: true };
 };
 
+export const duplicateEvent = async (originalEventId, newEventName) => {
+    console.log(`[Supabase] Duplicating event: ${originalEventId} -> ${newEventName}`);
+
+    // 1. Fetch full original event structure
+    const fullAgenda = await getFullAgenda(originalEventId);
+    const { event, days, experts, companies } = fullAgenda;
+
+    // 2. Insert new event
+    const { event_id: _, created_at: __, updated_at: ___, ...eventDataToCopy } = event;
+    const newEventData = {
+        ...eventDataToCopy,
+        event_name: newEventName || `${event.event_name} (Copy)`
+    };
+    
+    const { data: newEvent, error: eventError } = await supabase
+        .from('events')
+        .insert(newEventData)
+        .select()
+        .single();
+        
+    if (eventError) {
+        console.error('[Supabase Error] Duplicating event:', eventError);
+        throw eventError;
+    }
+    const newEventId = newEvent.event_id;
+
+    // 3. Duplicate Experts
+    const expertIdMap = new Map(); // old_id -> new_id
+    if (experts && experts.length > 0) {
+        const expertsToInsert = experts.map(exp => {
+            const { id, created_at, updated_at, ...rest } = exp;
+            return { ...rest, event_id: newEventId };
+        });
+        
+        const { data: newExperts, error: expertsError } = await supabase
+            .from('experts')
+            .insert(expertsToInsert)
+            .select();
+            
+        if (expertsError) throw expertsError;
+        
+        // Match old experts to new ones assuming order matches
+        experts.forEach((oldExp, idx) => {
+            expertIdMap.set(oldExp.id, newExperts[idx].id);
+        });
+    }
+
+    // 4. Duplicate Companies
+    const companyIdMap = new Map(); // old_id -> new_id
+    if (companies && companies.length > 0) {
+        const companiesToInsert = companies.map(comp => {
+            const { company_id, created_at, updated_at, ...rest } = comp;
+            return { ...rest, event_id: newEventId };
+        });
+        
+        const { data: newCompanies, error: companiesError } = await supabase
+            .from('companies')
+            .insert(companiesToInsert)
+            .select();
+            
+        if (companiesError) throw companiesError;
+        
+        companies.forEach((oldComp, idx) => {
+            companyIdMap.set(oldComp.company_id, newCompanies[idx].company_id);
+        });
+    }
+
+    // 5. Duplicate Days and Slots
+    if (days && days.length > 0) {
+        for (const oldDay of days) {
+            const { day_id, created_at, updated_at, slots, ...dayDataToCopy } = oldDay;
+            const newDayData = {
+                ...dayDataToCopy,
+                event_id: newEventId
+            };
+            
+            const { data: newDay, error: dayError } = await supabase
+                .from('event_days')
+                .insert(newDayData)
+                .select()
+                .single();
+                
+            if (dayError) throw dayError;
+            
+            if (slots && slots.length > 0) {
+                const slotsToInsert = slots.map(slot => {
+                    const { slot_id, created_at, updated_at, day_id: old_day_id, ...slotDataToCopy } = slot;
+                    
+                    // Update referenced experts and companies if they exist in the slot
+                    const new_expert_ids = slot.expert_ids ? slot.expert_ids.map(oldId => expertIdMap.get(oldId) || oldId) : [];
+                    const new_company_ids = slot.company_ids ? slot.company_ids.map(oldId => companyIdMap.get(oldId) || oldId) : [];
+                    
+                    return {
+                        ...slotDataToCopy,
+                        day_id: newDay.day_id,
+                        expert_ids: new_expert_ids,
+                        company_ids: new_company_ids
+                    };
+                });
+                
+                const { error: slotsError } = await supabase
+                    .from('agenda_slots')
+                    .insert(slotsToInsert);
+                    
+                if (slotsError) throw slotsError;
+            }
+        }
+    }
+    
+    // Attempt to clone library resources if any (Optional step, robust to failure)
+    try {
+        const { data: resources } = await supabase.from('library_resources').select('*').eq('event_id', originalEventId);
+        if (resources && resources.length > 0) {
+            const resourcesToInsert = resources.map(res => {
+                const { id, created_at, updated_at, ...rest } = res;
+                return { ...rest, event_id: newEventId };
+            });
+            await supabase.from('library_resources').insert(resourcesToInsert);
+        }
+    } catch (err) {
+        console.warn('Failed to duplicate library resources:', err);
+    }
+    
+    // Attempt to clone forms and fields if any (Optional step, robust to failure)
+    try {
+        const { data: forms } = await supabase.from('event_forms').select('*').eq('event_id', originalEventId);
+        if (forms && forms.length > 0) {
+            for (const oldForm of forms) {
+                const { form_id, created_at, updated_at, ...formToCopy } = oldForm;
+                const { data: newForm, error: formError } = await supabase
+                    .from('event_forms')
+                    .insert({ ...formToCopy, event_id: newEventId })
+                    .select()
+                    .single();
+                
+                if (!formError && newForm) {
+                    const { data: fields } = await supabase.from('form_field_configs').select('*').eq('form_id', oldForm.form_id);
+                    if (fields && fields.length > 0) {
+                        const fieldsToInsert = fields.map(field => {
+                            const { id, created_at, updated_at, form_id: _, ...fieldToCopy } = field;
+                            return { ...fieldToCopy, form_id: newForm.form_id };
+                        });
+                        await supabase.from('form_field_configs').insert(fieldsToInsert);
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.warn('Failed to duplicate event forms:', err);
+    }
+    
+    clearApiCache();
+    return newEvent;
+};
+
 // ==========================================
 // EXPERTS & COMPANIES
 // ==========================================
