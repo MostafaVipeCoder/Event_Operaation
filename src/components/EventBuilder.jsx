@@ -438,17 +438,11 @@ export default function EventBuilder({ event, onBack }) {
     };
 
     const handleAddDay = () => {
-        if (!newDayName.trim()) {
-            setDayError(true);
-            setTimeout(() => setDayError(false), 3000);
-            return;
-        }
-
         const tempId = `day-temp-${Date.now()}`;
         const newDay = {
             day_id: tempId,
-            day_name: newDayName,
-            day_name_ar: newDayNameAr,
+            day_name: newDayName.trim() ? newDayName : `Day ${days.length + 1}`,
+            day_name_ar: newDayNameAr.trim() ? newDayNameAr : `اليوم ${days.length + 1}`,
             day_date: newDayDate || new Date().toISOString().split('T')[0],
             day_number: days.length + 1,
             event_id: event.event_id,
@@ -582,6 +576,35 @@ export default function EventBuilder({ event, onBack }) {
         });
     };
 
+    const handleDuplicateDay = (dayId) => {
+        const sourceDay = days.find(d => d.day_id === dayId);
+        if (!sourceDay) return;
+
+        const tempDayId = `day-temp-${Date.now()}`;
+        const newDayNumber = days.length + 1;
+        const newDay = {
+            ...sourceDay,
+            day_id: tempDayId,
+            day_name: sourceDay.day_name ? `${sourceDay.day_name} (Copy)` : `Day ${newDayNumber}`,
+            day_name_ar: sourceDay.day_name_ar ? `${sourceDay.day_name_ar} (نسخة)` : `اليوم ${newDayNumber}`,
+            day_number: newDayNumber,
+            isOptimistic: true // Mark as new for handleFinalSave
+        };
+
+        const sourceSlots = slots[dayId] || [];
+        const newSlots = sourceSlots.map((slot, index) => ({
+            ...slot,
+            slot_id: `temp-${Date.now()}-${index}`,
+            day_id: tempDayId,
+            isOptimistic: true
+        }));
+
+        setDays(prev => [...prev, newDay]);
+        setSlots(prev => ({ ...prev, [tempDayId]: newSlots }));
+        
+        showToast('تم تكرار اليوم بنجاح (اضغط حفظ للتأكيد النهائي)');
+    };
+
     const handleDeleteSlot = (slotId) => {
         askConfirm('متأكد إنك عايز تمسح الفقرة دي؟', async () => {
             // Find slot to track deletion
@@ -616,11 +639,14 @@ export default function EventBuilder({ event, onBack }) {
     };
 
     const handleUpdateDay = () => {
-        if (!editDayName.trim()) return;
-
         setDays(prev => prev.map(d => 
             d.day_id === editingDayId 
-                ? { ...d, day_name: editDayName, day_name_ar: editDayNameAr, day_date: editDayDate } 
+                ? { 
+                    ...d, 
+                    day_name: editDayName.trim() ? editDayName : `Day ${d.day_number}`, 
+                    day_name_ar: editDayNameAr, 
+                    day_date: editDayDate 
+                  } 
                 : d
         ));
 
@@ -1155,21 +1181,17 @@ export default function EventBuilder({ event, onBack }) {
                                                     value={newDayName}
                                                     onChange={(e) => {
                                                         setNewDayName(e.target.value);
-                                                        if (e.target.value.trim()) setDayError(false);
                                                     }}
-                                                    placeholder="Day Label (EN)"
-                                                    className={`w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-slate-50 border rounded-xl sm:rounded-2xl text-xs sm:text-base font-medium placeholder-slate-400 focus:outline-none focus:ring-2 transition-premium ${dayError ? 'border-red-500 focus:ring-red-100' : 'border-slate-100 focus:ring-[#1a27c9] focus:bg-white'}`}
+                                                    placeholder="Day Label (EN) - Optional"
+                                                    className={`w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-slate-50 border rounded-xl sm:rounded-2xl text-xs sm:text-base font-medium placeholder-slate-400 focus:outline-none focus:ring-2 transition-premium border-slate-100 focus:ring-[#1a27c9] focus:bg-white`}
                                                 />
-                                                {dayError && (
-                                                    <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-1.5 ml-2">Required</p>
-                                                )}
                                             </div>
                                             <div className="flex-1 relative">
                                                 <input
                                                     type="text"
                                                     value={newDayNameAr}
                                                     onChange={(e) => setNewDayNameAr(e.target.value)}
-                                                    placeholder="اسم اليوم (AR)"
+                                                    placeholder="اسم اليوم (AR) - اختياري"
                                                     dir="rtl"
                                                     className="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl text-xs sm:text-base font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1a27c9] focus:bg-white transition-premium"
                                                 />
@@ -1294,8 +1316,16 @@ export default function EventBuilder({ event, onBack }) {
                                                 <span className="text-[9px] sm:text-sm whitespace-nowrap">Add Slot</span>
                                             </button>
                                             <button
+                                                onClick={() => handleDuplicateDay(day.day_id)}
+                                                className="p-1.5 sm:px-3 sm:py-2.5 bg-indigo-50 text-indigo-500 border border-indigo-100 rounded-lg sm:rounded-xl hover:bg-indigo-100 transition-premium"
+                                                title="Duplicate Day"
+                                            >
+                                                <Copy size={13} className="sm:w-[20px] sm:h-[20px]" />
+                                            </button>
+                                            <button
                                                 onClick={() => handleDeleteDay(day.day_id)}
                                                 className="p-1.5 sm:px-3 sm:py-2.5 bg-red-50 text-red-500 border border-red-100 rounded-lg sm:rounded-xl hover:bg-red-100 transition-premium"
+                                                title="Delete Day"
                                             >
                                                 <Trash2 size={13} className="sm:w-[20px] sm:h-[20px]" />
                                             </button>
