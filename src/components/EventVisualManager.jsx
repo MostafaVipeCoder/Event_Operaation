@@ -30,6 +30,7 @@ export default function EventVisualManager() {
 
     useEffect(() => {
         loadEventDetails();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventId]);
 
     const loadEventDetails = async () => {

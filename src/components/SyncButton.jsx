@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Loader2, RefreshCw, CheckCircle2, AlertCircle, X, Info, Plus, Edit3, ChevronDown, ChevronUp } from 'lucide-react';
 import { syncEventFromCloud } from '../lib/api';
 

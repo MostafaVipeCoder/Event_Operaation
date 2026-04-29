@@ -23,7 +23,7 @@ import {
     arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
-    verticalListSortingStrategy,
+    verticalListSortingStrategy as _verticalListSortingStrategy,
     rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
@@ -38,7 +38,7 @@ const ExpertManager = ({ isEmbedded = false }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [_selectedFile, _setSelectedFile] = useState(null);
     const [editingExpert, setEditingExpert] = useState(null);
     const [activeTab, setActiveTab] = useState('curated'); // 'curated' | 'review'
     const [submissions, setSubmissions] = useState([]);
@@ -52,7 +52,7 @@ const ExpertManager = ({ isEmbedded = false }) => {
     const [showLibraryModal, setShowLibraryModal] = useState(false);
     const [libraryExperts, setLibraryExperts] = useState([]);
     const [libraryLoading, setLibraryLoading] = useState(false);
-    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+    const [isSearchExpanded, _setIsSearchExpanded] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -112,6 +112,7 @@ const ExpertManager = ({ isEmbedded = false }) => {
 
     useEffect(() => {
         loadData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventId, activeTab]);
 
     const handleEdit = (expert) => {

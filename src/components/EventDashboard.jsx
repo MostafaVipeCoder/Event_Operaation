@@ -17,7 +17,7 @@ export default function EventDashboard() {
     // Theme State
     const [expertsColor, setExpertsColor] = useState('#9333ea'); // Default Purple
     const [startupsColor, setStartupsColor] = useState('#059669'); // Default Emerald
-    const [themeSaved, setThemeSaved] = useState(false);
+    const [_themeSaved, setThemeSaved] = useState(false);
     const [isSyncOpen, setIsSyncOpen] = useState(false);
 
     // Edit Name State
@@ -33,9 +33,10 @@ export default function EventDashboard() {
 
     useEffect(() => {
         loadEventDetails();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventId]);
 
-    const saveTheme = async () => {
+    const _saveTheme = async () => {
         try {
             const updates = {
                 experts_color: expertsColor,

@@ -30,6 +30,7 @@ const ExpandableText = ({
     const collapsedMaxHeight = `${lines * lineHeightEm}em`;
 
     // Initial mount flag to skip transitions
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setIsMounted(true);
     }, []);

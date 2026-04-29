@@ -17,7 +17,7 @@ import {
     syncEventFromCloud
 } from '../lib/api';
 import { formatDate, formatTime, getGoogleDriveDirectLink } from '../lib/utils';
-import { generateAgendaTemplate, parseAgendaExcel, fetchAndParseGoogleSheet } from '../lib/excel';
+import { generateAgendaTemplate as _generateAgendaTemplate, parseAgendaExcel, fetchAndParseGoogleSheet } from '../lib/excel';
 import { updateSlotsOrder } from '../lib/api';
 
 // DnD Kit Imports
@@ -174,12 +174,11 @@ function SortableSlot({ slot, onEdit, onDelete, onTogglePresenter, isInvalid }) 
 }
 
 export default function EventBuilder({ event, onBack }) {
-    const navigate = useNavigate();
     const [days, setDays] = useState([]);
     const [slots, setSlots] = useState({});
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('days');
-    const [isSubmittingDay, setIsSubmittingDay] = useState(false);
+    const [isSubmittingDay, _setIsSubmittingDay] = useState(false);
 
     const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
         const hours = Math.floor(i / 2).toString().padStart(2, '0');
@@ -191,8 +190,8 @@ export default function EventBuilder({ event, onBack }) {
     const [newDayName, setNewDayName] = useState('');
     const [newDayNameAr, setNewDayNameAr] = useState('');
     const [newDayDate, setNewDayDate] = useState('');
-    const [selectedDay, setSelectedDay] = useState(null);
-    const [dayError, setDayError] = useState(false);
+    const [_selectedDay, _setSelectedDay] = useState(null);
+    const [_dayError, setDayError] = useState(false);
 
     const [slotModal, setSlotModal] = useState({
         show: false,
@@ -222,8 +221,8 @@ export default function EventBuilder({ event, onBack }) {
     const [coverImageUrl, setCoverImageUrl] = useState(event?.header_image_url || '');
     const [isUploadingCover, setIsUploadingCover] = useState(false);
     const [coverSaved, setCoverSaved] = useState(false);
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [gsheetsUrl, setGsheetsUrl] = useState('');
+    const [_isSyncing, setIsSyncing] = useState(false);
+    const [_gsheetsUrl, setGsheetsUrl] = useState('');
     const [lastSyncTime, setLastSyncTime] = useState(null);
     const [syncReport, setSyncReport] = useState(null);
     const [syncError, setSyncError] = useState(null);
@@ -234,6 +233,26 @@ export default function EventBuilder({ event, onBack }) {
     const [pendingDeletions, setPendingDeletions] = useState([]);
     const [pendingDayDeletions, setPendingDayDeletions] = useState([]);
     const [invalidSlotIds, setInvalidSlotIds] = useState(new Set());
+
+    // Header / Visual Settings State
+    const [headerSettings, setHeaderSettings] = useState({
+        visible: true,
+        type: 'image',
+        color: '#1a27c9',
+        showTitle: false,
+        titleDescription: '',
+        titleColor: '#ffffff',
+        overlayOpacity: 0.3,
+        fontFamily: 'manrope',
+        titleSize: '2rem',
+        titleWeight: '800',
+        contentSize: '1rem',
+        contentWeight: '600',
+    });
+    const [imageUrls, setImageUrls] = useState({
+        header: event?.header_image_url || '',
+        height: '400px',
+    });
     
     // Helper to normalize and serialize the state for robust comparison
     // This handles discrepancies like "09:00:00" (from API) vs "09:00" (local update)
@@ -328,8 +347,37 @@ export default function EventBuilder({ event, onBack }) {
         }
     };
 
+    const handleImageUpload = async (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            setIsUploading(true);
+            const publicUrl = await uploadImage(file, 'visuals');
+            setImageUrls(prev => ({ ...prev, [type]: publicUrl }));
+        } catch (err) {
+            console.error('Image upload failed:', err);
+            alert('فشل رفع الصورة. حاول مرة تانية.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
-    const handleImportExcel = async (e) => {
+    const handleSaveImages = async () => {
+        try {
+            await updateEvent(event.event_id, {
+                header_image_url: imageUrls.header,
+                header_settings: headerSettings,
+                header_height: imageUrls.height,
+            });
+            showToast('Visual settings saved! 🎨');
+        } catch (err) {
+            console.error('Save images failed:', err);
+            showToast('Failed to save visual settings.', 'error');
+        }
+    };
+
+
+    const _handleImportExcel = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -347,7 +395,7 @@ export default function EventBuilder({ event, onBack }) {
         }
     };
 
-    const handleGoogleSheetSync = async () => {
+    const _handleGoogleSheetSync = async () => {
         if (!eventDetails?.gsheets_url) {
             setSyncError({ message: 'يرجى ضبط رابط Google Sheet من لوحة التحكم (Event Dashboard) أولاً.' });
             return;
@@ -379,6 +427,7 @@ export default function EventBuilder({ event, onBack }) {
         if (eventDetails?.gsheets_url) {
             setGsheetsUrl(eventDetails.gsheets_url);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [event.event_id, eventDetails?.gsheets_url]);
 
     useEffect(() => {
@@ -441,8 +490,8 @@ export default function EventBuilder({ event, onBack }) {
         const tempId = `day-temp-${Date.now()}`;
         const newDay = {
             day_id: tempId,
-            day_name: newDayName.trim() ? newDayName : `Day ${days.length + 1}`,
-            day_name_ar: newDayNameAr.trim() ? newDayNameAr : `اليوم ${days.length + 1}`,
+            day_name: newDayName.trim(),
+            day_name_ar: newDayNameAr.trim(),
             day_date: newDayDate || new Date().toISOString().split('T')[0],
             day_number: days.length + 1,
             event_id: event.event_id,
@@ -503,10 +552,9 @@ export default function EventBuilder({ event, onBack }) {
         const cleanBullets = (bulletPoints || []).filter(b => b.trim() !== '');
         const cleanBulletsAr = (bulletPointsAr || []).filter(b => b.trim() !== '');
 
+        // Store previous state for rollback (hoisted outside try for catch access)
+        const previousSlots = { ...slots };
         try {
-            // Store previous state for rollback
-            const previousSlots = { ...slots };
-
             // Optimistic UI Update
             if (isEditing) {
                 setSlots(prev => ({
@@ -585,8 +633,8 @@ export default function EventBuilder({ event, onBack }) {
         const newDay = {
             ...sourceDay,
             day_id: tempDayId,
-            day_name: sourceDay.day_name ? `${sourceDay.day_name} (Copy)` : `Day ${newDayNumber}`,
-            day_name_ar: sourceDay.day_name_ar ? `${sourceDay.day_name_ar} (نسخة)` : `اليوم ${newDayNumber}`,
+            day_name: sourceDay.day_name ? `${sourceDay.day_name} (Copy)` : '',
+            day_name_ar: sourceDay.day_name_ar ? `${sourceDay.day_name_ar} (نسخة)` : '',
             day_number: newDayNumber,
             isOptimistic: true // Mark as new for handleFinalSave
         };
@@ -643,8 +691,8 @@ export default function EventBuilder({ event, onBack }) {
             d.day_id === editingDayId 
                 ? { 
                     ...d, 
-                    day_name: editDayName.trim() ? editDayName : `Day ${d.day_number}`, 
-                    day_name_ar: editDayNameAr, 
+                    day_name: editDayName.trim(), 
+                    day_name_ar: editDayNameAr.trim(), 
                     day_date: editDayDate 
                   } 
                 : d
@@ -935,6 +983,34 @@ export default function EventBuilder({ event, onBack }) {
                                     <span>Preview</span>
                                 </a>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Tab Navigation */}
+                <div className="bg-white border-b border-slate-200">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex gap-1">
+                            <button
+                                onClick={() => setActiveTab('days')}
+                                className={`px-6 py-3.5 text-xs font-black uppercase tracking-widest transition-all border-b-2 ${
+                                    activeTab === 'days'
+                                        ? 'border-[#1a27c9] text-[#1a27c9]'
+                                        : 'border-transparent text-slate-400 hover:text-slate-600'
+                                }`}
+                            >
+                                Agenda Days
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('settings')}
+                                className={`px-6 py-3.5 text-xs font-black uppercase tracking-widest transition-all border-b-2 ${
+                                    activeTab === 'settings'
+                                        ? 'border-[#1a27c9] text-[#1a27c9]'
+                                        : 'border-transparent text-slate-400 hover:text-slate-600'
+                                }`}
+                            >
+                                Visual Settings
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1317,10 +1393,11 @@ export default function EventBuilder({ event, onBack }) {
                                             </button>
                                             <button
                                                 onClick={() => handleDuplicateDay(day.day_id)}
-                                                className="p-1.5 sm:px-3 sm:py-2.5 bg-indigo-50 text-indigo-500 border border-indigo-100 rounded-lg sm:rounded-xl hover:bg-indigo-100 transition-premium"
+                                                className="p-1.5 sm:px-3 sm:py-2.5 bg-indigo-50 text-indigo-500 border border-indigo-100 rounded-lg sm:rounded-xl hover:bg-indigo-100 transition-premium flex items-center gap-1.5"
                                                 title="Duplicate Day"
                                             >
                                                 <Copy size={13} className="sm:w-[20px] sm:h-[20px]" />
+                                                <span className="hidden sm:inline text-sm font-bold">Duplicate</span>
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteDay(day.day_id)}

@@ -453,44 +453,6 @@ export const uploadImage = async (file, path = 'covers') => {
 // LIBRARY (مكتبة) APIs
 // ==========================================
 
-export const getLibrarySections = (eventId) => withCache(`library_sections_${eventId || 'global'}`, async () => {
-    let query = supabase.from('library_sections').select('*');
-    if (eventId && eventId !== 'undefined') {
-        query = query.or(`event_id.eq.${eventId},is_central.eq.true`);
-    } else {
-        query = query.eq('is_central', true);
-    }
-    const { data, error } = await query.order('sort_order', { ascending: true });
-    if (error) throw error; return data;
-});
-
-export const createLibrarySection = async (sectionData) => {
-    const { data, error } = await supabase
-        .from('library_sections')
-        .insert(sectionData)
-        .select()
-        .single();
-    if (error) throw error; return data;
-};
-
-export const updateLibrarySection = async (sectionId, updates) => {
-    const { data, error } = await supabase
-        .from('library_sections')
-        .update(updates)
-        .eq('section_id', sectionId)
-        .select()
-        .single();
-    if (error) throw error; return data;
-};
-
-export const deleteLibrarySection = async (sectionId) => {
-    const { error } = await supabase
-        .from('library_sections')
-        .delete()
-        .eq('section_id', sectionId);
-    if (error) throw error; return { success: true };
-};
-
 export const getLibraryResources = (eventId) => withCache(`library_resources_${eventId || 'global'}`, async () => {
     let query = supabase.from('library_resources').select('*');
     if (eventId && eventId !== 'undefined') {
@@ -530,11 +492,8 @@ export const deleteLibraryResource = async (resourceId) => {
 };
 
 export const getLibraryData = (eventId) => withCache(`library_data_${eventId}`, async () => {
-    const [sections, resources] = await Promise.all([
-        getLibrarySections(eventId),
-        getLibraryResources(eventId)
-    ]);
-    return { sections, resources };
+    const resources = await getLibraryResources(eventId);
+    return { resources };
 });
 
 /**

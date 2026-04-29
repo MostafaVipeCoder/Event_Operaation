@@ -17,7 +17,7 @@ export default function MasterExpertsList() {
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
     const [editingExpert, setEditingExpert] = useState(null);
-    const [error, setError] = useState(null);
+    const [_error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
 
     const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -57,7 +57,7 @@ export default function MasterExpertsList() {
         try {
             await deleteMasterExpert(id);
             setExperts(prev => prev.filter(e => e.id !== id));
-        } catch (err) {
+        } catch (_err) {
             alert('Error deleting expert');
         }
     };

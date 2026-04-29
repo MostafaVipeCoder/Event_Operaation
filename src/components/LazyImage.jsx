@@ -38,20 +38,17 @@ const LazyImage = ({
         return baseUrls;
     }, [baseUrls, primaryKey]);
 
-    const itemsRef = useRef(urlsToTry);
-    
     const [isInView, setIsInView] = useState(priority);
     const [urlIndex, setUrlIndex] = useState(0);
     const [loaded, setLoaded] = useState(false);
+    const [prevUrls, setPrevUrls] = useState(urlsToTry);
 
-    // If underlying URLs change, reset to test again
-    useEffect(() => {
-        if (itemsRef.current[0] !== urlsToTry[0]) {
-            setUrlIndex(0);
-            setLoaded(false);
-            itemsRef.current = urlsToTry;
-        }
-    }, [urlsToTry]);
+    // Reset state if underlying URLs change
+    if (prevUrls !== urlsToTry) {
+        setPrevUrls(urlsToTry);
+        setUrlIndex(0);
+        setLoaded(false);
+    }
 
     const currentSrc = urlsToTry[urlIndex];
     const allFailed = urlIndex >= urlsToTry.length;
@@ -92,7 +89,7 @@ const LazyImage = ({
                 console.log(`🧹 Evicting stale URL from cache for [${alt || 'Unknown'}]`);
                 localStorage.removeItem(`WorkingImg_${primaryKey}`);
             }
-        } catch (e) {}
+        } catch (_e) { /* ignore localStorage errors */ }
 
         if (urlIndex + 1 < urlsToTry.length) {
             // Log fallback attempt
@@ -113,7 +110,7 @@ const LazyImage = ({
             if (urlIndex > 0) {
                console.log(`✅ Image Auto-Healed [${alt || 'Unknown'}]! Successfully loaded on fallback #${urlIndex + 1}:`, currentSrc);
             }
-        } catch (e) {}
+        } catch (_e) { /* ignore localStorage errors */ }
     };
 
     return (

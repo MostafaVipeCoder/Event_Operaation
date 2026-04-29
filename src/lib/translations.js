@@ -228,7 +228,12 @@ export const translations = {
             noResultsSub: "Adjust your frequency or explore other modules",
             access: "Access",
             global: "Global",
-            eventSpecific: "Event Specific"
+            eventSpecific: "Event Specific",
+            table: {
+                title: "Resource Title",
+                source: "Source",
+                access: "Access"
+            }
         },
         ar: {
             title: "مكتبة",
@@ -256,7 +261,12 @@ export const translations = {
             noResultsSub: "اضبط البحث أو استكشف الأقسام الأخرى",
             access: "دخول",
             global: "عام",
-            eventSpecific: "خاص بالفعالية"
+            eventSpecific: "خاص بالفعالية",
+            table: {
+                title: "عنوان المورد",
+                source: "المصدر",
+                access: "الدخول"
+            }
         }
     },
     PublicLayout: {

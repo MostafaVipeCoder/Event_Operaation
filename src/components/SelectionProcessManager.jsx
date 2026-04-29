@@ -36,8 +36,8 @@ const SelectionProcessManager = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
-    const [error, setError] = useState(null);
-    const [event, setEvent] = useState(null);
+    const [_error, setError] = useState(null);
+    const [_event, setEvent] = useState(null);
     const [sheetUrl, setSheetUrl] = useState('');
 
     // Data State
@@ -386,7 +386,7 @@ const SelectionProcessManager = () => {
                                     </tr>
                                 ) : (
                                     currentSubmissions.map(sub => {
-                                        const stage = stages.find(s => s.id === (sub.status === 'displayed' ? 'approved' : sub.status));
+                                        const _stage = stages.find(s => s.id === (sub.status === 'displayed' ? 'approved' : sub.status));
                                         return (
                                             <tr key={sub.submission_id} className="hover:bg-slate-50/80 transition-premium group">
                                                 <td className="px-6 py-5 border-b border-slate-50 text-center">
