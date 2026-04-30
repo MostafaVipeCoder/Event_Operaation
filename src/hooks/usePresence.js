@@ -16,12 +16,21 @@ export function usePresence(roomId = 'global') {
     const setupPresence = async () => {
       if (!user) return;
 
-      // 1. Fetch user profile
-      const { data: userProfile } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_color')
-        .eq('id', user.id)
-        .single();
+      // 1. Fetch user profile safely
+      let userProfile = null;
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_color')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (!error && data) {
+          userProfile = data;
+        }
+      } catch (err) {
+        console.warn('Could not fetch user profile for presence:', err);
+      }
 
       // Bail out if component unmounted while we were fetching
       if (!isMounted) return;
