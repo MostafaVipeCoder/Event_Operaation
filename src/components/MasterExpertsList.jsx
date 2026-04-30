@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { getMasterExperts, updateMasterExpert, deleteMasterExpert } from '../lib/api';
 import { getGoogleDriveFallbackUrls } from '../lib/utils';
 import LazyImage from './LazyImage';
+import ExpertCard from './ExpertCard';
 
 export default function MasterExpertsList() {
     const navigate = useNavigate();
@@ -229,90 +230,21 @@ export default function MasterExpertsList() {
     );
 }
 
-function ExpertCard({ expert, onEdit, onDelete }) {
-    return (
-        <div className="group bg-card hover:bg-muted/40 border border-border/50 hover:border-athar-blue/30 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-premium relative flex flex-col h-full">
-            <div className="p-3 sm:p-6 flex flex-col items-center text-center h-full">
-                <div className="relative mb-3 sm:mb-4">
-                    <div className="absolute inset-0 bg-athar-blue/20 blur-xl opacity-0 group-hover:opacity-100 rounded-full transition-opacity" />
-                    <div className="h-16 w-16 sm:h-24 sm:w-24 relative">
-                        <LazyImage
-                            src={expert.photo_url ? getGoogleDriveFallbackUrls(expert.photo_url)[0] : null}
-                            urls={expert.photo_url ? getGoogleDriveFallbackUrls(expert.photo_url) : []}
-                            alt={expert.name}
-                            objectFit="cover"
-                            className="rounded-xl sm:rounded-2xl border-2 border-background shadow-md group-hover:scale-105 transition-transform"
-                            fallback={
-                                <div className="h-full w-full rounded-xl sm:rounded-2xl bg-muted border-2 border-background flex items-center justify-center text-muted-foreground shadow-sm">
-                                    <User size={24} className="sm:size-8" />
-                                </div>
-                            }
-                        />
-                    </div>
-                </div>
-                
-                <h3 className="text-sm sm:text-xl font-black tracking-tight mb-0.5 sm:mb-1 line-clamp-1">{expert.name}</h3>
-                <p className="text-[10px] sm:text-sm font-bold text-athar-blue mb-2 sm:mb-3 line-clamp-1">{expert.title || 'Expert'}</p>
-                <div className="flex items-center gap-1 sm:gap-1.5 text-[8px] sm:text-xs font-bold text-muted-foreground bg-muted/50 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-border/50 mb-3 sm:mb-4 max-w-full">
-                    <Briefcase size={10} className="sm:size-3" />
-                    <span className="line-clamp-1">{expert.company || 'Private'}</span>
-                </div>
-                
-                <p className="hidden sm:block text-sm text-center text-muted-foreground line-clamp-2 mb-6 flex-grow leading-relaxed font-semibold">
-                    {expert.bio || 'No biography available.'}
-                </p>
-                
-                <div className="w-full pt-3 sm:pt-4 border-t border-border/50 flex items-center justify-between mt-auto">
-                    <div className="flex gap-1 sm:gap-2">
-                        {expert.linkedin_url && (
-                            <a 
-                                href={expert.linkedin_url} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="p-1.5 sm:p-2 text-muted-foreground hover:text-[#0077b5] hover:bg-[#0077b5]/10 rounded-lg transition-colors border border-transparent hover:border-[#0077b5]/20"
-                            >
-                                <Linkedin size={14} className="sm:size-[18px]" />
-                            </a>
-                        )}
-                        <button className="hidden sm:block p-2 text-muted-foreground hover:text-athar-blue hover:bg-athar-blue/10 rounded-lg transition-colors border border-transparent hover:border-athar-blue/20">
-                            <Info size={18} />
-                        </button>
-                    </div>
-                    <div className="flex gap-1 sm:gap-2">
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                            className="p-1.5 sm:p-2 text-muted-foreground hover:text-athar-blue hover:bg-athar-blue/10 rounded-lg transition-colors border border-transparent hover:border-athar-blue/20"
-                        >
-                            <Edit2 size={14} className="sm:size-[18px]" />
-                        </button>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                            className="p-1.5 sm:p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors border border-transparent hover:border-destructive/20"
-                        >
-                            <Trash2 size={14} className="sm:size-[18px]" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 function ExpertRow({ expert, onEdit, onDelete }) {
     return (
         <tr className="hover:bg-muted/30 transition-colors group">
-            <td className="px-6 py-4">
-                <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 relative shrink-0">
+            <td className="px-6 py-6">
+                <div className="flex items-center gap-6">
+                    <div className="h-16 w-16 relative shrink-0 aspect-square">
                         <LazyImage
                             src={expert.photo_url ? getGoogleDriveFallbackUrls(expert.photo_url)[0] : null}
                             urls={expert.photo_url ? getGoogleDriveFallbackUrls(expert.photo_url) : []}
                             alt=""
                             objectFit="cover"
-                            className="rounded-xl shadow-sm group-hover:scale-105 transition-transform"
+                            className="rounded-2xl shadow-md group-hover:scale-105 transition-transform border-2 border-white w-full h-full"
                             fallback={
-                                <div className="h-full w-full rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
-                                    <User size={20} />
+                                <div className="h-full w-full rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                                    <User size={24} />
                                 </div>
                             }
                         />

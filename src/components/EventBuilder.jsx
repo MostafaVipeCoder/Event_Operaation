@@ -17,7 +17,7 @@ import {
     syncEventFromCloud
 } from '../lib/api';
 import { formatDate, formatTime, getGoogleDriveDirectLink } from '../lib/utils';
-import { generateAgendaTemplate as _generateAgendaTemplate, parseAgendaExcel, fetchAndParseGoogleSheet } from '../lib/excel';
+import { generateAgendaTemplate, parseAgendaExcel, fetchAndParseGoogleSheet } from '../lib/excel';
 import { updateSlotsOrder } from '../lib/api';
 
 // DnD Kit Imports
@@ -178,7 +178,7 @@ export default function EventBuilder({ event, onBack }) {
     const [slots, setSlots] = useState({});
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('days');
-    const [isSubmittingDay, _setIsSubmittingDay] = useState(false);
+    const [isSubmittingDay, setIsSubmittingDay] = useState(false);
 
     const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
         const hours = Math.floor(i / 2).toString().padStart(2, '0');
@@ -190,7 +190,7 @@ export default function EventBuilder({ event, onBack }) {
     const [newDayName, setNewDayName] = useState('');
     const [newDayNameAr, setNewDayNameAr] = useState('');
     const [newDayDate, setNewDayDate] = useState('');
-    const [_selectedDay, _setSelectedDay] = useState(null);
+    const [_selectedDay, setSelectedDay] = useState(null);
     const [_dayError, setDayError] = useState(false);
 
     const [slotModal, setSlotModal] = useState({
@@ -227,6 +227,7 @@ export default function EventBuilder({ event, onBack }) {
     const [syncReport, setSyncReport] = useState(null);
     const [syncError, setSyncError] = useState(null);
     const [showDayNames, setShowDayNames] = useState(event?.show_day_names !== false);
+    const [isSavingVisuals, setIsSavingVisuals] = useState(false);
 
     // Staging and Validation States
     const [stableState, setStableState] = useState(null);
@@ -307,6 +308,21 @@ export default function EventBuilder({ event, onBack }) {
         return current !== stableState;
     }, [days, slots, showDayNames, stableState]);
 
+    const changeSummary = useMemo(() => {
+        if (!hasUnsavedChanges) return null;
+        
+        const newDaysCount = days.filter(d => d.isOptimistic).length;
+        const deletedDaysCount = pendingDayDeletions.length;
+        const deletedSlotsCount = pendingDeletions.length;
+        
+        const parts = [];
+        if (newDaysCount > 0) parts.push(`${newDaysCount} أيام جديدة`);
+        if (deletedDaysCount > 0) parts.push(`${deletedDaysCount} أيام محذوفة`);
+        if (deletedSlotsCount > 0) parts.push(`${deletedSlotsCount} فقرات محذوفة`);
+        
+        return parts.length > 0 ? parts.join('، ') : 'تعديلات بالمسودة';
+    }, [hasUnsavedChanges, days, pendingDayDeletions, pendingDeletions]);
+
     // Custom UI Dialogs State
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const [confirmState, setConfirmState] = useState({ show: false, message: '', onConfirm: null });
@@ -364,20 +380,24 @@ export default function EventBuilder({ event, onBack }) {
 
     const handleSaveImages = async () => {
         try {
+            setIsSavingVisuals(true);
             await updateEvent(event.event_id, {
                 header_image_url: imageUrls.header,
                 header_settings: headerSettings,
                 header_height: imageUrls.height,
+                show_day_names: showDayNames
             });
             showToast('Visual settings saved! 🎨');
         } catch (err) {
             console.error('Save images failed:', err);
             showToast('Failed to save visual settings.', 'error');
+        } finally {
+            setIsSavingVisuals(false);
         }
     };
 
 
-    const _handleImportExcel = async (e) => {
+    const handleImportExcel = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -395,7 +415,7 @@ export default function EventBuilder({ event, onBack }) {
         }
     };
 
-    const _handleGoogleSheetSync = async () => {
+    const handleGoogleSheetSync = async () => {
         if (!eventDetails?.gsheets_url) {
             setSyncError({ message: 'يرجى ضبط رابط Google Sheet من لوحة التحكم (Event Dashboard) أولاً.' });
             return;
@@ -427,7 +447,6 @@ export default function EventBuilder({ event, onBack }) {
         if (eventDetails?.gsheets_url) {
             setGsheetsUrl(eventDetails.gsheets_url);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [event.event_id, eventDetails?.gsheets_url]);
 
     useEffect(() => {
@@ -459,22 +478,26 @@ export default function EventBuilder({ event, onBack }) {
             }
 
             const daysData = await getEventDays(event.event_id);
-            setDays(Array.isArray(daysData) ? daysData : []);
+            // Sort initial data by date
+            const sortedDaysData = Array.isArray(daysData) 
+                ? [...daysData].sort((a, b) => (a.day_date || '').localeCompare(b.day_date || ''))
+                : [];
+            setDays(sortedDaysData);
 
             // Load slots for all days in parallel
-            if (daysData && daysData.length > 0) {
-                const slotsPromises = daysData.map(day => getAgendaSlots(day.day_id));
+            if (sortedDaysData.length > 0) {
+                const slotsPromises = sortedDaysData.map(day => getAgendaSlots(day.day_id));
                 const allSlots = await Promise.all(slotsPromises);
 
                 const slotsData = {};
-                daysData.forEach((day, index) => {
+                sortedDaysData.forEach((day, index) => {
                     slotsData[day.day_id] = allSlots[index] || [];
                 });
                 setSlots(slotsData);
 
                 // Set initial stable state for comparison using our normalization helper
                 const initialShowDayNames = currentEventData ? currentEventData.show_day_names !== false : true;
-                setStableState(serializeState(daysData, slotsData, initialShowDayNames));
+                setStableState(serializeState(sortedDaysData, slotsData, initialShowDayNames));
             } else {
                 const initialShowDayNames = currentEventData ? currentEventData.show_day_names !== false : true;
                 setStableState(serializeState([], {}, initialShowDayNames));
@@ -484,6 +507,13 @@ export default function EventBuilder({ event, onBack }) {
         } finally {
             if (!silent) setLoading(false);
         }
+    };
+
+    // Helper to re-index days by date to ensure sequential integrity
+    const reorderDays = (daysArray) => {
+        return [...daysArray]
+            .sort((a, b) => (a.day_date || '').localeCompare(b.day_date || ''))
+            .map((d, index) => ({ ...d, day_number: index + 1 }));
     };
 
     const handleAddDay = () => {
@@ -498,7 +528,7 @@ export default function EventBuilder({ event, onBack }) {
             isOptimistic: true // Mark as new for handleFinalSave
         };
 
-        setDays(prev => [...prev, newDay]);
+        setDays(prev => reorderDays([...prev, newDay]));
         setSlots(prev => ({ ...prev, [tempId]: [] }));
         
         // Clear inputs immediately
@@ -555,22 +585,20 @@ export default function EventBuilder({ event, onBack }) {
         // Store previous state for rollback (hoisted outside try for catch access)
         const previousSlots = { ...slots };
         try {
-            // Optimistic UI Update
+            // Calculate the new state for this day
+            let newDaySlots;
             if (isEditing) {
-                setSlots(prev => ({
-                    ...prev,
-                    [dayId]: prev[dayId].map(s => s.slot_id === slotId ? {
-                        ...s,
-                        start_time: startTime,
-                        end_time: endTime,
-                        slot_title: title,
-                        slot_title_ar: titleAr,
-                        presenter_name: presenter,
-                        presenter_name_ar: presenterAr,
-                        bullet_points: cleanBullets,
-                        bullet_points_ar: cleanBulletsAr
-                    } : s)
-                }));
+                newDaySlots = previousSlots[dayId].map(s => s.slot_id === slotId ? {
+                    ...s,
+                    start_time: startTime,
+                    end_time: endTime,
+                    slot_title: title,
+                    slot_title_ar: titleAr,
+                    presenter_name: presenter,
+                    presenter_name_ar: presenterAr,
+                    bullet_points: cleanBullets,
+                    bullet_points_ar: cleanBulletsAr
+                } : s);
             } else {
                 const tempId = `temp-${Date.now()}`;
                 const newSlot = {
@@ -587,16 +615,20 @@ export default function EventBuilder({ event, onBack }) {
                     bullet_points_ar: cleanBulletsAr,
                     isOptimistic: true
                 };
-                setSlots(prev => ({
-                    ...prev,
-                    [dayId]: [...(prev[dayId] || []), newSlot].sort((a, b) => a.start_time.localeCompare(b.start_time))
-                }));
+                newDaySlots = [...(previousSlots[dayId] || []), newSlot].sort((a, b) => a.start_time.localeCompare(b.start_time));
             }
+
+            // Apply state update
+            setSlots(prev => ({
+                ...prev,
+                [dayId]: newDaySlots
+            }));
 
             // Close modal immediately
             setSlotModal(prev => ({ ...prev, show: false, saving: false }));
 
-            validateAgendaOrder(dayId);
+            // Validate with the NEW slots to avoid stale state issues
+            validateAgendaOrder(dayId, newDaySlots);
         } catch (error) {
             console.error('Error saving slot:', error);
             // Rollback on failure
@@ -613,7 +645,10 @@ export default function EventBuilder({ event, onBack }) {
                 setPendingDayDeletions(prev => [...prev, dayId]);
             }
 
-            setDays(prev => prev.filter(day => day.day_id !== dayId));
+            setDays(prev => {
+                const filtered = prev.filter(day => day.day_id !== dayId);
+                return reorderDays(filtered);
+            });
             setSlots(prev => {
                 const newSlots = { ...prev };
                 delete newSlots[dayId];
@@ -647,7 +682,7 @@ export default function EventBuilder({ event, onBack }) {
             isOptimistic: true
         }));
 
-        setDays(prev => [...prev, newDay]);
+        setDays(prev => reorderDays([...prev, newDay]));
         setSlots(prev => ({ ...prev, [tempDayId]: newSlots }));
         
         showToast('تم تكرار اليوم بنجاح (اضغط حفظ للتأكيد النهائي)');
@@ -687,16 +722,19 @@ export default function EventBuilder({ event, onBack }) {
     };
 
     const handleUpdateDay = () => {
-        setDays(prev => prev.map(d => 
-            d.day_id === editingDayId 
-                ? { 
-                    ...d, 
-                    day_name: editDayName.trim(), 
-                    day_name_ar: editDayNameAr.trim(), 
-                    day_date: editDayDate 
-                  } 
-                : d
-        ));
+        setDays(prev => {
+            const updated = prev.map(d => 
+                d.day_id === editingDayId 
+                    ? { 
+                        ...d, 
+                        day_name: editDayName.trim(), 
+                        day_name_ar: editDayNameAr.trim(), 
+                        day_date: editDayDate 
+                      } 
+                    : d
+            );
+            return reorderDays(updated);
+        });
 
         setEditingDayId(null);
         showToast('تم تحديث بيانات اليوم في المسودة');
@@ -763,18 +801,21 @@ export default function EventBuilder({ event, onBack }) {
         const currentSlots = updatedSlots || slots[dayId] || [];
         const newInvalidIds = new Set(invalidSlotIds);
         
-        // Clear previous invalid IDs for this day
-        if (slots[dayId]) {
-            slots[dayId].forEach(s => newInvalidIds.delete(s.slot_id));
-        }
+        // Clear previous invalid IDs for THIS day's current slots
+        const currentDaySlots = slots[dayId] || [];
+        currentDaySlots.forEach(s => newInvalidIds.delete(s.slot_id));
+        
+        // Also clear invalid IDs for the updated slots being validated
+        currentSlots.forEach(s => newInvalidIds.delete(s.slot_id));
 
         let isLogical = true;
         for (let i = 0; i < currentSlots.length - 1; i++) {
             const current = currentSlots[i];
             const next = currentSlots[i + 1];
             
-            // Compare times (HH:MM)
-            if (current.start_time > next.start_time) {
+            // Overlap or invalid sequence check
+            // If current starts after next, OR current ends after next starts
+            if (current.start_time > next.start_time || current.end_time > next.start_time) {
                 isLogical = false;
                 newInvalidIds.add(current.slot_id);
                 newInvalidIds.add(next.slot_id);
@@ -830,20 +871,53 @@ export default function EventBuilder({ event, onBack }) {
             showToast('⚠️ الترتيب غير منطقي زمنياً! يرجى مراجعة الفقرات المحددة بالأحمر.', 'warning');
         }
 
-        /* 
-        // DISABLED PERSISTENCE FOR STAGING
         try {
             const updates = newDaySlots.map((slot, index) => ({
                 ...slot,
                 sort_order: index + 1
             }));
-            await updateSlotsOrder(updates);
+            
+            const results = await updateSlotsOrder(updates);
+            
+            // Merge all returned slots from DB (both newly inserted and existing upserted)
+            const allReturnedSlots = [
+                ...(results.inserted || []),
+                ...(results.upserted || [])
+            ];
+
+            if (allReturnedSlots.length > 0) {
+                setSlots(prev => {
+                    const currentDaySlots = [...(prev[targetDayId] || [])];
+                    const updatedDaySlots = currentDaySlots.map(s => {
+                        // Find matching returned slot from DB
+                        // We match by slot_title and start_time as a heuristic for new slots,
+                        // and by slot_id for existing ones.
+                        const found = allReturnedSlots.find(returned => {
+                            if (s.slot_id && !String(s.slot_id).startsWith('temp-')) {
+                                return returned.slot_id === s.slot_id;
+                            }
+                            return returned.slot_title === s.slot_title && 
+                                   returned.start_time === s.start_time;
+                        });
+                        
+                        if (found) {
+                            return { ...found, isOptimistic: false };
+                        }
+                        return s;
+                    });
+                    return { ...prev, [targetDayId]: updatedDaySlots };
+                });
+
+                // IMPORTANT: We don't call loadEventData(true) here to avoid wiping other unsaved changes.
+                // However, the order is now persistent in the DB.
+                showToast('تم تحديث الترتيب بنجاح');
+            }
         } catch (error) {
             console.error('Error updating slots order:', error);
             showToast('فشل حفظ الترتيب الجديد', 'error');
+            // Only reload on error to revert to last known good state
             loadEventData(true);
         }
-        */
     };
 
     const [isSavingChanges, setIsSavingChanges] = useState(false);
@@ -869,8 +943,12 @@ export default function EventBuilder({ event, onBack }) {
             }
 
             // 3. Process Days and Slots
-            // We need to create days first to get real IDs for their slots
-            for (const day of days) {
+            // Re-index days to ensure sequence is correct (1, 2, 3...)
+            const sortedDays = [...days].sort((a, b) => a.day_date.localeCompare(b.day_date));
+            
+            for (let i = 0; i < sortedDays.length; i++) {
+                const day = sortedDays[i];
+                const newDayNumber = i + 1;
                 let currentDayId = day.day_id;
                 
                 if (day.isOptimistic) {
@@ -880,16 +958,16 @@ export default function EventBuilder({ event, onBack }) {
                         day_name: day.day_name,
                         day_name_ar: day.day_name_ar,
                         day_date: day.day_date,
-                        day_number: day.day_number
+                        day_number: newDayNumber
                     });
                     currentDayId = newDay.day_id;
-                } else if (hasUnsavedChanges) {
-                    // Update existing day if needed (currently we don't track day edits specifically, so we'll just skip or update all)
+                } else {
+                    // Update existing day properties and numbering
                     await updateDay(day.day_id, {
                         day_name: day.day_name,
                         day_name_ar: day.day_name_ar,
                         day_date: day.day_date,
-                        day_number: day.day_number
+                        day_number: newDayNumber
                     });
                 }
 
@@ -898,16 +976,15 @@ export default function EventBuilder({ event, onBack }) {
                 const slotsToUpsert = daySlots.map((slot, index) => {
                     const slotData = { 
                         ...slot, 
-                        day_id: currentDayId, // Ensure it uses the real ID (new or existing)
+                        day_id: currentDayId, 
                         sort_order: index + 1 
                     };
                     
-                    // Proactive cleanup: remove slot_id if it's optimistic or null
                     if (slot.isOptimistic || !slot.slot_id) {
                         delete slotData.slot_id;
                     }
                     
-                    delete slotData.isOptimistic; // Always cleanup UI metadata
+                    delete slotData.isOptimistic;
                     return slotData;
                 });
 
@@ -950,7 +1027,13 @@ export default function EventBuilder({ event, onBack }) {
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-4 w-full md:w-auto">
                                 <button
-                                    onClick={onBack}
+                                    onClick={() => {
+                                        if (hasUnsavedChanges) {
+                                            askConfirm('عندك تعديلات مش محفوظة، متأكد إنك عايز تخرج؟', onBack);
+                                        } else {
+                                            onBack();
+                                        }
+                                    }}
                                     className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-premium active:scale-95"
                                 >
                                     <ArrowLeft size={24} />
@@ -1025,7 +1108,12 @@ export default function EventBuilder({ event, onBack }) {
                                     <div className="bg-[#0d0e0e] text-white px-4 sm:px-8 py-4 sm:py-5 mx-3 sm:mx-auto sm:max-w-3xl sm:rounded-[2.5rem] mb-3 sm:mb-8 shadow-2xl shadow-indigo-200/50 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8 border border-white/10 backdrop-blur-xl rounded-2xl">
                                         <div className="flex items-center gap-3 sm:pr-8 sm:border-r sm:border-white/10">
                                             <div className="w-3 h-3 rounded-full bg-amber-500 animate-pulse shrink-0" />
-                                            <span className="font-bold text-sm tracking-tight">عناصر غير محفوظة بالمسودة</span>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-sm tracking-tight">تعديلات غير محفوظة</span>
+                                                {changeSummary && (
+                                                    <span className="text-[10px] text-white/50 font-medium -mt-0.5">{changeSummary}</span>
+                                                )}
+                                            </div>
                                             {invalidSlotIds.size > 0 && (
                                                 <div className="flex items-center gap-1.5 text-red-400 sm:hidden">
                                                     <AlertCircle size={14} />
@@ -1035,7 +1123,11 @@ export default function EventBuilder({ event, onBack }) {
                                         </div>
                                         <div className="flex items-center gap-3 w-full sm:w-auto">
                                             <button
-                                                onClick={() => loadEventData(false)}
+                                                onClick={() => {
+                                                    askConfirm('متأكد إنك عايز تتجاهل كل التعديلات اللي عملتها؟', () => {
+                                                        loadEventData(false);
+                                                    });
+                                                }}
                                                 disabled={isSavingChanges}
                                                 className="flex-1 sm:flex-none px-4 py-2.5 hover:bg-white/10 rounded-2xl font-bold text-sm transition-premium disabled:opacity-30 text-center"
                                             >
@@ -1466,10 +1558,15 @@ export default function EventBuilder({ event, onBack }) {
                                     </div>
                                     <button
                                         onClick={handleSaveImages}
-                                        className="flex items-center gap-2 px-8 py-3.5 bg-[#1a27c9] text-white rounded-2xl font-extrabold hover:bg-[#1a27c9]/90 shadow-xl shadow-indigo-100 transition-premium active:scale-95"
+                                        disabled={isSavingVisuals}
+                                        className="flex items-center gap-2 px-8 py-3.5 bg-[#1a27c9] text-white rounded-2xl font-extrabold hover:bg-[#1a27c9]/90 shadow-xl shadow-indigo-100 transition-premium active:scale-95 disabled:opacity-50"
                                     >
-                                        <Save size={20} />
-                                        <span>Save Changes</span>
+                                        {isSavingVisuals ? (
+                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                        ) : (
+                                            <Save size={20} />
+                                        )}
+                                        <span>{isSavingVisuals ? 'Saving...' : 'Save Changes'}</span>
                                     </button>
                                 </div>
 

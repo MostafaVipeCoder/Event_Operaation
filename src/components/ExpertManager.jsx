@@ -589,14 +589,19 @@ const ExpertManager = ({ isEmbedded = false }) => {
                                         <div className="absolute top-0 left-0 w-1.5 h-full bg-[#1a27c9] opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                                             <div className="flex items-center gap-6 flex-1">
-                                                <div className="relative w-24 h-24 rounded-[1.5rem] overflow-hidden bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform flex-shrink-0">
-                                                    {submission.photo_url ? (
-                                                        <img src={submission.photo_url} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-slate-200">
-                                                            <Users size={40} />
-                                                        </div>
-                                                    )}
+                                                <div className="relative w-24 h-24 rounded-[1.5rem] overflow-hidden bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform flex-shrink-0 aspect-square">
+                                                    <LazyImage
+                                                        src={submission.photo_url ? getGoogleDriveFallbackUrls(submission.photo_url)[0] : null}
+                                                        urls={submission.photo_url ? getGoogleDriveFallbackUrls(submission.photo_url) : []}
+                                                        alt=""
+                                                        objectFit="cover"
+                                                        className="w-full h-full"
+                                                        fallback={
+                                                            <div className="w-full h-full flex items-center justify-center text-slate-200">
+                                                                <Users size={40} />
+                                                            </div>
+                                                        }
+                                                    />
                                                 </div>
                                                 <div>
                                                     <div className="flex flex-wrap items-center gap-3 mb-2">
@@ -996,9 +1001,14 @@ const ExpertManager = ({ isEmbedded = false }) => {
                             </button>
                             <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-6 sm:mb-10 text-center sm:text-left gap-4">
                                 <div className="p-2 bg-white rounded-[2rem] shadow-xl">
-                                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[1.5rem] bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
+                                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[1.5rem] bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 aspect-square">
                                         {selectedSubmission.photo_url ? (
-                                            <img src={selectedSubmission.photo_url} alt="" className="w-full h-full object-cover" />
+                                            <LazyImage 
+                                                src={getGoogleDriveFallbackUrls(selectedSubmission.photo_url)[0]} 
+                                                urls={getGoogleDriveFallbackUrls(selectedSubmission.photo_url)}
+                                                alt="" 
+                                                className="w-full h-full object-cover" 
+                                            />
                                         ) : (
                                             <Users size={40} className="text-slate-200" />
                                         )}

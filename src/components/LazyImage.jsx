@@ -17,6 +17,7 @@ const LazyImage = ({
     padding = false,
     rootMargin = '200px',
     priority = false, // If true, load instantly and set high priority
+    asBackground = false, // If true, render as a background image on a div
 }) => {
     const containerRef = useRef(null);
     
@@ -114,7 +115,7 @@ const LazyImage = ({
     };
 
     return (
-        <div ref={containerRef} className="relative w-full h-full overflow-hidden">
+        <div ref={containerRef} className={`relative overflow-hidden ${className}`}>
             {/* Skeleton shimmer — visible while image hasn't loaded */}
             {!loaded && !showFallback && (
                 <div
@@ -129,23 +130,47 @@ const LazyImage = ({
 
             {/* Image — only mount once in viewport, no loading="lazy" to avoid browser intervention */}
             {isInView && !showFallback && (
-                <img
-                    key={currentSrc}        /* remount on URL change */
-                    src={currentSrc}
-                    alt={alt}
-                    decoding="async"
-                    fetchPriority={priority ? "high" : "auto"}
-                    onLoad={handleSuccess}
-                    onError={handleError}
-                    style={{ transition: 'opacity 0.2s ease' }} // Faster fade-in for less layout shift delay
-                    className={[
-                        'w-full h-full',
-                        loaded ? 'opacity-100' : 'opacity-0',
-                        objectFit === 'contain' ? 'object-contain' : 'object-cover',
-                        padding ? 'p-8' : '',
-                        className,
-                    ].join(' ')}
-                />
+                <>
+                    {asBackground ? (
+                        <div
+                            key={currentSrc}
+                            style={{ 
+                                backgroundImage: `url("${currentSrc}")`,
+                                backgroundSize: objectFit === 'contain' ? 'contain' : 'cover',
+                                backgroundPosition: 'center',
+                                backgroundRepeat: 'no-repeat',
+                                transition: 'opacity 0.2s ease',
+                            }}
+                            className={`w-full h-full ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                        >
+                            {/* Hidden image to trigger load/error events for background mode */}
+                            <img
+                                src={currentSrc}
+                                alt=""
+                                className="hidden"
+                                onLoad={handleSuccess}
+                                onError={handleError}
+                            />
+                        </div>
+                    ) : (
+                        <img
+                            key={currentSrc}        /* remount on URL change */
+                            src={currentSrc}
+                            alt={alt}
+                            decoding="async"
+                            fetchPriority={priority ? "high" : "auto"}
+                            onLoad={handleSuccess}
+                            onError={handleError}
+                            style={{ transition: 'opacity 0.2s ease' }} // Faster fade-in for less layout shift delay
+                            className={[
+                                'w-full h-full',
+                                loaded ? 'opacity-100' : 'opacity-0',
+                                objectFit === 'contain' ? 'object-contain' : 'object-cover',
+                                padding ? 'p-8' : '',
+                            ].join(' ')}
+                        />
+                    )}
+                </>
             )}
 
             {/* Fallback slot */}

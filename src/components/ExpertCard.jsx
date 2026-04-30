@@ -271,7 +271,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
             </div>
 
             <div className="flex flex-col items-center mb-2 z-10 w-full relative">
-                <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-44 md:h-44 mb-3">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-44 md:h-44 mb-3 aspect-square">
                     {linkedin && show_linkedin && (
                         <a
                             href={linkedin}
@@ -287,7 +287,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                         className="absolute inset-2 md:inset-4 rounded-[2rem] md:rounded-[3.5rem] blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
                         style={{ backgroundColor: customColor }}
                     />
-                    <div className="relative w-full h-full rounded-[2rem] md:rounded-[3.5rem] overflow-hidden border-2 md:border-4 border-white shadow-2xl bg-slate-50 transition-transform duration-1000 group-hover:scale-[1.05]">
+                    <div className="relative w-full h-full aspect-square rounded-[2rem] md:rounded-[3.5rem] overflow-hidden border-2 md:border-4 border-white shadow-2xl bg-slate-50 transition-transform duration-1000 group-hover:scale-[1.05]">
                         {show_photo ? (
                             <LazyImage
                                 src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
@@ -295,7 +295,7 @@ const ExpertCard = ({ expert, config, customColor = '#1a27c9', viewMode = 'grid'
                                 alt={name}
                                 objectFit="cover"
                                 priority={priority}
-                                className="grayscale-[0.2] contrast-[1.1] group-hover:grayscale-0 transition-all duration-1000"
+                                className="w-full h-full grayscale-[0.2] contrast-[1.1] group-hover:grayscale-0 transition-all duration-1000"
                                 fallback={
                                     <div
                                         className="w-full h-full flex items-center justify-center text-4xl md:text-6xl font-black"

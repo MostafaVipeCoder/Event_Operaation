@@ -59,7 +59,7 @@ export default function StartupViewer() {
 
 
     if (loading) return (
-        <div className="min-h-screen bg-gray-200 flex flex-col items-center justify-center font-manrope" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center font-manrope" dir={isRtl ? 'rtl' : 'ltr'}>
             <div className="relative mb-8">
                 <div className="w-16 h-16 border-4 border-slate-50 border-t-[#1a27c9] rounded-full animate-spin"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -71,7 +71,7 @@ export default function StartupViewer() {
     );
 
     if (!event || event.error) return (
-        <div className="min-h-screen bg-gray-200 flex flex-col items-center justify-center p-6 text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center" dir={isRtl ? 'rtl' : 'ltr'}>
             <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center text-rose-500 mb-8 border border-rose-50">
                 <ArrowLeft size={32} />
             </div>

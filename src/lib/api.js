@@ -661,7 +661,10 @@ export const deleteSlot = async (slotId) => {
 export const uploadImage = async (file, path = 'covers') => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-    const filePath = `${path}/${fileName}`;
+    
+    // Sanitize path: remove spaces and ensure clean segment joining
+    const sanitizedPath = path.split('/').map(part => part.trim()).filter(Boolean).join('/');
+    const filePath = `${sanitizedPath}/${fileName}`;
 
     console.log(`[Supabase Storage] Uploading: ${filePath}`);
 
@@ -1605,7 +1608,7 @@ export const updateSlotsOrder = async (slots) => {
         // Delete any UI-only metadata if it still exists
         delete cleaned.isOptimistic;
 
-        if (!cleaned.slot_id || cleaned.slot_id === null || cleaned.slot_id === undefined) {
+        if (!cleaned.slot_id || String(cleaned.slot_id).startsWith('temp-') || cleaned.slot_id === null) {
             delete cleaned.slot_id;
             newSlots.push(cleaned);
         } else {
