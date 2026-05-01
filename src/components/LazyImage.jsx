@@ -21,23 +21,28 @@ const LazyImage = ({
 }) => {
     const containerRef = useRef(null);
     
-    // Normalize into a list of URLs to try
-    const baseUrls = urls?.length ? urls : (src ? [src] : []);
-    const primaryKey = baseUrls[0] || 'empty';
-    
-    // Auto-healing cache: get a known-working URL if we successfully loaded this image before
-    const urlsToTry = useMemo(() => {
-        if (!baseUrls.length) return [];
+    // Stable dependencies to avoid infinite re-renders
+    const urlsDep = urls?.join(',') || '';
+
+    const { urlsToTry, primaryKey } = useMemo(() => {
+        const baseUrls = urls?.length ? urls : (src ? [src] : []);
+        const pKey = baseUrls[0] || 'empty';
+        
+        if (!baseUrls.length) return { urlsToTry: [], primaryKey: pKey };
+        
         try {
-            const cachedWorkingUrl = localStorage.getItem(`WorkingImg_${primaryKey}`);
+            const cachedWorkingUrl = localStorage.getItem(`WorkingImg_${pKey}`);
             if (cachedWorkingUrl) {
                 // If we have a cached working URL, put it first, then list the rest (removing duplicates)
-                return [cachedWorkingUrl, ...baseUrls.filter(u => u !== cachedWorkingUrl)];
+                return {
+                    urlsToTry: [cachedWorkingUrl, ...baseUrls.filter(u => u !== cachedWorkingUrl)],
+                    primaryKey: pKey
+                };
             }
         } catch (e) { /* ignore localStorage errors */ }
         
-        return baseUrls;
-    }, [baseUrls, primaryKey]);
+        return { urlsToTry: baseUrls, primaryKey: pKey };
+    }, [urlsDep, src]);
 
     const [isInView, setIsInView] = useState(priority);
     const [urlIndex, setUrlIndex] = useState(0);
