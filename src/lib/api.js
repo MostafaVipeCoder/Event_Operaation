@@ -378,14 +378,46 @@ export const getMasterExperts = () => withCache('master_experts', async () => {
         .from('master_experts')
         .select('*')
         .order('name', { ascending: true });
-    if (error) throw error; return data;
+    if (error) throw error;
+
+    if (!data || data.length === 0) return [];
+
+    // Fetch all event links for these experts in one query
+    const masterIds = data.map(e => e.id);
+    const { data: expertLinks } = await supabase
+        .from('experts')
+        .select('master_id, event_id, events(event_id, event_name)')
+        .in('master_id', masterIds);
+
+    // Build a map of master_id -> [events]
+    const eventsByMaster = {};
+    (expertLinks || []).forEach(link => {
+        if (!link.master_id || !link.events) return;
+        if (!eventsByMaster[link.master_id]) eventsByMaster[link.master_id] = [];
+        // Avoid duplicate events
+        const alreadyAdded = eventsByMaster[link.master_id].some(e => e.event_id === link.events.event_id);
+        if (!alreadyAdded) eventsByMaster[link.master_id].push(link.events);
+    });
+
+    return data.map(expert => ({
+        ...expert,
+        linked_events: eventsByMaster[expert.id] || []
+    }));
 });
 
 export const updateMasterExpert = async (id, data) => {
+    // Strip virtual/computed fields that are NOT real DB columns
+    // linked_events is computed in getMasterExperts and must never be sent to Supabase
+    const {
+        linked_events,  // virtual – computed field, not a DB column
+        id: _id,        // never update primary key
+        ...dbData       // only real columns go to Supabase
+    } = data;
+
     // 1. Update the master record
     const { data: updated, error } = await supabase
         .from('master_experts')
-        .update(data)
+        .update(dbData)
         .eq('id', id)
         .select()
         .single();
@@ -405,11 +437,22 @@ export const updateMasterExpert = async (id, data) => {
 };
 
 export const deleteMasterExpert = async (id) => {
+    // Step 1: Detach all event-specific experts linked to this master.
+    // We set master_id = null instead of deleting them so event data is preserved.
+    const { error: detachError } = await supabase
+        .from('experts')
+        .update({ master_id: null })
+        .eq('master_id', id);
+    if (detachError) throw detachError;
+
+    // Step 2: Now safe to delete the master record (no FK constraint violation)
     const { error } = await supabase
         .from('master_experts')
         .delete()
         .eq('id', id);
-    if (error) throw error; return { success: true };
+    if (error) throw error;
+
+    return { success: true };
 };
 
 export const createExpert = async (expertData) => {
@@ -485,28 +528,48 @@ export const createExpert = async (expertData) => {
 export const updateExpert = async (expertId, expertData) => {
     const { 
         name, name_ar, title, title_ar, company, company_ar, 
-        bio, bio_ar, linkedin_url, photo_url, master_id, sort_order 
+        bio, bio_ar, linkedin_url, photo_url, master_id, sort_order,
+        display_config, event_id,
+        // strip virtual/non-column fields
+        linked_events: _le,
+        id: _id,
+        expert_id: _eid,
+        ...rest
     } = expertData;
-    
-    // 1. Update local expert (sort_order etc)
+
+    // Build the payload for the local experts record
+    // Always update all profile fields directly (handles experts with no master_id too)
+    const localPayload = {
+        name, name_ar, title, title_ar,
+        company, company_ar,
+        bio, bio_ar,
+        linkedin_url, photo_url,
+        ...(sort_order !== undefined && { sort_order }),
+    };
+
+    // 1. Update local expert record
+    // Use maybeSingle() to avoid PGRST116 crash when row doesn't exist
     const { data: localExpert, error: localError } = await supabase
         .from('experts')
-        .update({ sort_order })
+        .update(localPayload)
         .eq('expert_id', expertId)
         .select()
-        .single();
+        .maybeSingle();
     if (localError) throw localError;
 
-    // 2. Update master expert (profile data) -> This will trigger sync to all events via updateMasterExpert
+    // 2. If linked to a master, sync profile data to master + all other linked events
     if (master_id) {
-        const updatedMaster = await updateMasterExpert(master_id, { 
-            name, name_ar, title, title_ar, company, company_ar, bio, bio_ar, linkedin_url, photo_url 
-        });
-        
-        return {
-            ...updatedMaster,
-            ...localExpert
-        };
+        try {
+            await updateMasterExpert(master_id, { 
+                name, name_ar, title, title_ar, 
+                company, company_ar, 
+                bio, bio_ar, 
+                linkedin_url, photo_url 
+            });
+        } catch (masterErr) {
+            // Non-fatal: local record was updated, log the master sync failure
+            console.warn('[updateExpert] Master sync failed (non-fatal):', masterErr);
+        }
     }
 
     return localExpert;

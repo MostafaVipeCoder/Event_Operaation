@@ -20,16 +20,16 @@ const LazyImage = ({
     asBackground = false, // If true, render as a background image on a div
 }) => {
     const containerRef = useRef(null);
-    
+
     // Stable dependencies to avoid infinite re-renders
     const urlsDep = urls?.join(',') || '';
 
     const { urlsToTry, primaryKey } = useMemo(() => {
         const baseUrls = urls?.length ? urls : (src ? [src] : []);
         const pKey = baseUrls[0] || 'empty';
-        
+
         if (!baseUrls.length) return { urlsToTry: [], primaryKey: pKey };
-        
+
         try {
             const cachedWorkingUrl = localStorage.getItem(`WorkingImg_${pKey}`);
             if (cachedWorkingUrl) {
@@ -40,7 +40,7 @@ const LazyImage = ({
                 };
             }
         } catch (e) { /* ignore localStorage errors */ }
-        
+
         return { urlsToTry: baseUrls, primaryKey: pKey };
     }, [urlsDep, src]);
 
@@ -87,7 +87,7 @@ const LazyImage = ({
         if (urlIndex === 0) {
             console.warn(`❌ Image Load Failed [${alt || 'Unknown'}]:`, currentSrc);
         }
-        
+
         // If this URL was previously cached as "working", evict it from cache because it's now failing
         try {
             const cachedUrl = localStorage.getItem(`WorkingImg_${primaryKey}`);
@@ -107,14 +107,14 @@ const LazyImage = ({
             setUrlIndex(urlsToTry.length); // triggers allFailed
         }
     };
-    
+
     const handleSuccess = () => {
         setLoaded(true);
         // Save to cache so we don't have to fallback sequentially next time!
         try {
             localStorage.setItem(`WorkingImg_${primaryKey}`, currentSrc);
             if (urlIndex > 0) {
-               console.log(`✅ Image Auto-Healed [${alt || 'Unknown'}]! Successfully loaded on fallback #${urlIndex + 1}:`, currentSrc);
+                console.log(`✅ Image Auto-Healed [${alt || 'Unknown'}]! Successfully loaded on fallback #${urlIndex + 1}:`, currentSrc);
             }
         } catch (_e) { /* ignore localStorage errors */ }
     };
@@ -139,7 +139,7 @@ const LazyImage = ({
                     {asBackground ? (
                         <div
                             key={currentSrc}
-                            style={{ 
+                            style={{
                                 backgroundImage: `url("${currentSrc}")`,
                                 backgroundSize: objectFit === 'contain' ? 'contain' : 'cover',
                                 backgroundPosition: 'center',

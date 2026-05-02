@@ -48,7 +48,7 @@ export function usePresence(roomId = 'global') {
       // Clean up existing channels with the same name (React Strict Mode fix)
       const existing = supabase.getChannels().filter(c => c.topic === `realtime:${topic}`);
       for (const c of existing) {
-        await supabase.removeChannel(c);
+        await safeRemoveChannel(c);
       }
 
       // Bail out again in case unmount happened during channel cleanup
@@ -94,13 +94,28 @@ export function usePresence(roomId = 'global') {
       // Mark as unmounted to stop any in-flight async operations
       isMounted = false;
 
-      // Safely remove the channel if it was created
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+      // Safely remove the channel — fire-and-forget, suppress any WS race errors
+      const ch = channelRef.current;
+      if (ch) {
         channelRef.current = null;
+        safeRemoveChannel(ch);
       }
     };
   }, [user, roomId]);
 
   return { activeUsers, profile };
+}
+
+/**
+ * Removes a Supabase realtime channel without throwing.
+ * Suppresses the harmless "WebSocket closed before established" warning
+ * that occurs when cleanup races with an in-progress connection.
+ */
+async function safeRemoveChannel(channel) {
+  try {
+    await supabase.removeChannel(channel);
+  } catch (_err) {
+    // Intentionally ignored — this fires when the component unmounts
+    // before the WebSocket handshake completes. It's harmless.
+  }
 }

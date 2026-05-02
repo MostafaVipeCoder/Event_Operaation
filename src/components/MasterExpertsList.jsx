@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Users, Search, Filter, Plus, ArrowLeft, 
-    Edit2, Trash2, ExternalLink, Linkedin, 
-    Briefcase, User, Info, Check, X, AlertCircle,
-    LayoutGrid, List
+    Users, Search, ArrowLeft, 
+    Edit2, Trash2, Linkedin, 
+    Briefcase, User, Info, Check, X,
+    LayoutGrid, List, Calendar, ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getMasterExperts, updateMasterExpert, deleteMasterExpert } from '../lib/api';
 import { getGoogleDriveFallbackUrls } from '../lib/utils';
 import LazyImage from './LazyImage';
-import ExpertCard from './ExpertCard';
 
 export default function MasterExpertsList() {
     const navigate = useNavigate();
@@ -54,12 +53,21 @@ export default function MasterExpertsList() {
     };
 
     const handleDeleteExpert = async (id) => {
-        if (!confirm('Are you sure? This will remove the expert from the library (existing event data will remain).')) return;
+        const expert = experts.find(e => e.id === id);
+        const eventCount = expert?.linked_events?.length || 0;
+        const warningMsg = eventCount > 0
+            ? `⚠️ هذا الخبير مرتبط بـ ${eventCount} حدث/أحداث.\n\nالحذف سيزيله من المكتبة المركزية، لكن بياناته ستبقى في الأحداث المرتبطة بشكل مستقل.\n\nهل أنت متأكد من الحذف؟`
+            : `هل أنت متأكد من حذف هذا الخبير من المكتبة المركزية؟`;
+
+        if (!confirm(warningMsg)) return;
         try {
             await deleteMasterExpert(id);
             setExperts(prev => prev.filter(e => e.id !== id));
-        } catch (_err) {
-            alert('Error deleting expert');
+            setSuccessMessage('تم حذف الخبير بنجاح ✓');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            console.error('Error deleting expert:', err);
+            alert('حدث خطأ أثناء الحذف. يرجى المحاولة مرة أخرى.');
         }
     };
 
@@ -182,24 +190,25 @@ export default function MasterExpertsList() {
                         </p>
                     </div>
                 ) : viewMode === 'grid' ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                         {filteredExperts.map(expert => (
-                            <ExpertCard 
+                            <MasterExpertCard
                                 key={expert.id} 
                                 expert={expert} 
                                 onEdit={() => setEditingExpert(expert)}
                                 onDelete={() => handleDeleteExpert(expert.id)}
+                                navigate={navigate}
                             />
                         ))}
                     </div>
                 ) : (
                     <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm overflow-x-auto">
-                        <table className="w-full text-left min-w-[600px]">
+                        <table className="w-full text-left min-w-[700px]">
                             <thead className="bg-muted/50 border-b border-border/50">
                                 <tr>
                                     <th className="px-6 py-4 font-black">Expert</th>
                                     <th className="px-6 py-4 font-black">Professional Info</th>
-                                    <th className="px-6 py-4 font-black">Bio</th>
+                                    <th className="px-6 py-4 font-black">Events</th>
                                     <th className="px-6 py-4 text-right font-black">Actions</th>
                                 </tr>
                             </thead>
@@ -210,6 +219,7 @@ export default function MasterExpertsList() {
                                         expert={expert} 
                                         onEdit={() => setEditingExpert(expert)}
                                         onDelete={() => handleDeleteExpert(expert.id)}
+                                        navigate={navigate}
                                     />
                                 ))}
                             </tbody>
@@ -230,7 +240,102 @@ export default function MasterExpertsList() {
     );
 }
 
-function ExpertRow({ expert, onEdit, onDelete }) {
+function MasterExpertCard({ expert, onEdit, onDelete, navigate }) {
+    const photo = expert.photo_url;
+    const events = expert.linked_events || [];
+
+    return (
+        <div className="group relative bg-card border border-border/50 rounded-[2rem] overflow-hidden hover:shadow-xl hover:border-athar-blue/20 transition-all duration-500 flex flex-col">
+            {/* Actions */}
+            <div className="absolute top-3 right-3 z-20 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                    onClick={onEdit}
+                    className="w-8 h-8 bg-white/90 backdrop-blur-sm border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:text-athar-blue hover:border-athar-blue/30 transition-all shadow-sm"
+                >
+                    <Edit2 size={14} />
+                </button>
+                <button
+                    onClick={onDelete}
+                    className="w-8 h-8 bg-white/90 backdrop-blur-sm border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-all shadow-sm"
+                >
+                    <Trash2 size={14} />
+                </button>
+            </div>
+
+            {/* Photo + Name */}
+            <div className="p-5 flex flex-col items-center text-center flex-1">
+                <div className="w-20 h-20 rounded-[1.5rem] overflow-hidden bg-muted border-2 border-white shadow-md mb-4 shrink-0">
+                    <LazyImage
+                        src={photo ? getGoogleDriveFallbackUrls(photo)[0] : null}
+                        urls={photo ? getGoogleDriveFallbackUrls(photo) : []}
+                        alt={expert.name}
+                        objectFit="cover"
+                        className="w-full h-full"
+                        fallback={
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-muted">
+                                <User size={28} />
+                            </div>
+                        }
+                    />
+                </div>
+
+                <h3 className="font-black text-sm tracking-tight leading-tight mb-0.5">{expert.name}</h3>
+                {expert.name_ar && (
+                    <p className="text-xs text-muted-foreground font-semibold mb-1" dir="rtl">{expert.name_ar}</p>
+                )}
+
+                {expert.title && (
+                    <p className="text-[10px] font-black text-athar-blue uppercase tracking-wider opacity-80 mb-1">{expert.title}</p>
+                )}
+                {expert.company && (
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-semibold">
+                        <Briefcase size={9} />{expert.company}
+                    </div>
+                )}
+
+                {expert.linkedin_url && (
+                    <a
+                        href={expert.linkedin_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 text-[10px] text-athar-blue font-bold flex items-center gap-1 hover:underline"
+                    >
+                        <Linkedin size={10} /> LinkedIn
+                    </a>
+                )}
+            </div>
+
+            {/* Events section */}
+            <div className="border-t border-border/50 bg-muted/30 px-4 py-3">
+                <div className="flex items-center gap-1.5 mb-2">
+                    <Calendar size={11} className="text-athar-blue" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                        Events ({events.length})
+                    </span>
+                </div>
+                {events.length === 0 ? (
+                    <p className="text-[10px] text-muted-foreground italic font-medium">Not linked to any event yet</p>
+                ) : (
+                    <div className="flex flex-col gap-1">
+                        {events.map(ev => (
+                            <button
+                                key={ev.event_id}
+                                onClick={() => navigate(`/event/${ev.event_id}`)}
+                                className="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-athar-blue/5 hover:bg-athar-blue/10 text-athar-blue rounded-lg border border-athar-blue/10 transition-colors text-left w-full group/ev"
+                            >
+                                <span className="text-[10px] font-bold truncate">{ev.event_name}</span>
+                                <ChevronRight size={12} className="shrink-0 opacity-50 group-hover/ev:opacity-100 group-hover/ev:translate-x-0.5 transition-all" />
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function ExpertRow({ expert, onEdit, onDelete, navigate }) {
+    const events = expert.linked_events || [];
     return (
         <tr className="hover:bg-muted/30 transition-colors group">
             <td className="px-6 py-6">
@@ -251,9 +356,10 @@ function ExpertRow({ expert, onEdit, onDelete }) {
                     </div>
                     <div>
                         <div className="font-black text-sm tracking-tight">{expert.name}</div>
+                        {expert.name_ar && <div className="text-xs text-muted-foreground font-semibold" dir="rtl">{expert.name_ar}</div>}
                         {expert.linkedin_url && (
                             <a href={expert.linkedin_url} target="_blank" rel="noreferrer" className="text-xs text-athar-blue font-bold flex items-center gap-1 mt-1 hover:underline">
-                                <Linkedin size={10} /> LinkedIn Profile
+                                <Linkedin size={10} /> LinkedIn
                             </a>
                         )}
                     </div>
@@ -261,14 +367,28 @@ function ExpertRow({ expert, onEdit, onDelete }) {
             </td>
             <td className="px-6 py-4">
                 <div className="text-sm font-bold">{expert.title}</div>
+                {expert.title_ar && <div className="text-xs text-muted-foreground font-medium" dir="rtl">{expert.title_ar}</div>}
                 <div className="text-xs text-muted-foreground font-semibold mt-1 flex items-center gap-1">
                     <Briefcase size={10} /> {expert.company}
                 </div>
             </td>
-            <td className="px-6 py-4 max-w-md">
-                <p className="text-sm text-muted-foreground line-clamp-1 italic leading-relaxed font-semibold">
-                    {expert.bio || '---'}
-                </p>
+            <td className="px-6 py-4">
+                {events.length === 0 ? (
+                    <span className="text-xs text-muted-foreground italic">No events</span>
+                ) : (
+                    <div className="flex flex-col gap-1">
+                        {events.map(ev => (
+                            <button
+                                key={ev.event_id}
+                                onClick={() => navigate(`/event/${ev.event_id}`)}
+                                className="flex items-center gap-1.5 text-[10px] font-bold text-athar-blue hover:underline text-left"
+                            >
+                                <Calendar size={10} className="shrink-0" />
+                                {ev.event_name}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </td>
             <td className="px-6 py-4 text-right">
                 <div className="flex items-center justify-end gap-2">
@@ -285,7 +405,21 @@ function ExpertRow({ expert, onEdit, onDelete }) {
 }
 
 function ExpertEditModal({ expert, onClose, onSave }) {
-    const [formData, setFormData] = useState({ ...expert });
+    // Normalize null → '' for all fields so React controlled inputs don't warn
+    const normalize = (val) => (val === null || val === undefined) ? '' : val;
+    const [formData, setFormData] = useState({
+        ...expert,
+        name:         normalize(expert.name),
+        name_ar:      normalize(expert.name_ar),
+        title:        normalize(expert.title),
+        title_ar:     normalize(expert.title_ar),
+        company:      normalize(expert.company),
+        company_ar:   normalize(expert.company_ar),
+        bio:          normalize(expert.bio),
+        bio_ar:       normalize(expert.bio_ar),
+        photo_url:    normalize(expert.photo_url),
+        linkedin_url: normalize(expert.linkedin_url),
+    });
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
