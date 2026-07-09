@@ -24,6 +24,9 @@ const MasterExpertsList = lazy(() => import('./components/MasterExpertsList'));
 const ListsManager = lazy(() => import('./components/ListsManager'));
 const LibraryManager = lazy(() => import('./components/LibraryManager'));
 const LibraryViewer = lazy(() => import('./components/LibraryViewer'));
+const MentorBookingAdmin = lazy(() => import('./components/MentorBookingAdmin'));
+const MentorBookingPage = lazy(() => import('./components/MentorBookingPage'));
+const MentorDetails = lazy(() => import('./components/MentorDetails'));
 
 // ─── Prefetch helpers (call on hover to warm up JS chunks) ──────────────────
 // Each function triggers a dynamic import which caches the chunk immediately.
@@ -188,6 +191,19 @@ function App() {
             <Route path="/events/:eventId/register/company" element={<CompanyPortal />} />
             <Route path="/events/:eventId/register/expert" element={<ExpertPortal />} />
             <Route path="/events/:eventId/register/form/:formId" element={<GenericFormPortal />} />
+
+            {/* Mentor Booking Routes */}
+            <Route path="/event/:eventId/mentor-booking" element={
+              <ProtectedRoute>
+                <MentorBookingAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/event/:eventId/mentor-booking/:mentorId" element={
+              <ProtectedRoute>
+                <MentorDetails />
+              </ProtectedRoute>
+            } />
+            <Route path="/book/:mentorId" element={<MentorBookingPage />} />
           </Routes>
         </Suspense>
       </Router>

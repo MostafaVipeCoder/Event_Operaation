@@ -29,6 +29,8 @@ export default function EventDashboard() {
     // Sync Metadata State
     const [gsheetsUrl, setGsheetsUrl] = useState('');
     const [isSavingUrl, setIsSavingUrl] = useState(false);
+    const [selectionProcessGsheetsUrl, setSelectionProcessGsheetsUrl] = useState('');
+    const [isSavingSelectionProcessUrl, setIsSavingSelectionProcessUrl] = useState(false);
 
     // Duplicate Event State
     const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
@@ -66,6 +68,20 @@ export default function EventDashboard() {
             alert('Failed to save sync configuration.');
         } finally {
             setIsSavingUrl(false);
+        }
+    };
+
+    const handleSaveSelectionProcessGsheetsUrl = async () => {
+        try {
+            setIsSavingSelectionProcessUrl(true);
+            await updateEvent(eventId, { selection_process_gsheets_url: selectionProcessGsheetsUrl });
+            setEvent(prev => ({ ...prev, selection_process_gsheets_url: selectionProcessGsheetsUrl }));
+            alert('Successfully saved sync configuration!');
+        } catch (error) {
+            console.error('Error saving Selection Process Google Sheets URL:', error);
+            alert(`Failed to save sync configuration. Error: ${error.message}`);
+        } finally {
+            setIsSavingSelectionProcessUrl(false);
         }
     };
 
@@ -113,6 +129,7 @@ export default function EventDashboard() {
             if (data.experts_color) setExpertsColor(data.experts_color);
             if (data.startups_color) setStartupsColor(data.startups_color);
             if (data.gsheets_url) setGsheetsUrl(data.gsheets_url);
+            if (data.selection_process_gsheets_url) setSelectionProcessGsheetsUrl(data.selection_process_gsheets_url);
         } catch (error) {
             console.error('Error loading event:', error);
         } finally {
@@ -153,43 +170,50 @@ export default function EventDashboard() {
     }
 
     const modules = [
-        {
-            title: "Agenda Builder",
-            icon: <Calendar size={32} className="text-primary" />,
-            manageLink: `/event/${eventId}/agenda`,
-            previewLink: `/agenda/${eventId}`,
-            prefetchKey: 'agenda',
-            accent: "hsl(var(--primary))",
-        },
-        {
-            title: "Lists",
-            icon: <LayoutGrid size={32} className="text-emerald-600" />,
-            manageLink: `/event/${eventId}/lists`,
-            prefetchKey: 'lists',
-            accent: "#059669",
-        },
-        {
-            title: "Form Builder",
-            icon: <Inbox size={32} className="text-primary" />,
-            manageLink: `/event/${eventId}/forms`,
-            prefetchKey: 'forms',
-            accent: "hsl(var(--primary))",
-        },
-        {
-            title: "Selection Process",
-            icon: <ClipboardList size={32} className="text-primary" />,
-            manageLink: `/event/${eventId}/selection`,
-            prefetchKey: 'selection',
-            accent: "hsl(var(--primary))",
-        },
-        {
-            title: "Library",
-            icon: <BookOpen size={32} className="text-blue-600" />,
-            manageLink: `/event/${eventId}/library`,
-            prefetchKey: 'library',
-            accent: "#2563eb",
-        },
-    ];
+    {
+      title: "Agenda Builder",
+      icon: <Calendar size={32} className="text-primary" />,
+      manageLink: `/event/${eventId}/agenda`,
+      previewLink: `/agenda/${eventId}`,
+      prefetchKey: 'agenda',
+      accent: "hsl(var(--primary))",
+    },
+    {
+      title: "Lists",
+      icon: <LayoutGrid size={32} className="text-emerald-600" />,
+      manageLink: `/event/${eventId}/lists`,
+      prefetchKey: 'lists',
+      accent: "#059669",
+    },
+    {
+      title: "Form Builder",
+      icon: <Inbox size={32} className="text-primary" />,
+      manageLink: `/event/${eventId}/forms`,
+      prefetchKey: 'forms',
+      accent: "hsl(var(--primary))",
+    },
+    {
+      title: "Mentor Booking",
+      icon: <Users size={32} className="text-purple-600" />,
+      manageLink: `/event/${eventId}/mentor-booking`,
+      prefetchKey: 'mentor-booking',
+      accent: "#9333ea",
+    },
+    {
+      title: "Selection Process",
+      icon: <ClipboardList size={32} className="text-primary" />,
+      manageLink: `/event/${eventId}/selection`,
+      prefetchKey: 'selection',
+      accent: "hsl(var(--primary))",
+    },
+    {
+      title: "Library",
+      icon: <BookOpen size={32} className="text-blue-600" />,
+      manageLink: `/event/${eventId}/library`,
+      prefetchKey: 'library',
+      accent: "#2563eb",
+    },
+  ];
 
     return (
         <div className="min-h-screen bg-background font-manrope text-foreground pb-24 relative overflow-hidden">
@@ -468,6 +492,48 @@ export default function EventDashboard() {
                                     <FileSpreadsheet size={16} />
                                     <span>Template</span>
                                 </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Selection Process Sync Configuration */}
+                <div className="mb-12 bg-card rounded-xl border border-border overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-8">
+                    {/* Header */}
+                    <div className="p-6 md:p-8 relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                        <div className="flex items-start md:items-center justify-between gap-4 relative z-10">
+                            <div>
+                                <div className="flex items-center gap-3 mb-1.5 md:mb-2">
+                                    <div className="bg-emerald-500/10 p-2 rounded-lg text-emerald-600">
+                                        <ClipboardList size={18} />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-foreground tracking-tight">Selection Process Sync</h3>
+                                </div>
+                                <p className="text-muted-foreground text-sm font-medium">Provide a Google Sheets URL to synchronize your selection process submissions.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="px-6 pb-6 md:px-8 md:pb-8 pt-0">
+                        <div className="flex flex-col gap-3 w-full mt-2 md:mt-0 pt-4 md:pt-0 border-t border-border/50 md:border-none">
+                            <input
+                                type="text"
+                                placeholder="Paste Selection Process Google Sheets URL here..."
+                                value={selectionProcessGsheetsUrl}
+                                onChange={(e) => setSelectionProcessGsheetsUrl(e.target.value)}
+                                className="w-full px-4 sm:px-6 py-3.5 bg-background border border-border rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                            />
+                            <div className="flex items-center gap-3 w-full">
+                                <button
+                                    onClick={handleSaveSelectionProcessGsheetsUrl}
+                                    disabled={isSavingSelectionProcessUrl || selectionProcessGsheetsUrl === event?.selection_process_gsheets_url}
+                                    className="px-4 py-3.5 md:px-6 bg-emerald-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm tap-target aspect-square md:aspect-auto"
+                                >
+                                    {isSavingSelectionProcessUrl ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+                                    <span className="hidden md:inline">{isSavingSelectionProcessUrl ? 'Saving...' : 'Save Source'}</span>
+                                </button>
                             </div>
                         </div>
                     </div>

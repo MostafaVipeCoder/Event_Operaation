@@ -1545,12 +1545,13 @@ export const syncSubmissionsFromSheet = async (eventId, url) => {
         const data = await fetchAndParseGenericGoogleSheet(url);
         const sheetNames = Object.keys(data);
         const targetSheet = sheetNames.find(name =>
+            name.toLowerCase().trim() === 'total responces' ||
             name.toLowerCase().trim() === 'selection prosses' ||
             name.toLowerCase().trim() === 'selection process'
         );
 
         if (!targetSheet) {
-            throw new Error('Could not find a sheet named "selection prosses". Please ensure your Google Sheet has a tab with this exact name.');
+            throw new Error('Could not find a sheet named "Total responces". Please ensure your Google Sheet has a tab with this exact name.');
         }
 
         const sheetData = data[targetSheet];

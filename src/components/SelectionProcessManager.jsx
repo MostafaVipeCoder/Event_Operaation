@@ -112,7 +112,7 @@ const SelectionProcessManager = () => {
             ]);
             setEvent(evData);
             setSubmissions(subData || []);
-            setSheetUrl(evData.gsheets_url || '');
+            setSheetUrl(evData.selection_process_gsheets_url || '');
             setError(null);
         } catch (err) {
             console.error('Error loading selection data:', err);
@@ -141,7 +141,7 @@ const SelectionProcessManager = () => {
             setIsSyncing(true);
 
             // Save the URL to the event first so it persists
-            await updateEvent(eventId, { gsheets_url: sheetUrl });
+            await updateEvent(eventId, { selection_process_gsheets_url: sheetUrl });
 
             const result = await syncSubmissionsFromSheet(eventId, sheetUrl);
             await loadData();

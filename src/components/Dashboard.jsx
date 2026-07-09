@@ -144,6 +144,14 @@ export default function Dashboard() {
                                     <span className="hidden sm:inline">Athar Experts Network</span>
                                 </Link>
 
+                                <Link
+                                    to="/mentor-booking-admin"
+                                    className="flex items-center gap-2 text-muted-foreground hover:text-athar-blue px-3 sm:px-4 py-2 rounded-lg font-bold transition-all hover:bg-athar-blue/5 tap-target"
+                                >
+                                    <Calendar size={18} />
+                                    <span className="hidden sm:inline">Mentor Booking</span>
+                                </Link>
+
                                 <button
                                     onClick={() => setShowCreateModal(true)}
                                     className="group relative overflow-hidden flex items-center gap-2 bg-gradient-to-r from-athar-blue to-athar-black text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-bold transition-all duration-300 shadow-lg shadow-athar-blue/20 hover:-translate-y-0.5 active:scale-95"
